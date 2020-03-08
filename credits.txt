@@ -1,0 +1,1 @@
+BreakInfinity from https://github.com/Razenpok/BreakInfinity.cs

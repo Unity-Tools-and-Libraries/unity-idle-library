@@ -19,7 +19,19 @@ To unconditionally change the amount of a resource, call ChangeEntityQuantity on
 
 To unconditionally set the amount of a resource, call SetResourceQuantity with the key of the entity and new quantity. This discards the previous quantity and unconditionally set it to the new amount.
 
-To buy more of a resource, call BuyEntity, with the key of the entity and quantity to attempt to buy. Buying differs from Change and Set in that it checks for if the costs and requirements are met.
+To buy more of a resource while spending resources, call BuyEntity, with the key of the entity and quantity to attempt to buy. Buying differs from Change and Set in that it checks for if the costs and requirements are met.
 
 ## 3. Future Features
-Conditionally available entities
+Engine hooks
+	- Entity purchase
+	- Entity production input
+	- Entity production output
+Tutorial system
+Max quantity
+Tracking of property modifiers
+Custom properties
+Property reference
+Read-only views of entity, engine state
+Change values to per-second and enable scaling
+Allow Modifier effect to affect a portion of the quantity of an entity
+Unpurchaseable entities

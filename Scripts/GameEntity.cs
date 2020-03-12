@@ -11,30 +11,51 @@ namespace IdleFramework
         private BigDouble _quantity = 0;
         private BigDouble _progress = 0;
         public readonly EntityDefinition definition;
-
-        public bool IsResource => definition.IsResource;
+        private Dictionary<string, BigDouble> requirements = new Dictionary<string, BigDouble>();
+        private Dictionary<string, BigDouble> costs = new Dictionary<string, BigDouble>();
+        private Dictionary<string, BigDouble> productionInputs = new Dictionary<string, BigDouble>();
+        private Dictionary<string, BigDouble> productionOutputs = new Dictionary<string, BigDouble>();
+        private Dictionary<string, BigDouble> upkeep = new Dictionary<string, BigDouble>();
+        private Dictionary<string, BigDouble> minimumProduction = new Dictionary<string, BigDouble>();
+        private StateMatcher hideEntityMatcher;
+        private StateMatcher disableEntityMatcher;
 
         public string EntityKey => definition.EntityKey;
-
         public string Name => definition.Name;
-
-        public BigDouble InnateIncome => definition.InnateIncome;
-
         public BigDouble StartingQuantity => definition.StartingQuantity;
-
-        public Dictionary<string, BigDouble> Requires => definition.Requires;
-
-        public Dictionary<string, BigDouble> Costs => definition.Costs;
-
-        public Dictionary<string, ConsumptionDefinition> Consumes => definition.Consumes;
-
-        public Dictionary<string, BigDouble> Produces => definition.Produces;
-
+        public Dictionary<string, PropertyReference> BaseRequirements => definition.BaseRequirements;
+        public Dictionary<string, PropertyReference> BaseCosts => definition.BaseCosts;
+        public Dictionary<string, PropertyReference> BaseProductionInputs => definition.BaseProductionInputs;
+        public Dictionary<string, PropertyReference> BaseProductionOutputs => definition.BaseProductionOutputs;
+        public Dictionary<string, PropertyReference> BaseUpkeep => definition.BaseUpkeep;
         public BigDouble Quantity => _quantity;
-
         public BigDouble Progress => _progress;
-
         public ISet<string> Types => definition.Types;
+        public bool ScaleProductionOnAvailableInputs => definition.ScaleProductionOnAvailableInputs;
+        public StateMatcher HiddenMatcher => hideEntityMatcher;
+        public StateMatcher DisabledMatcher => disableEntityMatcher;
+
+        /*
+         * The quantities of entities which are required when trying to buy this entity.
+         */
+        public Dictionary<string, BigDouble> Requirements => requirements;
+        /*
+         * The entities and quantities which are consumed to buy this entity.
+         */
+        public Dictionary<string, BigDouble> Costs => costs;
+        /*
+         * The entities and quantities which are consumed each tick by this entity and if a shortfall of these requirements causes the loss of this entity.
+         */
+        public Dictionary<string, BigDouble> Upkeep => upkeep;
+        /*
+         * The entities and quantities which are consumed by this entity as inputs to their production.
+         */
+        public Dictionary<string, BigDouble> ProductionInputs => productionInputs;
+        /*
+         * The entities and quantities that this entity produces each tick, and the entities and quantities that are required to produce without being consumed and entities and quantities which are consumed to produce.
+         */
+        public Dictionary<string, BigDouble> ProductionOutputs => productionOutputs;
+        public Dictionary<string, BigDouble> MinimumProductionOutputs => minimumProduction;
 
         public GameEntity(EntityDefinition definition, IdleEngine engine)
         {
@@ -42,55 +63,51 @@ namespace IdleFramework
             _quantity = definition.StartingQuantity;
             this.engine = engine;
         }
+        public ISet<ModifierDefinition> Modifiers => ((EntityDefinitionProperties)definition).Modifiers;
 
-        public void Update()
+        public Dictionary<string, PropertyReference> BaseMinimumProductionOutputs => definition.BaseMinimumProductionOutputs;
+
+        public void Buy(BigDouble quantityToBuy, bool buyAllOrNone)
         {
-            // Determine amount of production current resources allow.
-            Dictionary<string, BigDouble> productionResults = DetermineProduction();
-
-            engine.UpdateResourcesFromEntityProduction(productionResults);
-
-            // Determine quantity of entity supported by resources
-            BigDouble quantityConsuming = Quantity;
-            foreach (var resource in Consumes)
-            {
-                quantityConsuming = BigDouble.Min(Quantity, engine.Resources[resource.Key].Quantity / resource.Value.Quantity);
-                if (resource.Value.EntityLostOnShortfall) {
-                    quantityConsuming = BigDouble.Min(Quantity, quantityConsuming);
-                }
-            }
-
-            engine.UpdateResourcesFromEntityConsumption(this, quantityConsuming);
-            
-            _quantity = quantityConsuming;
+            engine.BuyEntity(this, quantityToBuy, buyAllOrNone);
         }
 
-        internal void AddModifier(Modifier modifier)
+        public void Buy(BigDouble quantityToBuy)
+        {
+            Buy(quantityToBuy, false);
+        }
+
+        public bool RequirementAreMet()
+        {
+            var requirementsMet = true;
+            foreach(var requirement in Requirements)
+            {
+                requirementsMet = engine.AllEntities[requirement.Key].Quantity >= requirement.Value;
+            }
+            return requirementsMet;
+        }
+
+        internal void AddModifier(ModifierDefinition modifier)
         {
             throw new NotImplementedException();
         }
 
         /**
-         * Determine the amount of
-         * 
-         * Returns the entities and quantities produced.
+         * Determine the number of entities which are able to produce.
          */
-        public Dictionary<string, BigDouble> DetermineProduction()
+        public BigDouble DetermineProduction()
         {
             var quantityAbleToProduce = Quantity;
-            foreach (var requirement in Consumes)
+            foreach (var requirement in ProductionInputs)
             {
-                if(requirement.Value.ProductionBlockedOnShortfall)
+                var quantityWithSufficientInputs = BigDouble.Min(engine.AllEntities[requirement.Key].Quantity / requirement.Value, this.Quantity);
+                if(!ScaleProductionOnAvailableInputs)
                 {
-                    quantityAbleToProduce = BigDouble.Min(engine.Resources[requirement.Key].Quantity / requirement.Value.Quantity, this.Quantity);
+                    quantityAbleToProduce = 0;
+                    break;
                 }
             }
-            var produced = new Dictionary<string, BigDouble>();
-            foreach(var production in Produces)
-            {
-                produced.Add(production.Key, production.Value * quantityAbleToProduce);
-            }
-            return produced;
+            return quantityAbleToProduce;
         }
 
         public void ChangeQuantity(BigDouble changeBy)
@@ -114,6 +131,30 @@ namespace IdleFramework
         public void SetProgress(int newProgress)
         {
             _progress = newProgress % 1000;
+        }
+
+        public bool ShouldBeHidden(IdleEngine engine)
+        {
+            return definition.HiddenMatcher.Matches(engine);
+        }
+
+        public bool ShouldBeDisabled(IdleEngine engine)
+        {
+            return definition.DisabledMatcher.Matches(engine);
+        }
+
+        public override string ToString()
+        {
+            return String.Format("GameEntity({0}) x {1}", this.Name, this.Quantity);
+        }
+
+        public enum ModifiableProperty
+        {
+            UPKEEP,
+            PRODUCTION_INPUTS,
+            PRODUCTION_OUTPUTS,
+            COST,
+            REQUIREMENTS
         }
     }
 }

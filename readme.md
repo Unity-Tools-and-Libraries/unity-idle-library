@@ -22,16 +22,14 @@ To unconditionally set the amount of a resource, call SetResourceQuantity with t
 To buy more of a resource while spending resources, call BuyEntity, with the key of the entity and quantity to attempt to buy. Buying differs from Change and Set in that it checks for if the costs and requirements are met.
 
 ## 3. Future Features
-Engine hooks
+Engine hooks - This will allow custom user-defined code that can be run when things occur inside the engine that is more sophisticated than what can be done declaratively.
 	- Entity purchase
 	- Entity production input
 	- Entity production output
 Tutorial system
-Max quantity
-Tracking of property modifiers
-Custom properties
-Property reference
-Read-only views of entity, engine state
-Change values to per-second and enable scaling
-Allow Modifier effect to affect a portion of the quantity of an entity
-Unpurchaseable entities
+Minimum and maximum quantities - Set caps and floors on entity quantities
+Tracking of property modifiers - For e.g. tooltips
+Custom properties - Add custom properties to the engine and entities.
+Read-only views of entity, engine state - So state can be queries without allowing for modification.
+Change values to per-second and enable scaling - Allows setting values for e.g. production independent of the update rate.
+Unpurchaseable entities - Support entities that cannot be purchased, only produced by e.g. other entities.

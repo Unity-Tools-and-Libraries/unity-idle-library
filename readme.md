@@ -44,3 +44,5 @@ Unpurchaseable entities - Support entities that cannot be purchased, only produc
 Actions which occur over a period of time.
 Singleton entities - For things like upgrades/research, characters, etc.
 UI Component generation framework
+Offline mechanics
+Support for prestige mechanics

@@ -17,13 +17,13 @@ namespace Tests
         public void setup()
         {
             engine = new IdleEngine(new GameConfigurationBuilder()
-                .WithEntity(new EntityDefinition(new EntityDefinitionBuilder("test-1")
-                    .WithProduction("food", 0)))
-                .WithEntity(new EntityDefinition(new EntityDefinitionBuilder("test-2")
-                    .WithProduction("food", 1)))
-                .WithEntity(new EntityDefinition(new EntityDefinitionBuilder("test-3")
+                .WithEntity(new EntityDefinitionBuilder("test-1")
+                    .WithProduction("food", 0))
+                .WithEntity(new EntityDefinitionBuilder("test-2")
+                    .WithProduction("food", 1))
+                .WithEntity(new EntityDefinitionBuilder("test-3")
                     .WithStartingQuantity(1)
-                    .WithProduction("food", 2)))
+                    .WithProduction("food", 2))
                 .Build());
             engine.Update();
         }

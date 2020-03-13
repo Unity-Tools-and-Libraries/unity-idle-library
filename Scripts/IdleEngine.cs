@@ -52,8 +52,33 @@ namespace IdleFramework
             }
         }
 
+        public BigDouble GetProductionForEntity(string entityKey)
+        {
+            BigDouble totalProduction = 0;
+            foreach(var entity in AllEntities.Values)
+            {
+                BigDouble entityProduction = 0;
+                if(entity.ProductionOutputs.TryGetValue(entityKey, out entityProduction)) {
+                    totalProduction += entityProduction * entity.Quantity;
+                }
+                if(entity.ProductionInputs.TryGetValue(entityKey, out entityProduction))
+                {
+                    totalProduction -= entityProduction * entity.Quantity;
+                }
+                if(entity.Upkeep.TryGetValue(entityKey, out entityProduction))
+                {
+                    totalProduction -= entityProduction * entity.Quantity;
+                }
+            }
+            return totalProduction;
+        }
+
         public void BuyEntity(GameEntity gameEntity, BigDouble quantityToBuy, bool buyAllOrNothing)
         {
+            if(!gameEntity.CanBeBought)
+            {
+                return;
+            }
             foreach (var resource in gameEntity.Costs)
             {
                 var maxPurchaseable = resource.Value == 0 ? quantityToBuy : BigDouble.Floor(_allEntities[resource.Key].Quantity / resource.Value * quantityToBuy);
@@ -149,7 +174,7 @@ namespace IdleFramework
             {
                 return 0;
             }
-            BigDouble quantity = entity.Quantity;
+            BigDouble quantity = entity.RealQuantity;
             // Determine max number can be supported.
             foreach (var resource in entity.Upkeep)
             {
@@ -209,7 +234,7 @@ namespace IdleFramework
                 BigDouble minimumQuantity = 0;
                 entity.MinimumProductionOutputs.TryGetValue(resource.Key, out minimumQuantity);
                 var quantityToProduce = BigDouble.Max(calculatedQuantity, minimumQuantity);
-                _allEntities[resource.Key].ChangeProgress(resource.Value * quantityProducing);
+                _allEntities[resource.Key].ChangeQuantity(resource.Value * quantityProducing);
             }
 
             foreach (var resource in entity.MinimumProductionOutputs)

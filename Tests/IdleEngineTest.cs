@@ -12,9 +12,9 @@ namespace Test {
         {
             var configuration = new GameConfigurationBuilder()
                 .WithEntity(new EntityDefinitionBuilder("food")
-                    .WithProduction("food", 1).Build())
+                    .WithProduction("food", 1))
                 .WithEntity(new EntityDefinitionBuilder("bar")
-                    .WithConsumption("food", 3).Build())
+                    .WithConsumption("food", 3))
                 .WithModifier(new ModifierDefinitionBuilder("effect").Active().Always().And().DoesNothing())
                 .WithModifier(new ModifierDefinitionBuilder("food-bonus").Active().Always().And().HasEntityEffect(new GlobalEntityPropertyModifierEffect("outputs", "food", 1, EffectType.ADD)))
                 .WithModifier(new ModifierDefinitionBuilder("food-penalty-1").Active().Always().And().HasEntityEffect(new EntityPropertyModifierEffect("bar", "inputs", "food", 1, EffectType.SUBTRACT)))

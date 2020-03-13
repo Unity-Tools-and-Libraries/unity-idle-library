@@ -20,12 +20,22 @@ namespace IdleFramework
         private StateMatcher hideEntityMatcher = new Never();
         private StateMatcher disabledWhenMatcher = new Never();
         private ISet<ModifierDefinition> modifiers = new HashSet<ModifierDefinition>();
+        private PropertyReference quantityCap;
+
+        public EntityDefinitionBuilder QuantityCappedBy(EntityPropertyReference entityPropertyReference)
+        {
+            quantityCap = entityPropertyReference;
+            return this;
+        }
+
+        private bool canBeBought = true;
+
+        
 
         public string EntityKey => key;
         public string Name => name;
         public ISet<string> Types => types;
         public BigDouble StartingQuantity => startingQuantity;
-
         public Dictionary<string, PropertyReference> BaseRequirements => requires;
         public Dictionary<string, PropertyReference> BaseCosts => costs;
         public Dictionary<string, PropertyReference> BaseProductionInputs => productionInputs;
@@ -34,11 +44,10 @@ namespace IdleFramework
         public Dictionary<string, PropertyReference> BaseMinimumProductionOutputs => minimumProductionOutputs;
         public bool ScaleProductionOnAvailableInputs => scaleProduction;
         public StateMatcher HiddenMatcher => hideEntityMatcher;
-
         public StateMatcher DisabledMatcher => disabledWhenMatcher;
-
         public ISet<ModifierDefinition> Modifiers => modifiers;
-
+        public bool CanBeBought => canBeBought;
+        public PropertyReference QuantityCap => quantityCap;
 
         public EntityDefinitionBuilder(string key)
         {
@@ -84,6 +93,12 @@ namespace IdleFramework
             return this;
         }
 
+        public EntityDefinitionBuilder WithConsumption(string entity, BigDouble quantityConsumedPerTick, PropertyReference cap)
+        {
+            productionInputs[entity] = new MinOf(new LiteralReference(quantityConsumedPerTick), cap);
+            return this;
+        }
+
         public EntityDefinitionBuilder WithProduction(string entityKey, BigDouble progressAddedPerTick)
         {
             productionOutputs[entityKey] = new LiteralReference(progressAddedPerTick);
@@ -94,6 +109,11 @@ namespace IdleFramework
         {
             productionOutputs[entityKey] = progressAddedPerTick;
             return this;
+        }
+
+        public EntityDefinitionBuilder WithProduction(string entityKey, PropertyReference progressPerTick, EntityPropertyReference cap)
+        {
+            return WithProduction(entityKey, new MinOf(progressPerTick, cap));
         }
 
         public EntityDefinitionBuilder WithType(string type)
@@ -128,6 +148,12 @@ namespace IdleFramework
         public EntityDisabledConfigurationBuilder Disabled()
         {
             return new EntityDisabledConfigurationBuilder(this);
+        }
+
+        public EntityDefinitionBuilder Unbuyable()
+        {
+            this.canBeBought = false;
+            return this;
         }
 
         public class EntityHideConfigurationBuilder
@@ -290,5 +316,9 @@ namespace IdleFramework
         StateMatcher DisabledMatcher { get; }
 
         ISet<ModifierDefinition> Modifiers { get;  }
+
+        bool CanBeBought { get; }
+
+        PropertyReference QuantityCap { get; }
     }    
 }

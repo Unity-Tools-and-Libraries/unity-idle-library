@@ -50,7 +50,7 @@ namespace IdleFramework
         /**
          * Add a definition for a new entity.
          */
-        public GameConfigurationBuilder WithEntity(EntityDefinition definition)
+        public GameConfigurationBuilder WithEntity(EntityDefinitionBuilder definition)
         {
             var entity = new EntityDefinition(definition);
             entities.Add(entity);

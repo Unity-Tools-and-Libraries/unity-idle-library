@@ -21,6 +21,8 @@ namespace IdleFramework
         private StateMatcher hiddenMatcher;
         private StateMatcher disabledMatcher;
         public ISet<ModifierDefinition> modifiers = new HashSet<ModifierDefinition>();
+        private bool canBeBought;
+        private PropertyReference quantityCap;
 
         public string EntityKey => entityKey;
         public string Name => name;
@@ -36,8 +38,10 @@ namespace IdleFramework
         public StateMatcher DisabledMatcher => disabledMatcher;
         public ISet<ModifierDefinition> Modifiers => modifiers;
         public Dictionary<string, PropertyReference> BaseMinimumProductionOutputs => minimumProduction;
+        public bool CanBeBought => canBeBought;
+        public PropertyReference QuantityCap => quantityCap;
 
-        public EntityDefinition(EntityDefinitionProperties other)
+        public EntityDefinition(EntityDefinitionBuilder other)
         {
             this.entityKey = other.EntityKey;
             this.name = other.Name;
@@ -53,6 +57,8 @@ namespace IdleFramework
             this.modifiers = other.Modifiers;
             this.disabledMatcher = other.DisabledMatcher;
             this.minimumProduction = other.BaseMinimumProductionOutputs;
+            this.canBeBought = other.CanBeBought;
+            this.quantityCap = other.QuantityCap;
         }
 
         

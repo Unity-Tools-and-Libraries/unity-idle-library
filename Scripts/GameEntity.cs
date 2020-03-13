@@ -5,7 +5,7 @@ using System.Numerics;
 
 namespace IdleFramework
 {
-    public class GameEntity: EntityDefinitionProperties
+    public class GameEntity : EntityDefinitionProperties
     {
         private readonly IdleEngine engine;
         private BigDouble _quantity = 0;
@@ -23,17 +23,31 @@ namespace IdleFramework
         public string EntityKey => definition.EntityKey;
         public string Name => definition.Name;
         public BigDouble StartingQuantity => definition.StartingQuantity;
+
+        public bool IsEnabled => !ShouldBeDisabled(engine);
+
         public Dictionary<string, PropertyReference> BaseRequirements => definition.BaseRequirements;
         public Dictionary<string, PropertyReference> BaseCosts => definition.BaseCosts;
         public Dictionary<string, PropertyReference> BaseProductionInputs => definition.BaseProductionInputs;
         public Dictionary<string, PropertyReference> BaseProductionOutputs => definition.BaseProductionOutputs;
         public Dictionary<string, PropertyReference> BaseUpkeep => definition.BaseUpkeep;
-        public BigDouble Quantity => _quantity;
+        public BigDouble Quantity {
+            get {
+                var actualQuantity = _quantity;
+                var cap = QuantityCap != null ? QuantityCap.Get(engine) : _quantity;
+                if (actualQuantity > cap)
+                {
+                    return cap;
+                }
+                return actualQuantity;
+           }
+        }
         public BigDouble Progress => _progress;
         public ISet<string> Types => definition.Types;
         public bool ScaleProductionOnAvailableInputs => definition.ScaleProductionOnAvailableInputs;
         public StateMatcher HiddenMatcher => hideEntityMatcher;
         public StateMatcher DisabledMatcher => disableEntityMatcher;
+        public PropertyReference QuantityCap => definition.QuantityCap;
 
         /*
          * The quantities of entities which are required when trying to buy this entity.
@@ -56,6 +70,10 @@ namespace IdleFramework
          */
         public Dictionary<string, BigDouble> ProductionOutputs => productionOutputs;
         public Dictionary<string, BigDouble> MinimumProductionOutputs => minimumProduction;
+        public ISet<ModifierDefinition> Modifiers => ((EntityDefinitionProperties)definition).Modifiers;
+        public Dictionary<string, PropertyReference> BaseMinimumProductionOutputs => definition.BaseMinimumProductionOutputs;
+        public bool CanBeBought => definition.CanBeBought;
+        public BigDouble RealQuantity => _quantity;
 
         public GameEntity(EntityDefinition definition, IdleEngine engine)
         {
@@ -63,9 +81,6 @@ namespace IdleFramework
             _quantity = definition.StartingQuantity;
             this.engine = engine;
         }
-        public ISet<ModifierDefinition> Modifiers => ((EntityDefinitionProperties)definition).Modifiers;
-
-        public Dictionary<string, PropertyReference> BaseMinimumProductionOutputs => definition.BaseMinimumProductionOutputs;
 
         public void Buy(BigDouble quantityToBuy, bool buyAllOrNone)
         {
@@ -123,9 +138,11 @@ namespace IdleFramework
         public void ChangeProgress(BigDouble changeBy)
         {
             _progress += changeBy;
-            var overflow = _progress.Floor();
-            _quantity += overflow;
-            _progress -= overflow;
+            if (_progress >= 1)
+            {
+                _progress = 0;
+                _quantity += 1;
+            }
         }
 
         public void SetProgress(int newProgress)

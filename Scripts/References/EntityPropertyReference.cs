@@ -39,6 +39,8 @@ namespace IdleFramework
                         return entity.Requirements[entitySubProperty];
                     case "quantity":
                         return entity.Quantity;
+                    case "actual-quantity":
+                        return entity.RealQuantity;
                 }
             }
             return 0;

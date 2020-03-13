@@ -1,6 +1,8 @@
 ## 1. Introduction
 This package provides a framework for the creation of idle/incremental games.
 
+Currently, it consists of a backend engine which implements the logic and rules; you are responsible for creating the UI and wiring it to the engine.
+
 ## 2. Quickstart
 Here are some simple instructions to get you started.
 First, you must generate the configuration your engine instance will use:
@@ -33,3 +35,4 @@ Custom properties - Add custom properties to the engine and entities.
 Read-only views of entity, engine state - So state can be queries without allowing for modification.
 Change values to per-second and enable scaling - Allows setting values for e.g. production independent of the update rate.
 Unpurchaseable entities - Support entities that cannot be purchased, only produced by e.g. other entities.
+UI Component generation framework

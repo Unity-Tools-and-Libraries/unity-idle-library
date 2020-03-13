@@ -1,6 +1,8 @@
 ## 1. Introduction
 This package provides a framework for the creation of idle/incremental games in Unity.
 
+Currently, it consists of a backend engine which implements the logic and rules; you are responsible for creating the UI and wiring it to the engine.
+
 ## 2. Quickstart
 Here are some simple instructions to get you started.
 
@@ -41,3 +43,4 @@ Change values to per-second and enable scaling - Allows setting values for e.g. 
 Unpurchaseable entities - Support entities that cannot be purchased, only produced by e.g. other entities.
 Actions which occur over a period of time.
 Singleton entities - For things like upgrades/research, characters, etc.
+UI Component generation framework

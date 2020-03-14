@@ -59,20 +59,5 @@ namespace Test
                 .Build();
             Assert.AreEqual(BigDouble.Floor(2), ed.BaseProductionInputs["food"].Get(null));
         }
-
-        [Test]
-        public void EntityDefinitionBuilderCanAddModifiers()
-        {
-            EntityDefinition ed = new EntityDefinitionBuilder("foo")
-                .WithModifier(new ModifierDefinitionBuilder("modifier")
-                .Active().Always().And().DoesNothing().Build())
-                .Build();
-
-            Assert.AreEqual(1, ed.Modifiers.Count);
-            foreach(var modifier in ed.Modifiers)
-            {
-                Assert.AreEqual(new Always(), modifier.Trigger);
-            }
-        }
     }
 }

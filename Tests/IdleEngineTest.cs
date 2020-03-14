@@ -39,19 +39,19 @@ namespace Test {
         [Test]
         public void EngineCanApplyAnEffectThatAddsToAnEntitysOutput()
         {
-            Assert.AreEqual(BigDouble.Floor(2), engine.AllEntities["food"].ProductionOutputs["food"]);
+            Assert.AreEqual(BigDouble.Floor(2), engine.AllEntities["food"].ProductionOutputs["food"].Value);
         }
 
         [Test]
         public void EngineCanApplyAnEffectThatModifiedAnEntitiesInputs()
         {
-            Assert.AreEqual(BigDouble.Floor(1), engine.AllEntities["bar"].ProductionInputs["food"]);
+            Assert.AreEqual(BigDouble.Floor(1), engine.AllEntities["bar"].ProductionInputs["food"].Value);
         }
 
         [Test]
         public void MultipleEffectsStack()
         {
-            Assert.AreEqual(BigDouble.Floor(1), engine.AllEntities["bar"].ProductionInputs["food"]);
+            Assert.AreEqual(BigDouble.Floor(1), engine.AllEntities["bar"].ProductionInputs["food"].Value);
         }
     }
 

@@ -30,13 +30,13 @@ namespace IdleFramework
                 switch(entityProperty)
                 {
                     case "inputs":
-                        return entity.ProductionInputs[entitySubProperty];
+                        return entity.ProductionInputs[entitySubProperty].Value;
                     case "ouputs":
-                        return entity.ProductionOutputs[entitySubProperty];
+                        return entity.ProductionOutputs[entitySubProperty].Value;
                     case "costs":
-                        return entity.Costs[entitySubProperty];
+                        return entity.Costs[entitySubProperty].Value;
                     case "requirements":
-                        return entity.Requirements[entitySubProperty];
+                        return entity.Requirements[entitySubProperty].Value;
                     case "quantity":
                         return entity.Quantity;
                     case "actual-quantity":

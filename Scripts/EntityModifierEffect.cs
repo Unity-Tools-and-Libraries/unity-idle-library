@@ -3,7 +3,7 @@ using BreakInfinity;
 
 namespace IdleFramework
 {
-    public class EntityModifierEffect : EffectDefinition<GameEntity>
+    public class EntityModifierEffect : EffectDefinition<ModifierDefinition>
     {
         private string targetEntity;
         private GameEntity.ModifiableProperty propertySelector;
@@ -18,7 +18,7 @@ namespace IdleFramework
             this.modifierValue = modifierValue;
         }
 
-        public void ApplyEffect(IdleEngine engine)
+        public void ApplyEffect(IdleEngine engine, ModifierDefinition parentModifier)
         {
             throw new System.NotImplementedException();
         }

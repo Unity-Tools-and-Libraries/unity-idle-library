@@ -13,13 +13,13 @@ namespace Test
 
         public GlobalEntityPropertyModifierEffect(string entityProperty, string entitySubProperty, BigDouble value, EffectType type) : this(entityProperty, entitySubProperty, value, type, false) { }
 
-        public override void ApplyEffect(IdleEngine engine)
+        public override void ApplyEffect(IdleEngine engine, ModifierDefinition parentModifier)
         {
             foreach(var entity in engine.AllEntities.Values)
             {
                 if (addIfMissing || entityHasPropertyAndSubproperty(entity, EntityProperty, EntitySubProperty))
                 {
-                    ApplyEffectToEntity(entity, engine);
+                    ApplyEffectToEntity(entity, engine, parentModifier);
                 }
             }
         }

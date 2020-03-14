@@ -27,35 +27,40 @@ namespace IdleFramework
             this.type = type;
         }
 
-        public override void ApplyEffect(IdleEngine engine)
+        public override void ApplyEffect(IdleEngine engine, ModifierDefinition parentModifier)
         {
             GameEntity entity = null;
             if(engine.AllEntities.TryGetValue(EntityKey, out entity))
             {
-                ApplyEffectToEntity(entity, engine);
+                ApplyEffectToEntity(entity, engine, parentModifier);
             }
             
         }
 
-        protected void ApplyEffectToEntity(GameEntity entity, IdleEngine engine)
+        protected void ApplyEffectToEntity(GameEntity entity, IdleEngine engine, ModifierDefinition parentModifier)
         {
             BigDouble newValue = calculateValue(getBaseValue(entity, engine));
             switch (entityProperty)
             {
                 case "inputs":
-                    entity.ProductionInputs[entitySubProperty] = newValue;
+                    entity.ProductionInputs[entitySubProperty].Value = newValue;
+                    entity.ProductionInputs[entitySubProperty].AppliedModifiers.Add(new ModifierAndEffect(parentModifier, this));
                     break;
                 case "outputs":
-                    entity.ProductionOutputs[entitySubProperty] = newValue;
+                    entity.ProductionOutputs[entitySubProperty].Value = newValue;
+                    entity.ProductionOutputs[entitySubProperty].AppliedModifiers.Add(new ModifierAndEffect(parentModifier, this));
                     break;
                 case "requirements":
-                    entity.Requirements[entitySubProperty] = newValue;
+                    entity.Requirements[entitySubProperty].Value = newValue;
+                    entity.Requirements[entitySubProperty].AppliedModifiers.Add(new ModifierAndEffect(parentModifier, this));
                     break;
                 case "costs":
-                    entity.Costs[entitySubProperty] = newValue;
+                    entity.Costs[entitySubProperty].Value = newValue;
+                    entity.Costs[entitySubProperty].AppliedModifiers.Add(new ModifierAndEffect(parentModifier, this));
                     break;
                 case "upkeep":
-                    entity.Upkeep[entitySubProperty] = newValue;
+                    entity.Upkeep[entitySubProperty].Value = newValue;
+                    entity.Upkeep[entitySubProperty].AppliedModifiers.Add(new ModifierAndEffect(parentModifier, this));
                     break;
                 default:
                     throw new InvalidOperationException();
@@ -69,7 +74,7 @@ namespace IdleFramework
                 case "outputs":
                     if(entity.ProductionOutputs.ContainsKey(entitySubProperty))
                     {
-                        return entity.ProductionOutputs[entitySubProperty];
+                        return entity.ProductionOutputs[entitySubProperty].Value;
                     } else if (entity.BaseProductionOutputs.ContainsKey(entitySubProperty))
                     {
                         return entity.BaseProductionOutputs[entitySubProperty].Get(engine);
@@ -78,7 +83,7 @@ namespace IdleFramework
                 case "inputs":
                     if (entity.ProductionInputs.ContainsKey(entitySubProperty))
                     {
-                        return entity.ProductionInputs[entitySubProperty];
+                        return entity.ProductionInputs[entitySubProperty].Value;
                     }
                     else if (entity.BaseProductionInputs.ContainsKey(entitySubProperty))
                     {
@@ -88,7 +93,7 @@ namespace IdleFramework
                 case "upkeep":
                     if (entity.Upkeep.ContainsKey(entitySubProperty))
                     {
-                        return entity.Upkeep[entitySubProperty];
+                        return entity.Upkeep[entitySubProperty].Value;
                     }
                     else if (entity.BaseUpkeep.ContainsKey(entitySubProperty))
                     {

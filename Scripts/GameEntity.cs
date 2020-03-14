@@ -11,14 +11,12 @@ namespace IdleFramework
         private BigDouble _quantity = 0;
         private BigDouble _progress = 0;
         public readonly EntityDefinition definition;
-        private Dictionary<string, BigDouble> requirements = new Dictionary<string, BigDouble>();
-        private Dictionary<string, BigDouble> costs = new Dictionary<string, BigDouble>();
-        private Dictionary<string, BigDouble> productionInputs = new Dictionary<string, BigDouble>();
-        private Dictionary<string, BigDouble> productionOutputs = new Dictionary<string, BigDouble>();
-        private Dictionary<string, BigDouble> upkeep = new Dictionary<string, BigDouble>();
-        private Dictionary<string, BigDouble> minimumProduction = new Dictionary<string, BigDouble>();
-        private StateMatcher hideEntityMatcher;
-        private StateMatcher disableEntityMatcher;
+        private Dictionary<string, GameEntityProperty> requirements = new Dictionary<string, GameEntityProperty>();
+        private Dictionary<string, GameEntityProperty> costs = new Dictionary<string, GameEntityProperty>();
+        private Dictionary<string, GameEntityProperty> productionInputs = new Dictionary<string, GameEntityProperty>();
+        private Dictionary<string, GameEntityProperty> productionOutputs = new Dictionary<string, GameEntityProperty>();
+        private Dictionary<string, GameEntityProperty> upkeep = new Dictionary<string, GameEntityProperty>();
+        private Dictionary<string, GameEntityProperty> minimumProduction = new Dictionary<string, GameEntityProperty>();
 
         public string EntityKey => definition.EntityKey;
         public string Name => definition.Name;
@@ -45,31 +43,31 @@ namespace IdleFramework
         public BigDouble Progress => _progress;
         public ISet<string> Types => definition.Types;
         public bool ScaleProductionOnAvailableInputs => definition.ScaleProductionOnAvailableInputs;
-        public StateMatcher HiddenMatcher => hideEntityMatcher;
-        public StateMatcher DisabledMatcher => disableEntityMatcher;
+        public StateMatcher HiddenMatcher => definition.HiddenMatcher;
+        public StateMatcher DisabledMatcher => definition.DisabledMatcher;
         public PropertyReference QuantityCap => definition.QuantityCap;
 
         /*
          * The quantities of entities which are required when trying to buy this entity.
          */
-        public Dictionary<string, BigDouble> Requirements => requirements;
+        public Dictionary<string, GameEntityProperty> Requirements => requirements;
         /*
          * The entities and quantities which are consumed to buy this entity.
          */
-        public Dictionary<string, BigDouble> Costs => costs;
+        public Dictionary<string, GameEntityProperty> Costs => costs;
         /*
          * The entities and quantities which are consumed each tick by this entity and if a shortfall of these requirements causes the loss of this entity.
          */
-        public Dictionary<string, BigDouble> Upkeep => upkeep;
+        public Dictionary<string, GameEntityProperty> Upkeep => upkeep;
         /*
          * The entities and quantities which are consumed by this entity as inputs to their production.
          */
-        public Dictionary<string, BigDouble> ProductionInputs => productionInputs;
+        public Dictionary<string, GameEntityProperty> ProductionInputs => productionInputs;
         /*
          * The entities and quantities that this entity produces each tick, and the entities and quantities that are required to produce without being consumed and entities and quantities which are consumed to produce.
          */
-        public Dictionary<string, BigDouble> ProductionOutputs => productionOutputs;
-        public Dictionary<string, BigDouble> MinimumProductionOutputs => minimumProduction;
+        public Dictionary<string, GameEntityProperty> ProductionOutputs => productionOutputs;
+        public Dictionary<string, GameEntityProperty> MinimumProductionOutputs => minimumProduction;
         public ISet<ModifierDefinition> Modifiers => ((EntityDefinitionProperties)definition).Modifiers;
         public Dictionary<string, PropertyReference> BaseMinimumProductionOutputs => definition.BaseMinimumProductionOutputs;
         public bool CanBeBought => definition.CanBeBought;
@@ -97,7 +95,7 @@ namespace IdleFramework
             var requirementsMet = true;
             foreach(var requirement in Requirements)
             {
-                requirementsMet = engine.AllEntities[requirement.Key].Quantity >= requirement.Value;
+                requirementsMet = engine.AllEntities[requirement.Key].Quantity >= requirement.Value.Value;
             }
             return requirementsMet;
         }
@@ -115,7 +113,7 @@ namespace IdleFramework
             var quantityAbleToProduce = Quantity;
             foreach (var requirement in ProductionInputs)
             {
-                var quantityWithSufficientInputs = BigDouble.Min(engine.AllEntities[requirement.Key].Quantity / requirement.Value, this.Quantity);
+                var quantityWithSufficientInputs = BigDouble.Min(engine.AllEntities[requirement.Key].Quantity / requirement.Value.Value, this.Quantity);
                 if(!ScaleProductionOnAvailableInputs)
                 {
                     quantityAbleToProduce = 0;
@@ -172,6 +170,51 @@ namespace IdleFramework
             PRODUCTION_OUTPUTS,
             COST,
             REQUIREMENTS
+        }
+    }
+
+    public class GameEntityProperty
+    {
+        private BigDouble value;
+        private List<ModifierAndEffect> appliedModifiers = new List<ModifierAndEffect>();
+
+        public GameEntityProperty(BigDouble quantity, params ModifierAndEffect[] initialModifiers)
+        {
+            this.value = quantity != null ? quantity : default(BigDouble);
+            AppliedModifiers.InsertRange(0, initialModifiers);
+        }
+
+        public BigDouble Value { get => value; set {
+                this.value = value != null ? value : default(BigDouble);
+            } }
+        public List<ModifierAndEffect> AppliedModifiers { get => appliedModifiers; set => appliedModifiers = value; }
+
+        public static implicit operator GameEntityProperty(BigDouble bigDouble) => new GameEntityProperty(bigDouble);
+        public static implicit operator BigDouble(GameEntityProperty gep) => gep.value;
+
+        public static bool operator ==(GameEntityProperty left, GameEntityProperty right) => left.value.Equals(right.value);
+        public static bool operator ==(GameEntityProperty left, BigDouble right) => left.value.Equals(right);
+
+        public static bool operator !=(GameEntityProperty left, GameEntityProperty right) => !left.value.Equals(right.value);
+        public static bool operator !=(GameEntityProperty left, BigDouble right) => !left.value.Equals(right);
+
+        public static BigDouble operator -(GameEntityProperty operand) => -operand.value;
+        public static BigDouble operator +(GameEntityProperty left, GameEntityProperty right) => left.value + right.value;
+
+        public static BigDouble operator /(GameEntityProperty left, GameEntityProperty right) => left.value / right.value;
+        public static BigDouble operator /(BigDouble left, GameEntityProperty right) => left / right.value;
+        public static BigDouble operator /(GameEntityProperty left, BigDouble right) => left.value / right;
+    }
+
+    public struct ModifierAndEffect
+    {
+        public readonly ModifierDefinition modifier;
+        public readonly EntityEffect effect;
+
+        public ModifierAndEffect(ModifierDefinition modifier, EntityEffect effect)
+        {
+            this.modifier = modifier;
+            this.effect = effect;
         }
     }
 }

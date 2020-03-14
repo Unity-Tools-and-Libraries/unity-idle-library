@@ -2,8 +2,8 @@
 
 namespace IdleFramework
 {
-    public abstract class EntityEffect : EffectDefinition<GameEntity>
+    public abstract class EntityEffect : EffectDefinition<ModifierDefinition>
     {
-        public abstract void ApplyEffect(IdleEngine engine);
+        public abstract void ApplyEffect(IdleEngine engine, ModifierDefinition source);
     }
 }

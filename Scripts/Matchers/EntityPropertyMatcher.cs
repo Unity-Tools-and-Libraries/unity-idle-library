@@ -72,7 +72,7 @@ namespace IdleFramework
                 case "requirements":
                     if(entity.Requirements.ContainsKey(subproperty))
                     {
-                        numberValue = entity.Requirements[subproperty];
+                        numberValue = entity.Requirements[subproperty].Value;
                     } else if (entity.BaseRequirements.ContainsKey(subproperty))
                     {
                         numberValue = entity.BaseRequirements[subproperty].Get(toCheck);
@@ -85,7 +85,7 @@ namespace IdleFramework
                 case "costs":
                     if (entity.Costs.ContainsKey(subproperty))
                     {
-                        numberValue = entity.Costs[subproperty];
+                        numberValue = entity.Costs[subproperty].Value;
                     }
                     else if (entity.BaseCosts.ContainsKey(subproperty))
                     {
@@ -99,7 +99,7 @@ namespace IdleFramework
                 case "inputs":
                     if (entity.ProductionInputs.ContainsKey(subproperty))
                     {
-                        numberValue = entity.ProductionInputs[subproperty];
+                        numberValue = entity.ProductionInputs[subproperty].Value;
                     }
                     else if (entity.BaseProductionInputs.ContainsKey(subproperty))
                     {
@@ -113,7 +113,7 @@ namespace IdleFramework
                 case "outputs":
                     if (entity.ProductionOutputs.ContainsKey(subproperty))
                     {
-                        numberValue = entity.ProductionOutputs[subproperty];
+                        numberValue = entity.ProductionOutputs[subproperty].Value;
                     }
                     else if (entity.BaseProductionOutputs.ContainsKey(subproperty))
                     {

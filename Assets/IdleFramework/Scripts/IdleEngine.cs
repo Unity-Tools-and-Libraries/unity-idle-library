@@ -394,16 +394,21 @@ namespace IdleFramework
             accruedTime += deltaTime;
             if (accruedTime > .1)
             {
-                RecalculateAllEntityProperties();
-                foreach (GameEntity entity in _allEntities.Values)
-                {
-                    PerformProductionForEntity(entity, accruedTime);
-                }
-                foreach (GameEntity entity in _allEntities.Values)
-                {
-                    PerformUpkeepForEntity(entity, accruedTime);
-                }
+                doUpdate(accruedTime);
                 accruedTime = 0;
+            }
+        }
+
+        private void doUpdate(float accruedTime)
+        {
+            RecalculateAllEntityProperties();
+            foreach (GameEntity entity in _allEntities.Values)
+            {
+                PerformProductionForEntity(entity, accruedTime);
+            }
+            foreach (GameEntity entity in _allEntities.Values)
+            {
+                PerformUpkeepForEntity(entity, accruedTime);
             }
         }
     }

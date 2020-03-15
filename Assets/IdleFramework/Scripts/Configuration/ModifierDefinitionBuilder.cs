@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace IdleFramework
 {
-    public class ModifierDefinitionBuilder: ModifierDefinitionProperties
+    public class ModifierDefinitionBuilder: ModifierDefinitionProperties, Builder<ModifierDefinition>
     {
         private string modifierKey;
         private StateMatcher stateMatcher;

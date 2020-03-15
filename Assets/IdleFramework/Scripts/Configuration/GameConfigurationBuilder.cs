@@ -6,7 +6,7 @@ namespace IdleFramework
     /**
      * Builder class for creating a GameConfiguration.
      */
-    public class GameConfigurationBuilder
+    public class GameConfigurationBuilder: Builder<GameConfiguration>
     {
         private ISet<EntityDefinition> entities = new HashSet<EntityDefinition>();
         private ISet<ModifierDefinitionProperties> modifiers = new HashSet<ModifierDefinitionProperties>();
@@ -20,9 +20,15 @@ namespace IdleFramework
             entities.Add(entity);
             return this;
         }
+
+        public void WithSingletonEntity(SingletonEntityDefinitionBuilder singletonEntity)
+        {
+            throw new NotImplementedException();
+        }
+
         /**
-         * Finalize and create an unmodifiable GameConfiguration instance.
-         */
+* Finalize and create an unmodifiable GameConfiguration instance.
+*/
 
         public GameConfigurationBuilder WithModifier(ModifierDefinitionProperties modifier)
         {

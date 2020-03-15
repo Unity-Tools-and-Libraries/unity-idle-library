@@ -7,13 +7,13 @@ namespace IdleFramework
 {
     public class IdleEngine
     {
+        private float accruedTime;
         private readonly GameConfiguration configuration;
         private readonly Dictionary<string, GameEntity> _allEntities = new Dictionary<string, GameEntity>();
         private readonly ISet<ModifierDefinition> _modifiers = new HashSet<ModifierDefinition>();
         private readonly Dictionary<string, GameEntity> _resources = new Dictionary<string, GameEntity>();
         private readonly Dictionary<EngineHookAction, Dictionary<string, List<EngineHookDefinition>>> hooks = new Dictionary<EngineHookAction, Dictionary<string, List<EngineHookDefinition>>>();
 
-        private bool updatedThrottled = false;
         private System.Timers.Timer updateThrottleTimer = new System.Timers.Timer(100);
         private ISet<ModifierDefinition> lastActiveModifiers;
 
@@ -35,10 +35,6 @@ namespace IdleFramework
 
         public IdleEngine(GameConfiguration configuration)
         {
-            updateThrottleTimer.Elapsed += (object sender, System.Timers.ElapsedEventArgs e) =>
-            {
-                this.updatedThrottled = false;
-            };
             foreach (EntityDefinition entity in configuration.Entities)
             {
                 foreach(var universalCustomProperty in configuration.UniversalCustomEntityProperties)
@@ -395,19 +391,19 @@ namespace IdleFramework
          */
         public void Update(float deltaTime)
         {
-            if (!updatedThrottled)
+            accruedTime += deltaTime;
+            if (accruedTime > .1)
             {
-                updatedThrottled = true;
-                updateThrottleTimer.Start();
                 RecalculateAllEntityProperties();
                 foreach (GameEntity entity in _allEntities.Values)
                 {
-                    PerformProductionForEntity(entity, deltaTime);
+                    PerformProductionForEntity(entity, accruedTime);
                 }
                 foreach (GameEntity entity in _allEntities.Values)
                 {
-                    PerformUpkeepForEntity(entity, deltaTime);
+                    PerformUpkeepForEntity(entity, accruedTime);
                 }
+                accruedTime = 0;
             }
         }
     }

@@ -71,19 +71,13 @@ public class Engine : MonoBehaviour
             .HasEntityEffect(new EntityPropertyModifierEffect("primitive-tools", "outputs", "primitive-tools", .1, EffectType.ADD))
             .Build());
 
-        configurationBuilder.WithHook(EngineHookConfigurationBuilder.When().AnyEntity().ProducesAnyEntity().ThenExecute((object hookArgument) =>
-        {
-            Debug.Log("Hook triggered");
-            return hookArgument;
-        }));
-
         framework = new IdleEngine(configurationBuilder.Build());
-        InvokeRepeating("tick", 2f, 2f);
+        InvokeRepeating("tick", 0f, .25f);
     }
 
     void tick()
     {
-        framework.Update();
+        framework.Update(.25f);
     }
 
     // Update is called once per frame

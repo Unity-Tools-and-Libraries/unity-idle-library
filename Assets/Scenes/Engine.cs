@@ -70,7 +70,12 @@ public class Engine : MonoBehaviour
             .HasEntityEffect(new EntityPropertyModifierEffect("primitive-tools", "outputs", "food", 2, EffectType.MULTIPLY))
             .HasEntityEffect(new EntityPropertyModifierEffect("primitive-tools", "outputs", "primitive-tools", .1, EffectType.ADD))
             .Build());
-            
+
+        configurationBuilder.WithHook(EngineHookConfigurationBuilder.When().AnyEntity().ProducesAnyEntity().ThenExecute((object hookArgument) =>
+        {
+            Debug.Log("Hook triggered");
+            return hookArgument;
+        }));
 
         framework = new IdleEngine(configurationBuilder.Build());
         InvokeRepeating("tick", 2f, 2f);

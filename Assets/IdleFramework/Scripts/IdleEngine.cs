@@ -5,12 +5,14 @@ using System;
 
 namespace IdleFramework
 {
-    public class IdleEngine : Updates
+    public class IdleEngine
     {
         private readonly GameConfiguration configuration;
         private readonly Dictionary<string, GameEntity> _allEntities = new Dictionary<string, GameEntity>();
         private readonly ISet<ModifierDefinition> _modifiers = new HashSet<ModifierDefinition>();
         private readonly Dictionary<string, GameEntity> _resources = new Dictionary<string, GameEntity>();
+        private readonly Dictionary<EngineHookAction, Dictionary<string, List<EngineHookDefinition>>> hooks = new Dictionary<EngineHookAction, Dictionary<string, List<EngineHookDefinition>>>();
+
         private bool updatedThrottled = false;
         private System.Timers.Timer updateThrottleTimer = new System.Timers.Timer(100);
         private ISet<ModifierDefinition> lastActiveModifiers;
@@ -50,6 +52,21 @@ namespace IdleFramework
             {
                 _modifiers.Add(modifier);
             }
+            foreach (EngineHookDefinition hook in configuration.Hooks)
+            {
+                Dictionary<string, List<EngineHookDefinition>> hooksForAction;
+                if (!hooks.TryGetValue(hook.Selector.Action, out hooksForAction))
+                {
+                    hooks.Add(hook.Selector.Action, new Dictionary<string, List<EngineHookDefinition>>());
+                }
+                List<EngineHookDefinition> hooksForActor;
+                if (!hooks[hook.Selector.Action].TryGetValue(hook.Selector.Actor, out hooksForActor))
+                {
+                    hooksForActor = new List<EngineHookDefinition>();
+                    hooks[hook.Selector.Action].Add(hook.Selector.Actor, hooksForActor);
+                }
+                hooksForActor.Add(hook);
+            }
         }
 
         public BigDouble GetProductionForEntity(string entityKey)
@@ -61,17 +78,18 @@ namespace IdleFramework
                 return 0;
             }
             BigDouble totalProduction = 0;
-            foreach(var entity in AllEntities.Values)
+            foreach (var entity in AllEntities.Values)
             {
                 GameEntityProperty entityProduction;
-                if(entity.ProductionOutputs.TryGetValue(entityKey, out entityProduction)) {
+                if (entity.ProductionOutputs.TryGetValue(entityKey, out entityProduction))
+                {
                     totalProduction += entityProduction.Value * entity.Quantity;
                 }
-                if(entity.ProductionInputs.TryGetValue(entityKey, out entityProduction))
+                if (entity.ProductionInputs.TryGetValue(entityKey, out entityProduction))
                 {
                     totalProduction -= entityProduction.Value * entity.Quantity;
                 }
-                if(entity.Upkeep.TryGetValue(entityKey, out entityProduction))
+                if (entity.Upkeep.TryGetValue(entityKey, out entityProduction))
                 {
                     totalProduction -= entityProduction.Value * entity.Quantity;
                 }
@@ -81,7 +99,7 @@ namespace IdleFramework
 
         public void BuyEntity(GameEntity gameEntity, BigDouble quantityToBuy, bool buyAllOrNothing)
         {
-            if(!gameEntity.CanBeBought)
+            if (!gameEntity.CanBeBought)
             {
                 return;
             }
@@ -141,12 +159,12 @@ namespace IdleFramework
                     entity.ProductionInputs.Add(input.Key, input.Value.Get(this));
                 }
                 entity.Upkeep.Clear();
-                foreach(var upkeep in entity.BaseUpkeep)
+                foreach (var upkeep in entity.BaseUpkeep)
                 {
                     entity.Upkeep.Add(upkeep.Key, upkeep.Value.Get(this));
                 }
                 entity.MinimumProductionOutputs.Clear();
-                foreach(var minProduction in entity.BaseMinimumProductionOutputs)
+                foreach (var minProduction in entity.BaseMinimumProductionOutputs)
                 {
                     entity.MinimumProductionOutputs.Add(minProduction.Key, minProduction.Value.Get(this));
                 }
@@ -221,11 +239,13 @@ namespace IdleFramework
                 }
 
             }
+            var inputsToConsume = new Dictionary<String, BigDouble>();
+            var outputsToProduce = new Dictionary<string, BigDouble>();
 
             // Consume inputs
             foreach (var resource in entity.ProductionInputs)
             {
-                _allEntities[resource.Key].ChangeQuantity(-resource.Value * quantityProducing);
+                inputsToConsume.Add(resource.Key, resource.Value.Value * quantityProducing);
             }
             var entitiesWhichProduced = new HashSet<string>();
             // Produce outputs
@@ -243,7 +263,7 @@ namespace IdleFramework
                 {
                     quantityToProduce = BigDouble.Max(calculatedQuantity, minimumQuantity);
                 }
-                _allEntities[resource.Key].ChangeQuantity(resource.Value.Value * quantityProducing);
+                outputsToProduce.Add(resource.Key, resource.Value.Value * quantityProducing);
             }
 
             foreach (var resource in entity.MinimumProductionOutputs)
@@ -253,8 +273,59 @@ namespace IdleFramework
                 {
                     continue;
                 }
-                _allEntities[resource.Key].ChangeProgress(resource.Value.Value);
+                outputsToProduce.Add(resource.Key, resource.Value.Value);
             }
+            var entityProductionResult = new EntityProductionResult(entity, inputsToConsume, outputsToProduce);
+            entityProductionResult = executeHooks<EntityProductionResult>(EngineHookAction.WILL_PRODUCE, entityProductionResult);
+            applyProductionResult(entityProductionResult);
+        }
+
+        private void applyProductionResult(EntityProductionResult entityProductionResult)
+        {
+            var consumed = entityProductionResult.InputsToConsume;
+            var produced = entityProductionResult.OutputsToProduce;
+            foreach (var resource in consumed)
+            {
+                AllEntities[resource.Key].ChangeQuantity(-resource.Value);
+            }
+            foreach(var resource in produced)
+            {
+                AllEntities[resource.Key].ChangeQuantity(resource.Value);
+            }
+        }
+
+        private T executeHooks<T>(EngineHookAction action, HookExecutionContext<T> executionContext)
+        {
+            List<EngineHookDefinition> generalHooks = null;
+            List<EngineHookDefinition> specificHooks = null;
+            switch (action)
+            {
+                case EngineHookAction.WILL_PRODUCE
+                :
+                    Dictionary<string, List<EngineHookDefinition>> actionHooks;
+                    if (hooks.TryGetValue(action, out actionHooks))
+                    {
+                        actionHooks.TryGetValue("*", out generalHooks);
+                        actionHooks.TryGetValue(executionContext.Actor, out specificHooks);
+                    }
+                    break;
+            }
+            var payload = executionContext.Payload;
+            if (generalHooks != null)
+            {
+                foreach (var hook in generalHooks)
+                {
+                    payload = (T)hook.Execute(payload);
+                }
+            }
+            if (specificHooks != null)
+            {
+                foreach (var hook in specificHooks)
+                {
+                    payload = (T)hook.Execute(payload);
+                }
+            }
+            return payload;
         }
 
         private void assertEntityExists(string key)

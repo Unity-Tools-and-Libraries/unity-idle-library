@@ -21,6 +21,7 @@ namespace IdleFramework
         private ISet<ModifierDefinition> modifiers = new HashSet<ModifierDefinition>();
         private PropertyReference quantityCap;
         private bool scaleProduction = true;
+        private readonly Dictionary<string, PropertyReference> customProperties = new Dictionary<string, PropertyReference>();
 
         public EntityDefinitionBuilder QuantityCappedBy(PropertyReference entityPropertyReference)
         {
@@ -29,9 +30,6 @@ namespace IdleFramework
         }
 
         private bool canBeBought = true;
-
-        
-
         public string EntityKey => key;
         public string Name => name;
         public ISet<string> Types => types;
@@ -48,6 +46,8 @@ namespace IdleFramework
         public ISet<ModifierDefinition> Modifiers => modifiers;
         public bool CanBeBought => canBeBought;
         public PropertyReference QuantityCap => quantityCap;
+
+        public Dictionary<string, PropertyReference> CustomProperties => customProperties;
 
         /*
          * Create a new EntityDefinitionBuilder, for an entity that will have the given key.
@@ -208,6 +208,12 @@ namespace IdleFramework
             return this;
         }
 
+        public EntityDefinitionBuilder WithCustomProperty(string customProperty)
+        {
+            customProperties.Add(customProperty, new LiteralReference(0));
+            return this;
+        }
+
         /*
          * Class for configuring when the parent entity should be hidden from the user.
          */
@@ -328,7 +334,7 @@ namespace IdleFramework
         /*
          * Get all types that this entity is tagged with.
          */
-        ISet<string> Types { get;  }
+        ISet<string> Types { get; }
         /*
          * The unique key identifying this entity.
          */
@@ -341,7 +347,7 @@ namespace IdleFramework
          * The quantity of this entity that is present at the beginning of a new game.
          */
         BigDouble StartingQuantity
-        { get;}
+        { get; }
         /*
          * The unmodified quantities of entities which are required when trying to buy this entity.
          */
@@ -379,10 +385,12 @@ namespace IdleFramework
 
         StateMatcher DisabledMatcher { get; }
 
-        ISet<ModifierDefinition> Modifiers { get;  }
+        ISet<ModifierDefinition> Modifiers { get; }
 
         bool CanBeBought { get; }
 
         PropertyReference QuantityCap { get; }
+
+        Dictionary<string, PropertyReference> CustomProperties { get; }
     }    
 }

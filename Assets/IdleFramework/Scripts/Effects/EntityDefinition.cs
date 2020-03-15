@@ -7,6 +7,17 @@ namespace IdleFramework
 {
     public class EntityDefinition : EntityDefinitionProperties
     {
+        public static readonly ISet<string> RESERVED_PROPERTY_NAMES = new HashSet<string>();
+        static EntityDefinition()
+        {
+            RESERVED_PROPERTY_NAMES.Add("inputs");
+            RESERVED_PROPERTY_NAMES.Add("outputs");
+            RESERVED_PROPERTY_NAMES.Add("upkeep");
+            RESERVED_PROPERTY_NAMES.Add("quantity");
+            RESERVED_PROPERTY_NAMES.Add("requirements");
+            RESERVED_PROPERTY_NAMES.Add("costs");
+            RESERVED_PROPERTY_NAMES.Add("actual-quantity");
+        }
         private readonly string entityKey;
         private string name;
         private BigDouble startingQuantity;
@@ -23,6 +34,7 @@ namespace IdleFramework
         public ISet<ModifierDefinition> modifiers = new HashSet<ModifierDefinition>();
         private bool canBeBought;
         private PropertyReference quantityCap;
+        private readonly Dictionary<string, PropertyReference> customProperties;
 
         public string EntityKey => entityKey;
         public string Name => name;
@@ -40,6 +52,8 @@ namespace IdleFramework
         public Dictionary<string, PropertyReference> BaseMinimumProductionOutputs => minimumProduction;
         public bool CanBeBought => canBeBought;
         public PropertyReference QuantityCap => quantityCap;
+
+        public Dictionary<string, PropertyReference> CustomProperties => customProperties;
 
         public EntityDefinition(EntityDefinitionBuilder other)
         {
@@ -59,6 +73,7 @@ namespace IdleFramework
             this.minimumProduction = other.BaseMinimumProductionOutputs;
             this.canBeBought = other.CanBeBought;
             this.quantityCap = other.QuantityCap != null ? other.QuantityCap : new LiteralReference(BigDouble.PositiveInfinity);
+            this.customProperties = other.CustomProperties;
         }
 
         

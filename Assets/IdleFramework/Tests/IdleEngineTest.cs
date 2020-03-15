@@ -11,7 +11,9 @@ namespace Tests {
         public void setup()
         {
             var configuration = new GameConfigurationBuilder()
+                .WithCustomEntityProperty("property")
                 .WithEntity(new EntityDefinitionBuilder("food")
+                    .WithCustomProperty("is-food")
                     .WithProduction("food", 1))
                 .WithEntity(new EntityDefinitionBuilder("bar")
                     .WithConsumption("food", 3))
@@ -52,6 +54,31 @@ namespace Tests {
         public void MultipleEffectsStack()
         {
             Assert.AreEqual(BigDouble.Floor(1), engine.AllEntities["bar"].ProductionInputs["food"].Value);
+        }
+
+        [Test]
+        public void CanDefineACustomPropertyForAllEntities()
+        {
+            foreach(var entity in engine.AllEntities.Values)
+            {
+                Assert.IsTrue(entity.HasCustomProperty("property"), string.Format("failed for {0}", entity.EntityKey));
+            }
+        }
+
+        [Test]
+        public void CanDefineACustomPropertyForOneEntity()
+        {
+            foreach (var entity in engine.AllEntities.Values)
+            {
+                if (entity.EntityKey != "food")
+                {
+                    Assert.IsFalse(entity.HasCustomProperty("is-food"), string.Format("failed for {0}", entity.EntityKey));
+                } else
+                {
+                    Assert.IsTrue(entity.HasCustomProperty("is-food"), string.Format("failed for {0}", entity.EntityKey));
+                }
+
+            }
         }
     }
 

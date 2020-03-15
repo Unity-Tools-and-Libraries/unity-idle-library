@@ -18,6 +18,7 @@ namespace IdleFramework
         private readonly Dictionary<string, GameEntityProperty> productionOutputs = new Dictionary<string, GameEntityProperty>();
         private readonly Dictionary<string, GameEntityProperty> upkeep = new Dictionary<string, GameEntityProperty>();
         private readonly Dictionary<string, GameEntityProperty> minimumProduction = new Dictionary<string, GameEntityProperty>();
+        private readonly Dictionary<string, GameEntityProperty> customProperties = new Dictionary<string, GameEntityProperty>();
 
         public string EntityKey => definition.EntityKey;
         public string Name => definition.Name;
@@ -74,10 +75,16 @@ namespace IdleFramework
         public bool CanBeBought => definition.CanBeBought;
         public BigDouble RealQuantity => _quantity;
 
+        public Dictionary<string, PropertyReference> CustomProperties => definition.CustomProperties;
+
         public GameEntity(EntityDefinition definition, IdleEngine engine)
         {
             this.definition = definition;
             _quantity = definition.StartingQuantity;
+            foreach(var property in definition.CustomProperties)
+            {
+                customProperties.Add(property.Key, new GameEntityProperty(0));
+            }
             this.engine = engine;
         }
 
@@ -160,6 +167,11 @@ namespace IdleFramework
         public bool ShouldBeDisabled(IdleEngine engine)
         {
             return definition.DisabledMatcher.Matches(engine);
+        }
+
+        public bool HasCustomProperty(string customProperty)
+        {
+            return customProperties.ContainsKey(customProperty);
         }
 
         public override string ToString()

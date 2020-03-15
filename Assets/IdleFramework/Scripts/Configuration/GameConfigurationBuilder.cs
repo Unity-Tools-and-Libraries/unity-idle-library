@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BreakInfinity;
+using System;
 using System.Collections.Generic;
 
 namespace IdleFramework
@@ -10,6 +11,18 @@ namespace IdleFramework
     {
         private ISet<EntityDefinition> entities = new HashSet<EntityDefinition>();
         private ISet<ModifierDefinitionProperties> modifiers = new HashSet<ModifierDefinitionProperties>();
+        private Dictionary<string, BigDouble> universalCustomEntityProperties = new Dictionary<string, BigDouble>();
+
+        public GameConfigurationBuilder WithCustomEntityProperty(string customProperty)
+        {
+            if (EntityDefinition.RESERVED_PROPERTY_NAMES.Contains(customProperty))
+            {
+                throw new InvalidOperationException(String.Format("Cannot use {0} as a custom property name as it is reserved. Reserved names are {1}", customProperty, EntityDefinition.RESERVED_PROPERTY_NAMES));
+            }
+            universalCustomEntityProperties.Add(customProperty, 0);
+            return this;
+        }
+
         private ISet<EngineHookDefinition> hooks = new HashSet<EngineHookDefinition>();
         /**
          * Add a definition for a new entity.
@@ -52,7 +65,7 @@ namespace IdleFramework
 
         public GameConfiguration Build()
         {
-            return new GameConfiguration(entities, modifiers, hooks);
+            return new GameConfiguration(entities, modifiers, hooks, universalCustomEntityProperties);
         }
     }
 }

@@ -41,6 +41,15 @@ namespace IdleFramework
                         return entity.Quantity;
                     case "actual-quantity":
                         return entity.RealQuantity;
+                    default:
+                        {
+                            PropertyReference customPropertyValue;
+                            if (entity.CustomProperties.TryGetValue(entityProperty, out customPropertyValue))
+                            {
+                                return customPropertyValue.Get(engine);
+                            };
+                            return 0;
+                        }
                 }
             }
             return 0;

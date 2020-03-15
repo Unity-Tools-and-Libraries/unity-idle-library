@@ -41,6 +41,13 @@ namespace IdleFramework
             };
             foreach (EntityDefinition entity in configuration.Entities)
             {
+                foreach(var universalCustomProperty in configuration.UniversalCustomEntityProperties)
+                {
+                    if (!entity.CustomProperties.ContainsKey(universalCustomProperty.Key))
+                    {
+                        entity.CustomProperties.Add(universalCustomProperty.Key, new LiteralReference(0));
+                    }
+                }
                 GameEntity entityInstance = new GameEntity(entity, this);
                 if (entity.Types.Contains("resource"))
                 {

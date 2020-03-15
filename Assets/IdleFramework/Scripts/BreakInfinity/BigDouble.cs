@@ -116,14 +116,14 @@ namespace BreakInfinity
             return double.IsNaN(value.Mantissa);
         }
 
-        public static BigDouble PositiveInfinity = new BigDouble(double.PositiveInfinity, 0);
+        public static BigDouble PositiveInfinity = new BigDouble(double.PositiveInfinity, long.MaxValue);
 
         public static bool IsPositiveInfinity(BigDouble value)
         {
             return double.IsPositiveInfinity(value.Mantissa);
         }
 
-        public static BigDouble NegativeInfinity = new BigDouble(double.NegativeInfinity, 0);
+        public static BigDouble NegativeInfinity = new BigDouble(double.NegativeInfinity, long.MinValue);
 
         public static bool IsNegativeInfinity(BigDouble value)
         {

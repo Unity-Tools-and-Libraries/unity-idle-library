@@ -35,11 +35,7 @@ namespace IdleFramework
             get {
                 var actualQuantity = _quantity;
                 var cap = QuantityCap != null ? QuantityCap.Get(engine) : _quantity;
-                if (actualQuantity > cap)
-                {
-                    return cap;
-                }
-                return actualQuantity;
+                return BigDouble.Min(actualQuantity, cap);
            }
         }
         public BigDouble Progress => _progress;

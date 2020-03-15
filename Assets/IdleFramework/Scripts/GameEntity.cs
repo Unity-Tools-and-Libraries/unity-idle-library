@@ -181,12 +181,14 @@ namespace IdleFramework
         public GameEntityProperty(BigDouble quantity, params ModifierAndEffect[] initialModifiers)
         {
             this.value = quantity != null ? quantity : default(BigDouble);
-            AppliedModifiers.InsertRange(0, initialModifiers);
+            AppliedModifiers.AddRange(initialModifiers);
         }
 
         public BigDouble Value { get => value; set {
                 this.value = value != null ? value : default(BigDouble);
             } }
+
+
         public List<ModifierAndEffect> AppliedModifiers { get => appliedModifiers; set => appliedModifiers = value; }
 
         public static implicit operator GameEntityProperty(BigDouble bigDouble) => new GameEntityProperty(bigDouble);
@@ -204,6 +206,21 @@ namespace IdleFramework
         public static BigDouble operator /(GameEntityProperty left, GameEntityProperty right) => left.value / right.value;
         public static BigDouble operator /(BigDouble left, GameEntityProperty right) => left / right.value;
         public static BigDouble operator /(GameEntityProperty left, BigDouble right) => left.value / right;
+
+        public override bool Equals(object obj)
+        {
+            return obj is GameEntityProperty property &&
+                   value.Equals(property.value) &&
+                   EqualityComparer<List<ModifierAndEffect>>.Default.Equals(appliedModifiers, property.appliedModifiers);
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = 1254980278;
+            hashCode = hashCode * -1521134295 + value.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<List<ModifierAndEffect>>.Default.GetHashCode(appliedModifiers);
+            return hashCode;
+        }
     }
 
     public struct ModifierAndEffect

@@ -21,7 +21,7 @@ namespace Test {
                 .WithModifier(new ModifierDefinitionBuilder("food-penalty-2").Active().Always().And().HasEntityEffect(new EntityPropertyModifierEffect("bar", "inputs", "food", 1, EffectType.SUBTRACT)))
                 .Build();
             engine = new IdleEngine(configuration);
-            engine.Update();
+            engine.Update(1f);
         }
 
         [Test]

@@ -20,7 +20,7 @@ namespace IdleFramework
         private StateMatcher disabledWhenMatcher = new Never();
         private ISet<ModifierDefinition> modifiers = new HashSet<ModifierDefinition>();
         private PropertyReference quantityCap;
-        private bool scaleProduction;
+        private bool scaleProduction = true;
 
         public EntityDefinitionBuilder QuantityCappedBy(EntityPropertyReference entityPropertyReference)
         {

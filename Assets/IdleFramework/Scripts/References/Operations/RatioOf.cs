@@ -22,7 +22,7 @@ namespace IdleFramework
             var bValue = b.Get(engine);
             if(bValue.Equals(0))
             {
-                return aValue;
+                return BigDouble.NaN;
             }
             return aValue / bValue;
         }

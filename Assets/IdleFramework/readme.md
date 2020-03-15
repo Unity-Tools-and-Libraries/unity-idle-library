@@ -29,17 +29,17 @@ To buy more of a resource while spending resources, call BuyEntity, with the key
 ## 3. Entities
 
 
-## 4. Future Features
+## I. Future Features
 Engine hooks - This will allow custom user-defined code that can be run when things occur inside the engine that is more sophisticated than what can be done declaratively.
 	- Entity purchase
 	- Entity production input
 	- Entity production output
 Tutorial system
+Metrics - Track meta information over the course of play
 Minimum and maximum quantities - Set caps and floors on entity quantities
 Tracking of property modifiers - For e.g. tooltips
-Custom properties - Add custom properties to the engine and entities.
+Custom properties - Add support for custom properties on the engine and entities.
 Read-only views of entity, engine state - So state can be queries without allowing for modification.
-Change values to per-second and enable scaling - Allows setting values for e.g. production independent of the update rate.
 Unpurchaseable entities - Support entities that cannot be purchased, only produced by e.g. other entities.
 Actions which occur over a period of time.
 Singleton entities - For things like upgrades/research, characters, etc.

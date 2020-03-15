@@ -83,15 +83,15 @@ namespace IdleFramework
                 GameEntityProperty entityProduction;
                 if (entity.ProductionOutputs.TryGetValue(entityKey, out entityProduction))
                 {
-                    totalProduction += entityProduction.Value * entity.Quantity;
+                    totalProduction += entityProduction.Value * BigDouble.Floor(entity.Quantity);
                 }
                 if (entity.ProductionInputs.TryGetValue(entityKey, out entityProduction))
                 {
-                    totalProduction -= entityProduction.Value * entity.Quantity;
+                    totalProduction -= entityProduction.Value * BigDouble.Floor(entity.Quantity);
                 }
                 if (entity.Upkeep.TryGetValue(entityKey, out entityProduction))
                 {
-                    totalProduction -= entityProduction.Value * entity.Quantity;
+                    totalProduction -= entityProduction.Value * BigDouble.Floor(entity.Quantity);
                 }
             }
             return totalProduction;
@@ -192,7 +192,7 @@ namespace IdleFramework
 
         }
 
-        public BigDouble PerformUpkeepForEntity(GameEntity entity)
+        public BigDouble PerformUpkeepForEntity(GameEntity entity, float deltaTime)
         {
             if (entity.ShouldBeDisabled(this))
             {
@@ -202,26 +202,26 @@ namespace IdleFramework
             // Determine max number can be supported.
             foreach (var resource in entity.Upkeep)
             {
-                var maxQuantityPossible = resource.Value.Value > 0 ? BigDouble.Floor(_allEntities[resource.Key].Quantity / resource.Value.Value) : quantity;
+                var maxQuantityPossible = resource.Value.Value > 0 ? BigDouble.Floor(_allEntities[resource.Key].Quantity / (resource.Value.Value * deltaTime)) : quantity;
                 quantity = BigDouble.Min(quantity, maxQuantityPossible);
             }
             // Consume upkeep requirements
             foreach (var resource in entity.Upkeep)
             {
-                _allEntities[resource.Key].ChangeQuantity(-resource.Value.Value * quantity);
+                _allEntities[resource.Key].ChangeQuantity(-resource.Value.Value * BigDouble.Floor(quantity) * deltaTime);
             }
             // Set new quantity
             entity.SetQuantity(quantity);
             return quantity;
         }
 
-        internal void PerformProductionForEntity(GameEntity entity)
+        internal void PerformProductionForEntity(GameEntity entity, float deltaTime)
         {
             if (entity.ShouldBeDisabled(this))
             {
                 return;
             }
-            var quantityProducing = entity.Quantity;
+            var quantityProducing = BigDouble.Floor(entity.Quantity);
             // Determine the quantity able to produce.
             foreach (var resource in entity.ProductionInputs)
             {
@@ -245,7 +245,7 @@ namespace IdleFramework
             // Consume inputs
             foreach (var resource in entity.ProductionInputs)
             {
-                inputsToConsume.Add(resource.Key, resource.Value.Value * quantityProducing);
+                inputsToConsume.Add(resource.Key, resource.Value.Value * quantityProducing * deltaTime);
             }
             var entitiesWhichProduced = new HashSet<string>();
             // Produce outputs
@@ -256,14 +256,14 @@ namespace IdleFramework
                 {
                     continue;
                 }
-                var calculatedQuantity = resource.Value.Value * quantityProducing;
+                var calculatedQuantity = resource.Value.Value * quantityProducing * deltaTime;
                 GameEntityProperty minimumQuantity;
-                BigDouble quantityToProduce = 0;
+                BigDouble quantityToProduce = calculatedQuantity;
                 if (entity.MinimumProductionOutputs.TryGetValue(resource.Key, out minimumQuantity))
                 {
-                    quantityToProduce = BigDouble.Max(calculatedQuantity, minimumQuantity);
+                    quantityToProduce = BigDouble.Max(calculatedQuantity, minimumQuantity.Value * deltaTime);
                 }
-                outputsToProduce.Add(resource.Key, resource.Value.Value * quantityProducing);
+                outputsToProduce.Add(resource.Key, quantityToProduce);
             }
 
             foreach (var resource in entity.MinimumProductionOutputs)
@@ -386,7 +386,7 @@ namespace IdleFramework
         /**
          * Advance the state of the framework by one tick.
          */
-        public void Update()
+        public void Update(float deltaTime)
         {
             if (!updatedThrottled)
             {
@@ -395,27 +395,12 @@ namespace IdleFramework
                 RecalculateAllEntityProperties();
                 foreach (GameEntity entity in _allEntities.Values)
                 {
-                    PerformProductionForEntity(entity);
+                    PerformProductionForEntity(entity, deltaTime);
                 }
                 foreach (GameEntity entity in _allEntities.Values)
                 {
-                    PerformUpkeepForEntity(entity);
+                    PerformUpkeepForEntity(entity, deltaTime);
                 }
-            }
-        }
-
-        internal void UpdateResourcesFromEntityProduction(string entityKey, BigDouble quantityProducing)
-        {
-            var entity = _allEntities[entityKey];
-            UpdateResourcesFromEntityConsumption(entity, quantityProducing);
-        }
-
-        internal void UpdateResourcesFromEntityConsumption(GameEntity entity, BigDouble quantityConsuming)
-        {
-            foreach (var consumed in entity.Upkeep)
-            {
-                var totalConsumed = consumed.Value.Value * quantityConsuming;
-                AllEntities[consumed.Key].ChangeQuantity(-totalConsumed);
             }
         }
     }

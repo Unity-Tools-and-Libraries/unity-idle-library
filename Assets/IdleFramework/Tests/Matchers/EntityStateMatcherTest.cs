@@ -26,7 +26,7 @@ namespace Tests
                     .WithStartingQuantity(1)
                     .WithProduction("food", 2))
                 .Build());
-            engine.Update();
+            engine.Update(1f);
         }
         [Test]
         public void EntityPropertyMatcherCanPerformEqualsMatch()

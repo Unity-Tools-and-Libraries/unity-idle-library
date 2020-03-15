@@ -15,19 +15,17 @@ namespace IdleFramework
             SUPPORTED_PROPERTIES.Add("inputs");
             SUPPORTED_PROPERTIES.Add("quantity");
         }
-        private string entityKey;
         private string entityProperty;
         private string entitySubproperty;
         private Comparison comparison;
         private PropertyReference valueSupplier;
 
-        private EntityPropertyMatcher(string entityKey, string entityProperty, string entitySubproperty, Comparison comparison)
+        private EntityPropertyMatcher(string entityKey, string entityProperty, string entitySubproperty, Comparison comparison) : base(entityKey)
         {
             if (!SUPPORTED_PROPERTIES.Contains(entityProperty.ToLower()))
             {
                 throw new ArgumentException(String.Format("entityProperty {0} isn't supported, must be one of {1}", entityProperty.ToLower(), SUPPORTED_PROPERTIES.ToString()));
             }
-            this.entityKey = entityKey.ToLower();
             this.entityProperty = entityProperty.ToLower();
             this.entitySubproperty = entitySubproperty.ToLower();
             this.comparison = comparison;
@@ -56,7 +54,7 @@ namespace IdleFramework
         public override bool Matches(IdleEngine toCheck)
         {
             GameEntity entityToCheck = null;
-            if(toCheck.AllEntities.TryGetValue(entityKey, out entityToCheck))
+            if(toCheck.AllEntities.TryGetValue(EntityKey, out entityToCheck))
             {
                 var entityValue = getNumberPropertyValue(entityToCheck, entityProperty, entitySubproperty, toCheck);
                 return performComparison(entityValue, toCheck);

@@ -1,15 +1,32 @@
 ﻿using IdleFramework;
 using System;
+using UnityEngine;
 
-public class EngineHookConfigurationBuilder
+public class EngineHookConfigurationBuilder: EngineHookDefinitionProperties
 {
     private Func<object, object> hook;
     private string actor;
     private EngineHookAction action;
     private string subject;
+
+    public EngineHookAction Action => action;
+
+    public string Actor => actor;
+
+    public string Subject => subject;
+
     public static EngineHookTriggerTypeSelector When()
     {
         return new EngineHookTriggerTypeSelector(new EngineHookConfigurationBuilder());
+    }
+
+    public static Func<T, T> Logs<T>(string message)
+    {
+        return (T arg) =>
+        {
+            Debug.Log(message);
+            return arg;
+        };
     }
 
     public class EngineHookTriggerTypeSelector
@@ -28,7 +45,7 @@ public class EngineHookConfigurationBuilder
         }
     }
 
-    public class EngineHookEntityActionSelector : EngineHookConfigurationBuilder
+    public class EngineHookEntityActionSelector
     {
         private EngineHookConfigurationBuilder parent;
 
@@ -39,8 +56,10 @@ public class EngineHookConfigurationBuilder
         /*
          * Execute the trigger when the any
          */
-        public EngineHookExecutionBuilder ProducesAnyEntity()
+        public EngineHookExecutionBuilder WillProduceAnyEntity()
         {
+            parent.action = EngineHookAction.WILL_PRODUCE;
+            parent.subject = "*";
             return new EngineHookExecutionBuilder(parent);
         }
     }
@@ -61,7 +80,7 @@ public class EngineHookConfigurationBuilder
         }
     }
 
-    internal EngineHookDefinition Build()
+    public EngineHookDefinition Build()
     {
         return new EngineHookDefinition(new EngineHookSelector(this.actor, this.action, this.subject), hook);
     }

@@ -27,7 +27,19 @@ To unconditionally set the amount of a resource, call SetResourceQuantity with t
 To buy more of a resource while spending resources, call BuyEntity, with the key of the entity and quantity to attempt to buy. Buying differs from Change and Set in that it checks for if the costs and requirements are met.
 
 ## 3. Entities
+Entities are the primary "things" that the player will use to achieve their ends in the game.
 
+There are two kinds of entites: normal entities and singleton entities.
+
+Normal entities are things which the player will accrue in large numbers. For example, in a "Civilization" type game the resources the player gains, such as food, gold, research, etc. would all be "normal entities".
+
+Singleton entities are things which the player will have which are each distinct from each other. In an RPG style game, party members would likely be defined as singleton entities. Singleton entities are defined as templates, with each instanc being a distinct object.
+
+## 4. Hooks
+Hooks provide a standardized interface for a developer to customize fundamental elements of how the engine works and watch for when things occur within the engine.
+
+The following events within the engine exist and can have hooks associated with them:
+* Entity Production
 
 ## I. Future Features
 Engine hooks - This will allow custom user-defined code that can be run when things occur inside the engine that is more sophisticated than what can be done declaratively.
@@ -38,7 +50,6 @@ Tutorial system
 Metrics - Track meta information over the course of play
 Minimum and maximum quantities - Set caps and floors on entity quantities
 Tracking of property modifiers - For e.g. tooltips
-Custom properties - Add support for custom properties on the engine and entities.
 Read-only views of entity, engine state - So state can be queries without allowing for modification.
 Unpurchaseable entities - Support entities that cannot be purchased, only produced by e.g. other entities.
 Actions which occur over a period of time.

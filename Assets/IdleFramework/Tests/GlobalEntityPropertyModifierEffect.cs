@@ -1,7 +1,7 @@
 ﻿using BreakInfinity;
 using IdleFramework;
 
-namespace Test
+namespace IdleFramework
 {
     public class GlobalEntityPropertyModifierEffect : EntityPropertyModifierEffect
     {

@@ -2,7 +2,7 @@
 using IdleFramework;
 using NUnit.Framework;
 
-namespace Test {
+namespace Tests {
     public class IdleEngineTest
     {
         private IdleEngine engine;

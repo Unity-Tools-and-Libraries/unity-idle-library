@@ -8,15 +8,16 @@ namespace IdleFramework
     public class GameEntity : EntityDefinitionProperties
     {
         private readonly IdleEngine engine;
+        private BigDouble quantityCap;
         private BigDouble _quantity = 0;
         private BigDouble _progress = 0;
         public readonly EntityDefinition definition;
-        private Dictionary<string, GameEntityProperty> requirements = new Dictionary<string, GameEntityProperty>();
-        private Dictionary<string, GameEntityProperty> costs = new Dictionary<string, GameEntityProperty>();
-        private Dictionary<string, GameEntityProperty> productionInputs = new Dictionary<string, GameEntityProperty>();
-        private Dictionary<string, GameEntityProperty> productionOutputs = new Dictionary<string, GameEntityProperty>();
-        private Dictionary<string, GameEntityProperty> upkeep = new Dictionary<string, GameEntityProperty>();
-        private Dictionary<string, GameEntityProperty> minimumProduction = new Dictionary<string, GameEntityProperty>();
+        private readonly Dictionary<string, GameEntityProperty> requirements = new Dictionary<string, GameEntityProperty>();
+        private readonly Dictionary<string, GameEntityProperty> costs = new Dictionary<string, GameEntityProperty>();
+        private readonly Dictionary<string, GameEntityProperty> productionInputs = new Dictionary<string, GameEntityProperty>();
+        private readonly Dictionary<string, GameEntityProperty> productionOutputs = new Dictionary<string, GameEntityProperty>();
+        private readonly Dictionary<string, GameEntityProperty> upkeep = new Dictionary<string, GameEntityProperty>();
+        private readonly Dictionary<string, GameEntityProperty> minimumProduction = new Dictionary<string, GameEntityProperty>();
 
         public string EntityKey => definition.EntityKey;
         public string Name => definition.Name;
@@ -126,11 +127,13 @@ namespace IdleFramework
         public void ChangeQuantity(BigDouble changeBy)
         {
             _quantity += changeBy;
+            _quantity = BigDouble.Min(_quantity, definition.QuantityCap.Get(engine));
         }
 
         public void SetQuantity(BigDouble newQuantity)
         {
             _quantity = newQuantity;
+            _quantity = BigDouble.Min(_quantity, definition.QuantityCap.Get(engine));
         }
 
         public void ChangeProgress(BigDouble changeBy)
@@ -141,6 +144,7 @@ namespace IdleFramework
                 _progress = 0;
                 _quantity += 1;
             }
+            _quantity = BigDouble.Min(_quantity, definition.QuantityCap.Get(engine));
         }
 
         public void SetProgress(int newProgress)

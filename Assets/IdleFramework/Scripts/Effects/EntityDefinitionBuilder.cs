@@ -22,7 +22,7 @@ namespace IdleFramework
         private PropertyReference quantityCap;
         private bool scaleProduction = true;
 
-        public EntityDefinitionBuilder QuantityCappedBy(EntityPropertyReference entityPropertyReference)
+        public EntityDefinitionBuilder QuantityCappedBy(PropertyReference entityPropertyReference)
         {
             quantityCap = entityPropertyReference;
             return this;

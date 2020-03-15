@@ -58,7 +58,7 @@ namespace IdleFramework
             this.disabledMatcher = other.DisabledMatcher;
             this.minimumProduction = other.BaseMinimumProductionOutputs;
             this.canBeBought = other.CanBeBought;
-            this.quantityCap = other.QuantityCap;
+            this.quantityCap = other.QuantityCap != null ? other.QuantityCap : new LiteralReference(BigDouble.PositiveInfinity);
         }
 
         

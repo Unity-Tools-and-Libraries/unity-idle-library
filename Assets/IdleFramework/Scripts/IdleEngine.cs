@@ -12,6 +12,7 @@ namespace IdleFramework
         private readonly ISet<ModifierDefinition> _modifiers = new HashSet<ModifierDefinition>();
         private readonly Dictionary<string, GameEntity> _resources = new Dictionary<string, GameEntity>();
         private readonly Dictionary<EngineHookAction, Dictionary<string, List<EngineHookDefinition>>> hooks = new Dictionary<EngineHookAction, Dictionary<string, List<EngineHookDefinition>>>();
+        private readonly Dictionary<string, SingletonEntityDefinition> singletons = new Dictionary<string, SingletonEntityDefinition>();
 
         private bool updatedThrottled = false;
         private System.Timers.Timer updateThrottleTimer = new System.Timers.Timer(100);
@@ -32,6 +33,8 @@ namespace IdleFramework
                 return _modifiers;
             }
         }
+
+        public Dictionary<string, SingletonEntityDefinition> AllSingletons => singletons;
 
         public IdleEngine(GameConfiguration configuration)
         {
@@ -66,6 +69,11 @@ namespace IdleFramework
                     hooks[hook.Selector.Action].Add(hook.Selector.Actor, hooksForActor);
                 }
                 hooksForActor.Add(hook);
+            }
+
+            foreach(SingletonEntityDefinition singleton in configuration.Singletons)
+            {
+                singletons.Add(singleton.SingletonTypeKey, singleton);
             }
         }
 

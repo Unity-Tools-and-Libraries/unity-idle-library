@@ -11,6 +11,7 @@ namespace IdleFramework
         private ISet<EntityDefinition> entities = new HashSet<EntityDefinition>();
         private ISet<ModifierDefinitionProperties> modifiers = new HashSet<ModifierDefinitionProperties>();
         private ISet<EngineHookDefinition> hooks = new HashSet<EngineHookDefinition>();
+        private ISet<SingletonEntityDefinition> singletons = new HashSet<SingletonEntityDefinition>();
         /**
          * Add a definition for a new entity.
          */
@@ -21,9 +22,11 @@ namespace IdleFramework
             return this;
         }
 
-        public void WithSingletonEntity(SingletonEntityDefinitionBuilder singletonEntity)
+        public GameConfigurationBuilder WithSingletonEntity(SingletonEntityDefinitionBuilder singletonEntity)
         {
-            throw new NotImplementedException();
+            var singleton = singletonEntity.Build();
+            singletons.Add(singleton);
+            return this;
         }
 
         /**
@@ -58,7 +61,7 @@ namespace IdleFramework
 
         public GameConfiguration Build()
         {
-            return new GameConfiguration(entities, modifiers, hooks);
+            return new GameConfiguration(entities, modifiers, hooks, singletons);
         }
     }
 }

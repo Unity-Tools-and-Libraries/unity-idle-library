@@ -15,6 +15,7 @@ namespace Test {
                     .WithProduction("food", 1))
                 .WithEntity(new EntityDefinitionBuilder("bar")
                     .WithConsumption("food", 3))
+                .WithSingletonEntity(new SingletonEntityDefinitionBuilder("singleton"))
                 .WithModifier(new ModifierDefinitionBuilder("effect").Active().Always().And().DoesNothing())
                 .WithModifier(new ModifierDefinitionBuilder("food-bonus").Active().Always().And().HasEntityEffect(new GlobalEntityPropertyModifierEffect("outputs", "food", 1, EffectType.ADD)))
                 .WithModifier(new ModifierDefinitionBuilder("food-penalty-1").Active().Always().And().HasEntityEffect(new EntityPropertyModifierEffect("bar", "inputs", "food", 1, EffectType.SUBTRACT)))
@@ -52,6 +53,12 @@ namespace Test {
         public void MultipleEffectsStack()
         {
             Assert.AreEqual(BigDouble.Floor(1), engine.AllEntities["bar"].ProductionInputs["food"].Value);
+        }
+
+        [Test]
+        public void EngineCanReturnSingletonTypes()
+        {
+            Assert.AreEqual(1, engine.AllSingletons.Count);
         }
     }
 

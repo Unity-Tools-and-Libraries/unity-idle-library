@@ -66,7 +66,7 @@ namespace IdleFramework
 
             public EffectTriggerDefinitionConfigurer Always()
             {
-                parent.stateMatcher = new Always();
+                parent.stateMatcher = IdleFramework.Always.Instance;
                 return this;
             }
 

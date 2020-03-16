@@ -96,7 +96,7 @@
     <Compile Include="Assets\IdleFramework\Scripts\Hooks\HookExecutionContext.cs" />
     <Compile Include="Assets\IdleFramework\Scripts\Hooks\HookExecutionPayload.cs" />
     <Compile Include="Assets\IdleFramework\Scripts\IdleEngine.cs" />
-    <Compile Include="Assets\IdleFramework\Scripts\Matchers\AllMatcher.cs" />
+    <Compile Include="Assets\IdleFramework\Scripts\Matchers\All.cs" />
     <Compile Include="Assets\IdleFramework\Scripts\Matchers\AlwaysMatcher.cs" />
     <Compile Include="Assets\IdleFramework\Scripts\Matchers\AnyMatcher.cs" />
     <Compile Include="Assets\IdleFramework\Scripts\Matchers\EntityPropertyMatcher.cs" />

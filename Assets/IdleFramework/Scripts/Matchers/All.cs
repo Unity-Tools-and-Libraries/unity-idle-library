@@ -4,11 +4,11 @@ using UnityEngine;
 
 namespace IdleFramework
 {
-    public class AllMatcher : StateMatcher
+    public class All : StateMatcher
     {
         private StateMatcher[] matchers;
 
-        public AllMatcher(StateMatcher[] matchers)
+        private All(params StateMatcher[] matchers)
         {
             this.matchers = matchers;
         }
@@ -25,9 +25,9 @@ namespace IdleFramework
             return true;
         }
 
-        public static AllMatcher AllOf(params StateMatcher[] matchers)
+        public static All Of(params StateMatcher[] matchers)
         {
-            return new AllMatcher(matchers);
+            return new All(matchers);
         }
     }
 }

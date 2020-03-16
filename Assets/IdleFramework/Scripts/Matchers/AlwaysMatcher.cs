@@ -2,18 +2,10 @@
 {
     public class Always : StateMatcher
     {
-        public override bool Equals(object obj)
+        public static readonly Always instance = new Always();
+        private Always()
         {
-            if (typeof(Always).Equals(obj.GetType()))
-            {
-                return true;
-            }
-            return false;
-        }
 
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
         }
 
         public bool Matches(IdleEngine toCheck)
@@ -21,6 +13,7 @@
             return true;
         }
 
+        public static Always Instance => instance;
 
     }
 }

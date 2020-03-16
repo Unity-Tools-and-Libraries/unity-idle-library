@@ -16,8 +16,8 @@ namespace IdleFramework
         private Dictionary<string, PropertyReference> upkeep = new Dictionary<string, PropertyReference>();
         private Dictionary<string, PropertyReference> minimumProductionOutputs = new Dictionary<string, PropertyReference>();
         private BigDouble startingQuantity = 0;
-        private StateMatcher hideEntityMatcher = new Never();
-        private StateMatcher disabledWhenMatcher = new Never();
+        private StateMatcher hideEntityMatcher = Never.Instance;
+        private StateMatcher disabledWhenMatcher = Never.Instance;
         private ISet<ModifierDefinition> modifiers = new HashSet<ModifierDefinition>();
         private PropertyReference quantityCap;
         private bool scaleProduction = true;
@@ -254,7 +254,7 @@ namespace IdleFramework
              */
             public EntityHideConfigurationBuilder Always()
             {
-                parent.hideEntityMatcher = new Always();
+                parent.hideEntityMatcher = IdleFramework.Always.Instance;
                 return this;
             }
 

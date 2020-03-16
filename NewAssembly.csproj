@@ -65,12 +65,17 @@
   <ItemGroup>
     <Compile Include="Assets\IdleFramework\Scripts\BreakInfinity\BigDouble.cs" />
     <Compile Include="Assets\IdleFramework\Scripts\BreakInfinity\BigDoubleEditor.cs" />
+    <Compile Include="Assets\IdleFramework\Scripts\Configuration\Builder.cs" />
     <Compile Include="Assets\IdleFramework\Scripts\Configuration\EffectDefinition.cs" />
     <Compile Include="Assets\IdleFramework\Scripts\Configuration\EngineHookDefinition.cs" />
     <Compile Include="Assets\IdleFramework\Scripts\Configuration\EngineHookSelector.cs" />
     <Compile Include="Assets\IdleFramework\Scripts\Configuration\GameConfiguration.cs" />
     <Compile Include="Assets\IdleFramework\Scripts\Configuration\GameConfigurationBuilder.cs" />
     <Compile Include="Assets\IdleFramework\Scripts\Configuration\ModifierDefinitionBuilder.cs" />
+    <Compile Include="Assets\IdleFramework\Scripts\Configuration\SingletonEntityDefinition.cs" />
+    <Compile Include="Assets\IdleFramework\Scripts\Configuration\SingletonEntityDefinitionBuilder.cs" />
+    <Compile Include="Assets\IdleFramework\Scripts\Configuration\SingletonEntityInstance.cs" />
+    <Compile Include="Assets\IdleFramework\Scripts\Configuration\SingletonEntityProperties.cs" />
     <Compile Include="Assets\IdleFramework\Scripts\Effects\EntityDefinition.cs" />
     <Compile Include="Assets\IdleFramework\Scripts\Effects\EntityDefinitionBuilder.cs" />
     <Compile Include="Assets\IdleFramework\Scripts\Effects\EntityEffect.cs" />

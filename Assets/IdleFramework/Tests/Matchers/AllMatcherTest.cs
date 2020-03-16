@@ -2,7 +2,7 @@
 using IdleFramework;
 using NUnit.Framework;
 
-public class AnyMatcherTest
+public class AllMatcherTest
 {
     [Test]
    public void ReturnsTrueIfAllMatchersAreTrue()

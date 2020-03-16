@@ -69,15 +69,5 @@ namespace Tests
         {
             Assert.IsTrue(new EntityPropertyMatcher("test-1", "inputs", "food", Comparison.EQUALS, 0).Matches(engine));
         }
-
-        [Test]
-        public void EntityPropertyMatcherThrowsExceptionOnBadProperty()
-        {
-            Assert.That(() =>
-            {
-                new EntityPropertyMatcher("test-1", "fdfs", "food", Comparison.GREATER_THAN, 1);
-            }, Throws.ArgumentException);
-            
-        }
     }
 }

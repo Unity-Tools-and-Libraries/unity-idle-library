@@ -7,10 +7,10 @@ namespace IdleFramework
     /*
      * A matcher which wraps other matchers, returning true if one or more of the wrapped matchers is a match.
      */
-    public class AnyMatcher : StateMatcher
+    public class Any : StateMatcher
     {
         private StateMatcher[] matchers;
-        public AnyMatcher(params StateMatcher[] matchers)
+        private Any(params StateMatcher[] matchers)
         {
             this.matchers = matchers;
         }
@@ -25,9 +25,9 @@ namespace IdleFramework
             return false;
         }
 
-        public static AnyMatcher AnyOf(params StateMatcher[] matchers)
+        public static Any AnyOf(params StateMatcher[] matchers)
         {
-            return new AnyMatcher(matchers);
+            return new Any(matchers);
         }
     }
 }

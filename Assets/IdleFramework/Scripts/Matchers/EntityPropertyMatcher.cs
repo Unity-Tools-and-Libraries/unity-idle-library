@@ -9,12 +9,6 @@ namespace IdleFramework
      */
     public class EntityPropertyMatcher : EntityStateMatcher
     {
-        public static readonly ISet<string> SUPPORTED_PROPERTIES = new HashSet<string>();
-        static EntityPropertyMatcher(){
-            SUPPORTED_PROPERTIES.Add("outputs");
-            SUPPORTED_PROPERTIES.Add("inputs");
-            SUPPORTED_PROPERTIES.Add("quantity");
-        }
         private string entityProperty;
         private string entitySubproperty;
         private Comparison comparison;
@@ -22,10 +16,6 @@ namespace IdleFramework
 
         private EntityPropertyMatcher(string entityKey, string entityProperty, string entitySubproperty, Comparison comparison) : base(entityKey)
         {
-            if (!SUPPORTED_PROPERTIES.Contains(entityProperty.ToLower()))
-            {
-                throw new ArgumentException(String.Format("entityProperty {0} isn't supported, must be one of {1}", entityProperty.ToLower(), SUPPORTED_PROPERTIES.ToString()));
-            }
             this.entityProperty = entityProperty.ToLower();
             this.entitySubproperty = entitySubproperty.ToLower();
             this.comparison = comparison;

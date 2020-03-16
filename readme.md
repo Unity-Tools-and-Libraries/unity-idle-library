@@ -56,4 +56,5 @@ Actions which occur over a period of time.
 Singleton entities - For things like upgrades/research, characters, etc.
 UI Component generation framework
 Offline mechanics
-Support for prestige mechanics
+Support for prestige mechanics.
+Engine listeners - Asynchronous listeners, unlike hooks they are not synchronous and don't impact the engine execution. 

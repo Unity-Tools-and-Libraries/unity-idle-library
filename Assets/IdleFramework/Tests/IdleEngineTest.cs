@@ -12,6 +12,7 @@ namespace Tests
         public void setup()
         {
             var configuration = new GameConfigurationBuilder()
+                .WithCustomGlobalProperty("multiplier", 1)
                 .WithCustomEntityProperty("property")
                 .WithEntity(new EntityDefinitionBuilder("food")
                     .WithCustomProperty("is-food")
@@ -84,9 +85,15 @@ namespace Tests
             }
         }
 
+        [Test]
         public void EngineCanReturnSingletonTypes()
         {
             Assert.AreEqual(1, engine.AllSingletons.Count);
+        }
+
+        [Test]
+        public void EngineReturnsZeroForNonExistantGlobalProperty() {
+            Assert.AreEqual(BigDouble.Floor(0), engine.GetGlobalProperty("fake"));
         }
     }
 

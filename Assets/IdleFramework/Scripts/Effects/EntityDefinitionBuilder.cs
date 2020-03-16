@@ -29,6 +29,11 @@ namespace IdleFramework
             return this;
         }
 
+        public HiddenAndDisabledConfigurationBuilder HiddenAndDisabled()
+        {
+            return new HiddenAndDisabledConfigurationBuilder(this);
+        }
+
         private bool canBeBought = true;
         public string EntityKey => key;
         public string Name => name;
@@ -325,6 +330,28 @@ namespace IdleFramework
             public EntityDefinition Build()
             {
                 return parent.Build();
+            }
+        }
+
+        public class HiddenAndDisabledConfigurationBuilder
+        {
+            private EntityDefinitionBuilder parent;
+
+            public HiddenAndDisabledConfigurationBuilder(EntityDefinitionBuilder parent)
+            {
+                this.parent = parent;
+            }
+
+            public HiddenAndDisabledConfigurationBuilder When(StateMatcher matcher)
+            {
+                parent.hideEntityMatcher = matcher;
+                parent.disabledWhenMatcher = matcher;
+                return this;
+            }
+
+            public EntityDefinitionBuilder Done()
+            {
+                return parent;
             }
         }
     }

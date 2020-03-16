@@ -37,39 +37,15 @@ public class Engine : MonoBehaviour
                             new EntityPropertyReference("population", "quantity")),
                         Literal.Of(1)),
                     Literal.Of(0)))
-            .Disabled()
+            .HiddenAndDisabled()
                 .When(new EntityPropertyMatcher("population", "quantity", Comparison.LESS_THAN, 10)).Done());
 
         configurationBuilder.WithEntity(new EntityDefinitionBuilder("culture").WithType("resource")
             .Unbuyable()
             .WithName("Culture")
             .WithRequirement("population", 100)
-            .Disabled()
+            .HiddenAndDisabled()
                 .When(new EntityPropertyMatcher("population", "quantity", Comparison.LESS_THAN, 100)).Done());
-
-        configurationBuilder.WithModifier(new ModifierDefinitionBuilder("extra-food")
-            .Active().When(new EntityPropertyMatcher("food", "quantity", Comparison.GREATER_THAN, new EntityPropertyReference("population", "quantity").Times(Literal.Of(3)))).And()
-            .HasEntityEffect(new EntityPropertyModifierEffect("population", "upkeep", "food", 2, EffectType.MULTIPLY))
-            .HasEntityEffect(new EntityPropertyModifierEffect("population", "outputs", "population", 2, EffectType.MULTIPLY))
-            .Build());
-
-        configurationBuilder.WithModifier(new ModifierDefinitionBuilder("extraer-food")
-            .Active().When(new EntityPropertyMatcher("food", "quantity", Comparison.GREATER_THAN, new EntityPropertyReference("population", "quantity").Times(Literal.Of(6)))).And()
-            .HasEntityEffect(new EntityPropertyModifierEffect("population", "upkeep", "food", 2 , EffectType.MULTIPLY))
-            .HasEntityEffect(new EntityPropertyModifierEffect("population", "outputs", "population", 2, EffectType.MULTIPLY))
-            .Build());
-
-        configurationBuilder.WithModifier(new ModifierDefinitionBuilder("extraest-food")
-            .Active().When(new EntityPropertyMatcher("food", "quantity", Comparison.GREATER_THAN, new EntityPropertyReference("population", "quantity").Times(Literal.Of(9)))).And()
-            .HasEntityEffect(new EntityPropertyModifierEffect("population", "upkeep", "food", 2, EffectType.MULTIPLY))
-            .HasEntityEffect(new EntityPropertyModifierEffect("population", "outputs", "population", 2, EffectType.MULTIPLY))
-            .Build());
-
-        configurationBuilder.WithModifier(new ModifierDefinitionBuilder("improved-tools")
-            .Active().When(new EntityPropertyMatcher("population", "quantity", Comparison.GREATER_THAN, Literal.Of(100))).And()
-            .HasEntityEffect(new EntityPropertyModifierEffect("primitive-tools", "outputs", "food", 2, EffectType.MULTIPLY))
-            .HasEntityEffect(new EntityPropertyModifierEffect("primitive-tools", "outputs", "primitive-tools", .1, EffectType.ADD))
-            .Build());
 
         framework = new IdleEngine(configurationBuilder.Build());
         InvokeRepeating("tick", 0f, .25f);

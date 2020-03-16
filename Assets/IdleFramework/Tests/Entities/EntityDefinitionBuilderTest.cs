@@ -59,5 +59,14 @@ namespace Tests
                 .Build();
             Assert.AreEqual(BigDouble.Floor(2), ed.BaseProductionInputs["food"].Get(null));
         }
+
+        [Test]
+        public void EntityDefinitionBuilderCanSpecifyAFlatMinimumProduction()
+        {
+            EntityDefinition ed = new EntityDefinitionBuilder("foo")
+                .WithFlatMinimumProduction("food", 1)
+                .Build();
+            Assert.AreEqual(BigDouble.Floor(1), ed.BaseMinimumProductionOutputs["food"].Get(null));
+        }
     }
 }

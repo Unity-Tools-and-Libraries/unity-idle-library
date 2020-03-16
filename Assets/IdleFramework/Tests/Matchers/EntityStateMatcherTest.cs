@@ -69,5 +69,10 @@ namespace Tests
         {
             Assert.IsTrue(new EntityPropertyMatcher("test-1", "inputs", "food", Comparison.EQUALS, 0).Matches(engine));
         }
+
+        public void EntityPropertyMatcherReturnsFalseForNonexistantEntity()
+        {
+            Assert.IsFalse(new EntityPropertyMatcher("missing", "whaterver", Comparison.EQUALS, 4414234).Matches(engine));
+        }
     }
 }

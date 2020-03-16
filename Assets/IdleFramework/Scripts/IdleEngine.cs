@@ -14,6 +14,7 @@ namespace IdleFramework
         private readonly Dictionary<string, GameEntity> _resources = new Dictionary<string, GameEntity>();
         private readonly Dictionary<EngineHookAction, Dictionary<string, List<EngineHookDefinition>>> hooks = new Dictionary<EngineHookAction, Dictionary<string, List<EngineHookDefinition>>>();
         private readonly Dictionary<string, SingletonEntityDefinition> singletons = new Dictionary<string, SingletonEntityDefinition>();
+        private readonly Dictionary<string, BigDouble> globalProperty = new Dictionary<string, BigDouble>();
 
         private System.Timers.Timer updateThrottleTimer = new System.Timers.Timer(100);
         private ISet<ModifierDefinition> lastActiveModifiers;
@@ -106,6 +107,13 @@ namespace IdleFramework
                 }
             }
             return totalProduction;
+        }
+
+        public BigDouble GetGlobalProperty(string propertyName)
+        {
+            BigDouble value = 0;
+            globalProperty.TryGetValue(propertyName, out value);
+            return value;
         }
 
         public void BuyEntity(GameEntity gameEntity, BigDouble quantityToBuy, bool buyAllOrNothing)

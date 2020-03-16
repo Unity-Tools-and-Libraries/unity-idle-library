@@ -10,6 +10,14 @@ namespace IdleFramework
     public class GameConfigurationBuilder: Builder<GameConfiguration>
     {
         private ISet<EntityDefinition> entities = new HashSet<EntityDefinition>();
+        private Dictionary<string, BigDouble> globalProperties = new Dictionary<string, BigDouble>();
+
+        public GameConfigurationBuilder WithCustomGlobalProperty(string propertyName, BigDouble startingValue)
+        {
+            globalProperties.Add(propertyName, startingValue);
+            return this;
+        }
+
         private ISet<ModifierDefinitionProperties> modifiers = new HashSet<ModifierDefinitionProperties>();
         private Dictionary<string, BigDouble> universalCustomEntityProperties = new Dictionary<string, BigDouble>();
 
@@ -74,7 +82,7 @@ namespace IdleFramework
 
         public GameConfiguration Build()
         {
-            return new GameConfiguration(entities, modifiers, hooks, singletons, universalCustomEntityProperties);
+            return new GameConfiguration(entities, modifiers, hooks, singletons, universalCustomEntityProperties, globalProperties);
         }
     }
 }

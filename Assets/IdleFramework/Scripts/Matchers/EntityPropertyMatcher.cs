@@ -12,7 +12,7 @@ namespace IdleFramework
         private string entityProperty;
         private string entitySubproperty;
         private Comparison comparison;
-        private PropertyReference valueSupplier;
+        private PropertyReference valueSource;
 
         private EntityPropertyMatcher(string entityKey, string entityProperty, string entitySubproperty, Comparison comparison) : base(entityKey)
         {
@@ -22,7 +22,7 @@ namespace IdleFramework
         }
         public EntityPropertyMatcher(string entityKey, string entityProperty, string entitySubproperty, Comparison comparison, BigDouble value) : this(entityKey, entityProperty, entitySubproperty, comparison)
         {
-            this.valueSupplier = new LiteralReference(value);
+            this.valueSource = Literal.Of(value);
         }
         public EntityPropertyMatcher(string entityKey, string entityProperty, Comparison comparison, BigDouble value) : this(entityKey, entityProperty, "", comparison, value)
         {
@@ -31,12 +31,12 @@ namespace IdleFramework
 
         public EntityPropertyMatcher(string entityKey, string entityProperty, Comparison comparison, PropertyReference reference) : this(entityKey, entityProperty, "", comparison)
         {
-            this.valueSupplier = reference;
+            this.valueSource = reference;
         }
 
         public EntityPropertyMatcher(string entityKey, string entityProperty, string entitySubproperty, Comparison comparison, PropertyReference reference) : this(entityKey, entityProperty, entitySubproperty, comparison)
         {
-            this.valueSupplier = reference;
+            this.valueSource = reference;
         }
 
         
@@ -123,11 +123,11 @@ namespace IdleFramework
             switch(comparison)
             {
                 case Comparison.EQUALS:
-                    return entityValue.CompareTo(this.valueSupplier.Get(engine)) == 0;
+                    return entityValue.CompareTo(this.valueSource.Get(engine)) == 0;
                 case Comparison.GREATER_THAN:
-                    return entityValue.CompareTo(this.valueSupplier.Get(engine)) > 0;
+                    return entityValue.CompareTo(this.valueSource.Get(engine)) > 0;
                 case Comparison.LESS_THAN:
-                    return entityValue.CompareTo(this.valueSupplier.Get(engine)) < 0;
+                    return entityValue.CompareTo(this.valueSource.Get(engine)) < 0;
             }
             return false;
         }

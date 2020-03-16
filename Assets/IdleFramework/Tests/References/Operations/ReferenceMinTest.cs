@@ -6,6 +6,6 @@ public class ReferenceMinTest
 {
     public void MinReturnsSmallestOfValues()
     {
-        Assert.IsTrue(BigDouble.Equals(1, new MinOf(new LiteralReference(1), new LiteralReference(2), new LiteralReference(3))));
+        Assert.IsTrue(BigDouble.Equals(1, Min.Of(Literal.Of(1), Literal.Of(2), Literal.Of(3))));
     }
 }

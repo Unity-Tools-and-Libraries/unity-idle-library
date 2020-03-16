@@ -44,7 +44,7 @@ namespace IdleFramework
                 {
                     if (!entity.CustomProperties.ContainsKey(universalCustomProperty.Key))
                     {
-                        entity.CustomProperties.Add(universalCustomProperty.Key, new LiteralReference(0));
+                        entity.CustomProperties.Add(universalCustomProperty.Key, Literal.Of(0));
                     }
                 }
                 GameEntity entityInstance = new GameEntity(entity, this);

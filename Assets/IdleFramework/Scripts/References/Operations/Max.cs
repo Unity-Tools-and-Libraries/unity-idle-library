@@ -1,11 +1,11 @@
 ﻿using BreakInfinity;
 namespace IdleFramework
 {
-    public class MaxOf : PropertyReference
+    public class Max : PropertyReference
     {
         private PropertyReference[] children;
 
-        public MaxOf(params PropertyReference[] children)
+        private Max(params PropertyReference[] children)
         {
             this.children = children;
         }
@@ -22,6 +22,11 @@ namespace IdleFramework
                 largest = BigDouble.Max(largest, reference.Get(engine));
             }
             return largest;
+        }
+
+        public static Max Of(params PropertyReference[] references)
+        {
+            return new Max(references);
         }
     }
 }

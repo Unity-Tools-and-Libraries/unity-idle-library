@@ -64,7 +64,7 @@ namespace IdleFramework
          */
         public EntityDefinitionBuilder WithFlatMinimumProduction(string entity, BigDouble value)
         {
-            minimumProductionOutputs[entity] = new LiteralReference(value);
+            minimumProductionOutputs[entity] = Literal.Of(value);
             return this;
         }
 
@@ -82,7 +82,7 @@ namespace IdleFramework
          */
         public EntityDefinitionBuilder WithRequirement(string entityRequired, BigDouble quantityRequired)
         {
-            requires.Add(entityRequired, new LiteralReference(quantityRequired));
+            requires.Add(entityRequired, Literal.Of(quantityRequired));
             return this;
         }
 
@@ -91,7 +91,7 @@ namespace IdleFramework
          */ 
         public EntityDefinitionBuilder WithCost(string entityRequired, BigDouble quantityRequired)
         {
-            costs.Add(entityRequired, new LiteralReference(quantityRequired));
+            costs.Add(entityRequired, Literal.Of(quantityRequired));
             return this;
         }
 
@@ -102,7 +102,7 @@ namespace IdleFramework
          */
         public EntityDefinitionBuilder WithConsumption(string entity, BigDouble quantityConsumedPerTick)
         {
-            productionInputs[entity] = new LiteralReference(quantityConsumedPerTick);
+            productionInputs[entity] = Literal.Of(quantityConsumedPerTick);
             return this;
         }
 
@@ -113,7 +113,7 @@ namespace IdleFramework
          */
         public EntityDefinitionBuilder WithConsumption(string entity, BigDouble quantityConsumedPerTick, PropertyReference cap)
         {
-            productionInputs[entity] = new MinOf(new LiteralReference(quantityConsumedPerTick), cap);
+            productionInputs[entity] = Min.Of(Literal.Of(quantityConsumedPerTick), cap);
             return this;
         }
 
@@ -124,7 +124,7 @@ namespace IdleFramework
          */
         public EntityDefinitionBuilder WithProduction(string entityKey, BigDouble quantityPerTick)
         {
-            productionOutputs[entityKey] = new LiteralReference(quantityPerTick);
+            productionOutputs[entityKey] = Literal.Of(quantityPerTick);
             return this;
         }
 
@@ -146,7 +146,7 @@ namespace IdleFramework
          */ 
         public EntityDefinitionBuilder WithProduction(string entityKey, PropertyReference quantityPerTick, EntityPropertyReference cap)
         {
-            return WithProduction(entityKey, new MinOf(quantityPerTick, cap));
+            return WithProduction(entityKey, Min.Of(quantityPerTick, cap));
         }
 
         /*
@@ -171,7 +171,7 @@ namespace IdleFramework
          */
         public EntityDefinitionBuilder WithUpkeepRequirement(string entity, BigDouble quantity)
         {
-            BaseUpkeep.Add(entity, new LiteralReference(quantity));
+            BaseUpkeep.Add(entity, Literal.Of(quantity));
             return this;
         }
 
@@ -210,7 +210,7 @@ namespace IdleFramework
 
         public EntityDefinitionBuilder WithCustomProperty(string customProperty)
         {
-            customProperties.Add(customProperty, new LiteralReference(0));
+            customProperties.Add(customProperty, Literal.Of(0));
             return this;
         }
 

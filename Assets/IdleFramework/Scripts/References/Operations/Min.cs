@@ -1,11 +1,11 @@
 ﻿using BreakInfinity;
 namespace IdleFramework
 {
-    public class MinOf : PropertyReference
+    public class Min : PropertyReference
     {
         private PropertyReference[] children;
 
-        public MinOf(params PropertyReference[] children)
+        private Min(params PropertyReference[] children)
         {
             this.children = children;
         }
@@ -22,6 +22,11 @@ namespace IdleFramework
                 smallest = BigDouble.Min(smallest, reference.Get(engine));
             }
             return smallest;
+        }
+
+        public static Min Of(params PropertyReference[] children)
+        {
+            return new Min(children);
         }
     }
 }

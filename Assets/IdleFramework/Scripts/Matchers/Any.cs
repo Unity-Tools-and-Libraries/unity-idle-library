@@ -25,7 +25,7 @@ namespace IdleFramework
             return false;
         }
 
-        public static Any AnyOf(params StateMatcher[] matchers)
+        public static Any Of(params StateMatcher[] matchers)
         {
             return new Any(matchers);
         }

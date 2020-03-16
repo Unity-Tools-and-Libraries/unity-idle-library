@@ -14,13 +14,15 @@ namespace IdleFramework
         private ISet<ModifierDefinitionProperties> modifiers;
         private ISet<EngineHookDefinition> hooks;
         private Dictionary<string, BigDouble> universalCustomEntityProperties;
+        private ISet<SingletonEntityDefinition> singletons;
 
         public ISet<EntityDefinition> Entities { get => entities; set => entities = value; }
         public ISet<ModifierDefinitionProperties> Modifiers { get => modifiers;  }
         public ISet<EngineHookDefinition> Hooks { get => hooks; }
         public Dictionary<string, BigDouble> UniversalCustomEntityProperties { get => universalCustomEntityProperties; }
+        public IEnumerable<SingletonEntityDefinition> Singletons => singletons;
 
-        public GameConfiguration(ISet<EntityDefinition> entities, ISet<ModifierDefinitionProperties> modifiers, ISet<EngineHookDefinition> hooks, Dictionary<string, BigDouble> universalCustomEntityProperties)
+        public GameConfiguration(ISet<EntityDefinition> entities, ISet<ModifierDefinitionProperties> modifiers, ISet<EngineHookDefinition> hooks, ISet<SingletonEntityDefinition> singletons, Dictionary<string, BigDouble> universalCustomEntityProperties)
         {
             var entityKeys = new HashSet<string>();
             foreach(var entityDefinition in entities)
@@ -34,6 +36,7 @@ namespace IdleFramework
             this.modifiers = modifiers;
             this.hooks = hooks;
             this.universalCustomEntityProperties = universalCustomEntityProperties;
+            this.singletons = singletons;
         }
     }
 }

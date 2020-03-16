@@ -1,9 +1,6 @@
 ﻿using BreakInfinity;
 using IdleFramework;
 using NUnit.Framework;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 
 public class GameEntityTest 
 {

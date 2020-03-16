@@ -2,11 +2,12 @@
 using IdleFramework;
 using NUnit.Framework;
 
-namespace Tests {
+namespace Tests
+{
     public class IdleEngineTest
     {
         private IdleEngine engine;
-        
+
         [SetUp]
         public void setup()
         {
@@ -17,6 +18,7 @@ namespace Tests {
                     .WithProduction("food", 1))
                 .WithEntity(new EntityDefinitionBuilder("bar")
                     .WithConsumption("food", 3))
+                .WithSingletonEntity(new SingletonEntityDefinitionBuilder("singleton"))
                 .WithModifier(new ModifierDefinitionBuilder("effect").Active().Always().And().DoesNothing())
                 .WithModifier(new ModifierDefinitionBuilder("food-bonus").Active().Always().And().HasEntityEffect(new GlobalEntityPropertyModifierEffect("outputs", "food", 1, EffectType.ADD)))
                 .WithModifier(new ModifierDefinitionBuilder("food-penalty-1").Active().Always().And().HasEntityEffect(new EntityPropertyModifierEffect("bar", "inputs", "food", 1, EffectType.SUBTRACT)))
@@ -59,7 +61,7 @@ namespace Tests {
         [Test]
         public void CanDefineACustomPropertyForAllEntities()
         {
-            foreach(var entity in engine.AllEntities.Values)
+            foreach (var entity in engine.AllEntities.Values)
             {
                 Assert.IsTrue(entity.HasCustomProperty("property"), string.Format("failed for {0}", entity.EntityKey));
             }
@@ -73,12 +75,18 @@ namespace Tests {
                 if (entity.EntityKey != "food")
                 {
                     Assert.IsFalse(entity.HasCustomProperty("is-food"), string.Format("failed for {0}", entity.EntityKey));
-                } else
+                }
+                else
                 {
                     Assert.IsTrue(entity.HasCustomProperty("is-food"), string.Format("failed for {0}", entity.EntityKey));
                 }
 
             }
+        }
+
+        public void EngineCanReturnSingletonTypes()
+        {
+            Assert.AreEqual(1, engine.AllSingletons.Count);
         }
     }
 

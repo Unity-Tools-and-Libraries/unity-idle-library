@@ -42,7 +42,6 @@ The following events within the engine exist and can have hooks associated with 
 * Entity Production
 
 ## I. Future Features
-<<<<<<< HEAD
 * Engine hooks - This will allow custom user-defined code that can be run when things occur inside the engine that is more sophisticated than what can be done declaratively.
 	- Entity purchase
 	- Entity production input
@@ -58,3 +57,4 @@ The following events within the engine exist and can have hooks associated with 
 * UI Component generation framework
 * Offline mechanics
 * Support for prestige mechanics
+* Auto-buy for entities.

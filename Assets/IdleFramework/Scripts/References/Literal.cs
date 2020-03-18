@@ -1,9 +1,11 @@
 ﻿using BreakInfinity;
+using System.Collections.Generic;
 
 namespace IdleFramework
 {
     public class Literal : PropertyReference
     {
+        private static readonly Dictionary<BigDouble, Literal> cache = new Dictionary<BigDouble, Literal>();
         private BigDouble value;
 
         private Literal(BigDouble value)
@@ -22,7 +24,28 @@ namespace IdleFramework
 
         public static Literal Of(BigDouble value)
         {
-            return new Literal(value);
+            Literal literal;
+            if(!cache.TryGetValue(value, out literal))
+            {
+                literal = new Literal(value);
+                cache.Add(value, literal);
+            }
+            return literal;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return string.Format("Literal ({0})", value);
         }
     }
 }

@@ -36,7 +36,7 @@ public class ResourceDisplay : MonoBehaviour
     {
         if(displayedResource != null)
         {
-            resourceName.text = displayedResource.definition.Name;
+            resourceName.text = displayedResource.Name;
             BigDouble effectiveQuantity = displayedResource.Quantity;
             BigDouble actualQuantity = displayedResource.RealQuantity;
             if(effectiveQuantity != actualQuantity)

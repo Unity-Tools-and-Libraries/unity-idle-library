@@ -11,15 +11,17 @@ namespace IdleFramework
     {
         private ISet<EntityDefinition> entities = new HashSet<EntityDefinition>();
         private Dictionary<string, BigDouble> globalProperties = new Dictionary<string, BigDouble>();
-
-        public GameConfigurationBuilder WithCustomGlobalProperty(string propertyName, BigDouble startingValue)
-        {
-            globalProperties.Add(propertyName, startingValue);
-            return this;
-        }
-
         private ISet<ModifierDefinitionProperties> modifiers = new HashSet<ModifierDefinitionProperties>();
         private Dictionary<string, BigDouble> universalCustomEntityProperties = new Dictionary<string, BigDouble>();
+        private ISet<EngineHookDefinition> hooks = new HashSet<EngineHookDefinition>();
+        private ISet<SingletonEntityDefinition> singletons = new HashSet<SingletonEntityDefinition>();
+        private ISet<AchievementConfiguration> achievements = new HashSet<AchievementConfiguration>();
+
+        public GameConfigurationBuilder WithCustomGlobalProperty(string propertyName, BigDouble baseValue)
+        {
+            globalProperties.Add(propertyName, baseValue);
+            return this;
+        }
 
         public GameConfigurationBuilder WithCustomEntityProperty(string customProperty)
         {
@@ -30,9 +32,6 @@ namespace IdleFramework
             universalCustomEntityProperties.Add(customProperty, 0);
             return this;
         }
-
-        private ISet<EngineHookDefinition> hooks = new HashSet<EngineHookDefinition>();
-        private ISet<SingletonEntityDefinition> singletons = new HashSet<SingletonEntityDefinition>();
         /**
          * Add a definition for a new entity.
          */
@@ -47,6 +46,12 @@ namespace IdleFramework
         {
             var singleton = singletonEntity.Build();
             singletons.Add(singleton);
+            return this;
+        }
+
+        public GameConfigurationBuilder WithAchievement(AchievementConfigurationBuilder achievement)
+        {
+            achievements.Add(achievement.Build());
             return this;
         }
 
@@ -82,7 +87,7 @@ namespace IdleFramework
 
         public GameConfiguration Build()
         {
-            return new GameConfiguration(entities, modifiers, hooks, singletons, universalCustomEntityProperties, globalProperties);
+            return new GameConfiguration(entities, modifiers, hooks, singletons, universalCustomEntityProperties, globalProperties, achievements);
         }
     }
 }

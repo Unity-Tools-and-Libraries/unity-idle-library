@@ -2,9 +2,9 @@
 
 namespace IdleFramework
 {    
-    public interface EffectDefinition<T>
+    public interface EffectDefinition
     {
-        void ApplyEffect(IdleEngine engine, T source);
+        BigDouble CalculateEffect(ModifiableProperty target, IdleEngine engine);
     }
 
     public enum EffectType

@@ -9,7 +9,7 @@ namespace IdleFramework
     {
         private string modifierKey;
         private StateMatcher stateMatcher;
-        private ISet<EntityEffect> entityEffects = new HashSet<EntityEffect>();
+        private ISet<EntityEffectDefinition> entityEffects = new HashSet<EntityEffectDefinition>();
         public string ModifierKey => modifierKey;
 
         public ModifierDefinitionBuilder(string modifierKey)
@@ -23,7 +23,7 @@ namespace IdleFramework
             return this;
         }
 
-        public ModifierDefinitionBuilder HasEntityEffect(EntityEffect effect)
+        public ModifierDefinitionBuilder HasEntityEffect(EntityEffectDefinition effect)
         {
             entityEffects.Add(effect);
             return this;

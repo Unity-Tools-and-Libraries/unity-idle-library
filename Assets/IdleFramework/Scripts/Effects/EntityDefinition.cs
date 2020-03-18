@@ -5,7 +5,7 @@ using BreakInfinity;
 
 namespace IdleFramework
 {
-    public class EntityDefinition : EntityDefinitionProperties
+    public class EntityDefinition : ModifierDefinition, EntityDefinitionProperties
     {
         public static readonly ISet<string> RESERVED_PROPERTY_NAMES = new HashSet<string>();
         static EntityDefinition()
@@ -55,7 +55,7 @@ namespace IdleFramework
 
         public Dictionary<string, PropertyReference> CustomProperties => customProperties;
 
-        public EntityDefinition(EntityDefinitionBuilder other)
+        public EntityDefinition(EntityDefinitionBuilder other):base(other.EntityKey, EntityExistsMatcher(other.EntityKey), new HashSet<EntityEffectDefinition>())
         {
             this.entityKey = other.EntityKey;
             this.name = other.Name;
@@ -76,6 +76,9 @@ namespace IdleFramework
             this.customProperties = other.CustomProperties;
         }
 
-        
+        private static StateMatcher EntityExistsMatcher(string entityKey)
+        {
+            return new EntityPropertyMatcher(entityKey, "quantity", Comparison.GREATER_THAN, 0);
+        }
     }
 }

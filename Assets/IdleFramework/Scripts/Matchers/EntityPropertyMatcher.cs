@@ -26,7 +26,7 @@ namespace IdleFramework
         }
         public EntityPropertyMatcher(string entityKey, string entityProperty, Comparison comparison, BigDouble value) : this(entityKey, entityProperty, "", comparison, value)
         {
-
+            
         }
 
         public EntityPropertyMatcher(string entityKey, string entityProperty, Comparison comparison, PropertyReference reference) : this(entityKey, entityProperty, "", comparison)
@@ -52,7 +52,7 @@ namespace IdleFramework
             return false;
         }
 
-        private BigDouble getNumberPropertyValue(GameEntity entity, string property, string subproperty, IdleEngine toCheck)
+        private BigDouble getNumberPropertyValue(GameEntity entity, string property, string subproperty, IdleEngine engine)
         {
             BigDouble numberValue = 0;
             switch(property)
@@ -63,7 +63,7 @@ namespace IdleFramework
                         numberValue = entity.Requirements[subproperty].Value;
                     } else if (entity.BaseRequirements.ContainsKey(subproperty))
                     {
-                        numberValue = entity.BaseRequirements[subproperty].Get(toCheck);
+                        numberValue = entity.BaseRequirements[subproperty].Get(engine);
                     }
                     else
                     {
@@ -77,7 +77,7 @@ namespace IdleFramework
                     }
                     else if (entity.BaseCosts.ContainsKey(subproperty))
                     {
-                        numberValue = entity.BaseCosts[subproperty].Get(toCheck);
+                        numberValue = entity.BaseCosts[subproperty].Get(engine);
                     }
                     else
                     {
@@ -91,7 +91,7 @@ namespace IdleFramework
                     }
                     else if (entity.BaseProductionInputs.ContainsKey(subproperty))
                     {
-                        numberValue = entity.BaseProductionInputs[subproperty].Get(toCheck);
+                        numberValue = entity.BaseProductionInputs[subproperty].Get(engine);
                     }
                     else
                     {
@@ -105,7 +105,7 @@ namespace IdleFramework
                     }
                     else if (entity.BaseProductionOutputs.ContainsKey(subproperty))
                     {
-                        numberValue = entity.BaseProductionOutputs[subproperty].Get(toCheck);
+                        numberValue = entity.BaseProductionOutputs[subproperty].Get(engine);
                     } else
                     {
                         numberValue = 0;
@@ -113,6 +113,18 @@ namespace IdleFramework
                     break;
                 case "quantity":
                     numberValue = entity.Quantity;
+                    break;
+                case "enabled":
+                    numberValue = entity.ShouldBeDisabled(engine) ? 0 : 1;
+                    break;
+                case "disabled":
+                    numberValue = entity.ShouldBeDisabled(engine) ? 1 : 0;
+                    break;
+                case "shown":
+                    numberValue = entity.ShouldBeHidden(engine) ? 0 : 1;
+                    break;
+                case "hidden":
+                    numberValue = entity.ShouldBeHidden(engine) ? 1 : 0;
                     break;
             }
             return numberValue;
@@ -126,8 +138,12 @@ namespace IdleFramework
                     return entityValue.CompareTo(this.valueSource.Get(engine)) == 0;
                 case Comparison.GREATER_THAN:
                     return entityValue.CompareTo(this.valueSource.Get(engine)) > 0;
+                case Comparison.GREATER_THAN_OR_EQUAL:
+                    return entityValue.CompareTo(this.valueSource.Get(engine)) >= 0;
                 case Comparison.LESS_THAN:
                     return entityValue.CompareTo(this.valueSource.Get(engine)) < 0;
+                case Comparison.LESS_THAN_OR_EQUAL:
+                    return entityValue.CompareTo(this.valueSource.Get(engine)) <= 0;
             }
             return false;
         }

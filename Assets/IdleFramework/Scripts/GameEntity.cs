@@ -5,20 +5,22 @@ using System.Numerics;
 
 namespace IdleFramework
 {
-    public class GameEntity : EntityDefinitionProperties
+    public class GameEntity : Modifier, EntityDefinitionProperties
     {
         private readonly IdleEngine engine;
         private BigDouble quantityCap;
         private BigDouble _quantity = 0;
         private BigDouble _progress = 0;
-        public readonly EntityDefinition definition;
-        private readonly Dictionary<string, GameEntityProperty> requirements = new Dictionary<string, GameEntityProperty>();
-        private readonly Dictionary<string, GameEntityProperty> costs = new Dictionary<string, GameEntityProperty>();
-        private readonly Dictionary<string, GameEntityProperty> productionInputs = new Dictionary<string, GameEntityProperty>();
-        private readonly Dictionary<string, GameEntityProperty> productionOutputs = new Dictionary<string, GameEntityProperty>();
-        private readonly Dictionary<string, GameEntityProperty> upkeep = new Dictionary<string, GameEntityProperty>();
-        private readonly Dictionary<string, GameEntityProperty> minimumProduction = new Dictionary<string, GameEntityProperty>();
-        private readonly Dictionary<string, GameEntityProperty> customProperties = new Dictionary<string, GameEntityProperty>();
+        private readonly EntityDefinition definition;
+        private readonly ModifiableProperty quantityChangePerSecond;
+        
+        private readonly Dictionary<string, IdleFramework.ModifiableProperty> requirements = new Dictionary<string, IdleFramework.ModifiableProperty>();
+        private readonly Dictionary<string, IdleFramework.ModifiableProperty> costs = new Dictionary<string, IdleFramework.ModifiableProperty>();
+        private readonly Dictionary<string, IdleFramework.ModifiableProperty> productionInputs = new Dictionary<string, IdleFramework.ModifiableProperty>();
+        private readonly Dictionary<string, IdleFramework.ModifiableProperty> productionOutputs = new Dictionary<string, IdleFramework.ModifiableProperty>();
+        private readonly Dictionary<string, IdleFramework.ModifiableProperty> upkeep = new Dictionary<string, IdleFramework.ModifiableProperty>();
+        private readonly Dictionary<string, IdleFramework.ModifiableProperty> minimumProduction = new Dictionary<string, IdleFramework.ModifiableProperty>();
+        private readonly Dictionary<string, IdleFramework.ModifiableProperty> customProperties = new Dictionary<string, IdleFramework.ModifiableProperty>();
 
         public string EntityKey => definition.EntityKey;
         public string Name => definition.Name;
@@ -48,24 +50,24 @@ namespace IdleFramework
         /*
          * The quantities of entities which are required when trying to buy this entity.
          */
-        public Dictionary<string, GameEntityProperty> Requirements => requirements;
+        public Dictionary<string, IdleFramework.ModifiableProperty> Requirements => requirements;
         /*
          * The entities and quantities which are consumed to buy this entity.
          */
-        public Dictionary<string, GameEntityProperty> Costs => costs;
+        public Dictionary<string, IdleFramework.ModifiableProperty> Costs => costs;
         /*
          * The entities and quantities which are consumed each tick by this entity and if a shortfall of these requirements causes the loss of this entity.
          */
-        public Dictionary<string, GameEntityProperty> Upkeep => upkeep;
+        public Dictionary<string, IdleFramework.ModifiableProperty> Upkeep => upkeep;
         /*
          * The entities and quantities which are consumed by this entity as inputs to their production.
          */
-        public Dictionary<string, GameEntityProperty> ProductionInputs => productionInputs;
+        public Dictionary<string, IdleFramework.ModifiableProperty> ProductionInputs => productionInputs;
         /*
          * The entities and quantities that this entity produces each tick, and the entities and quantities that are required to produce without being consumed and entities and quantities which are consumed to produce.
          */
-        public Dictionary<string, GameEntityProperty> ProductionOutputs => productionOutputs;
-        public Dictionary<string, GameEntityProperty> MinimumProductionOutputs => minimumProduction;
+        public Dictionary<string, IdleFramework.ModifiableProperty> ProductionOutputs => productionOutputs;
+        public Dictionary<string, IdleFramework.ModifiableProperty> MinimumProductionOutputs => minimumProduction;
         public ISet<ModifierDefinition> Modifiers => ((EntityDefinitionProperties)definition).Modifiers;
         public Dictionary<string, PropertyReference> BaseMinimumProductionOutputs => definition.BaseMinimumProductionOutputs;
         public bool CanBeBought => definition.CanBeBought;
@@ -73,15 +75,18 @@ namespace IdleFramework
 
         public Dictionary<string, PropertyReference> CustomProperties => definition.CustomProperties;
 
-        public GameEntity(EntityDefinition definition, IdleEngine engine)
+        public ModifiableProperty QuantityChangePerSecond => quantityChangePerSecond;
+
+        public GameEntity(EntityDefinition definition, IdleEngine engine): base(definition, new HashSet<Effect>())
         {
             this.definition = definition;
             _quantity = definition.StartingQuantity;
             foreach(var property in definition.CustomProperties)
             {
-                customProperties.Add(property.Key, new GameEntityProperty(0));
+                customProperties.Add(property.Key, new IdleFramework.ModifiableProperty(property.Key, 0, engine));
             }
             this.engine = engine;
+            quantityChangePerSecond = new ModifiableProperty("production-per-second", 0, engine);
         }
 
         public void Buy(BigDouble quantityToBuy, bool buyAllOrNone)
@@ -175,72 +180,107 @@ namespace IdleFramework
             return String.Format("GameEntity({0}) x {1}", this.Name, this.Quantity);
         }
 
-        public enum ModifiableProperty
+        public ModifierEffect AsModifierEffectFor(IdleEngine engine, string subject, string property)
         {
-            UPKEEP,
-            PRODUCTION_INPUTS,
-            PRODUCTION_OUTPUTS,
-            COST,
-            REQUIREMENTS
+            string modifierKey = String.Format("{0}-{1}-{2}-{3}", EntityKey, subject, "production", property);
+            switch(property)
+            {
+                case "production":
+                    return new ModifierEffect(
+                        this,
+                        new Effect(new EntityPropertyModifierEffectDefinition(subject, "production", new EntityPropertyReference(this.EntityKey, "outputs", subject), EffectType.ADD), engine)
+                        );
+                default:
+                    throw new InvalidOperationException();
+            }
         }
     }
 
-    public class GameEntityProperty
+    public class ModifiableProperty
     {
-        private BigDouble value;
-        private List<ModifierAndEffect> appliedModifiers = new List<ModifierAndEffect>();
+        private readonly string propertyName;
+        private readonly BigDouble baseValue;
+        private BigDouble calculatedValue;
+        private List<ModifierEffect> appliedModifiers = new List<ModifierEffect>();
+        private IdleEngine engine;
 
-        public GameEntityProperty(BigDouble quantity, params ModifierAndEffect[] initialModifiers)
+        public ModifiableProperty(string propertyName, BigDouble quantity, IdleEngine engine, params ModifierEffect[] initialModifiers)
         {
-            this.value = quantity != null ? quantity : default(BigDouble);
-            AppliedModifiers.AddRange(initialModifiers);
+            this.propertyName = propertyName;
+            this.engine = engine;
+            this.baseValue = quantity != null ? quantity : default(BigDouble);
+            this.calculatedValue = this.baseValue;
+            appliedModifiers.AddRange(initialModifiers);
+            calculateValue();
         }
 
-        public BigDouble Value { get => value; set {
-                this.value = value != null ? value : default(BigDouble);
-            } }
+        private void calculateValue()
+        {
+            calculatedValue = baseValue;
+            foreach(var modifierEffect in appliedModifiers)
+            {
+                calculatedValue = modifierEffect.effect.CalculateEffect(this);
+            }
+        }
 
+        public BigDouble Value => calculatedValue;
 
-        public List<ModifierAndEffect> AppliedModifiers { get => appliedModifiers; set => appliedModifiers = value; }
+        public IReadOnlyList<ModifierEffect> AppliedModifiers => appliedModifiers.AsReadOnly();
 
-        public static implicit operator GameEntityProperty(BigDouble bigDouble) => new GameEntityProperty(bigDouble);
-        public static implicit operator BigDouble(GameEntityProperty gep) => gep.value;
+        public void AddModifierEffect(ModifierEffect modifierEffect)
+        {
+            appliedModifiers.Add(modifierEffect);
+            calculateValue();
+        }
 
-        public static bool operator ==(GameEntityProperty left, GameEntityProperty right) => left.value.Equals(right.value);
-        public static bool operator ==(GameEntityProperty left, BigDouble right) => left.value.Equals(right);
+        public void RemoveModifierEFfect(ModifierEffect modifierAndEffect)
+        {
+            appliedModifiers.Remove(modifierAndEffect);
+            calculateValue();
+        }
 
-        public static bool operator !=(GameEntityProperty left, GameEntityProperty right) => !left.value.Equals(right.value);
-        public static bool operator !=(GameEntityProperty left, BigDouble right) => !left.value.Equals(right);
+        public static implicit operator BigDouble(ModifiableProperty gep) => gep.calculatedValue;
 
-        public static BigDouble operator -(GameEntityProperty operand) => -operand.value;
-        public static BigDouble operator +(GameEntityProperty left, GameEntityProperty right) => left.value + right.value;
+        public static bool operator ==(ModifiableProperty left, ModifiableProperty right) => left.calculatedValue.Equals(right.calculatedValue);
+        public static bool operator ==(ModifiableProperty left, BigDouble right) => left.calculatedValue.Equals(right);
 
-        public static BigDouble operator /(GameEntityProperty left, GameEntityProperty right) => left.value / right.value;
-        public static BigDouble operator /(BigDouble left, GameEntityProperty right) => left / right.value;
-        public static BigDouble operator /(GameEntityProperty left, BigDouble right) => left.value / right;
+        public static bool operator !=(ModifiableProperty left, ModifiableProperty right) => !left.calculatedValue.Equals(right.calculatedValue);
+        public static bool operator !=(ModifiableProperty left, BigDouble right) => !left.calculatedValue.Equals(right);
+
+        public static BigDouble operator -(ModifiableProperty operand) => -operand.calculatedValue;
+        public static BigDouble operator +(ModifiableProperty left, ModifiableProperty right) => left.calculatedValue + right.calculatedValue;
+
+        public static BigDouble operator /(ModifiableProperty left, ModifiableProperty right) => left.calculatedValue / right.calculatedValue;
+        public static BigDouble operator /(BigDouble left, ModifiableProperty right) => left / right.calculatedValue;
+        public static BigDouble operator /(ModifiableProperty left, BigDouble right) => left.calculatedValue / right;
 
         public override bool Equals(object obj)
         {
-            return obj is GameEntityProperty property &&
-                   value.Equals(property.value) &&
-                   EqualityComparer<List<ModifierAndEffect>>.Default.Equals(appliedModifiers, property.appliedModifiers);
+            return obj is ModifiableProperty property &&
+                   baseValue.Equals(property.baseValue) &&
+                   EqualityComparer<List<ModifierEffect>>.Default.Equals(appliedModifiers, property.appliedModifiers);
         }
 
         public override int GetHashCode()
         {
             var hashCode = 1254980278;
-            hashCode = hashCode * -1521134295 + value.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<List<ModifierAndEffect>>.Default.GetHashCode(appliedModifiers);
+            hashCode = hashCode * -1521134295 + baseValue.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<List<ModifierEffect>>.Default.GetHashCode(appliedModifiers);
             return hashCode;
+        }
+
+        public override string ToString()
+        {
+            return String.Format("Property({0}) x {1}", propertyName, calculatedValue);
         }
     }
 
-    public struct ModifierAndEffect
+    public struct ModifierEffect
     {
-        public readonly ModifierDefinition modifier;
-        public readonly EntityEffect effect;
+        public readonly Modifier modifier;
+        public readonly Effect effect;
 
-        public ModifierAndEffect(ModifierDefinition modifier, EntityEffect effect)
+        public ModifierEffect(Modifier modifier, Effect effect)
         {
             this.modifier = modifier;
             this.effect = effect;

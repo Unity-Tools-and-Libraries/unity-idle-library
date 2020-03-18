@@ -10,13 +10,13 @@ namespace IdleFramework
     {
         private string modifierKey;
         private StateMatcher trigger;
-        private ISet<EntityEffect> entityEffects = new HashSet<EntityEffect>();
+        private ISet<EntityEffectDefinition> entityEffects = new HashSet<EntityEffectDefinition>();
 
         public string ModifierKey => modifierKey;
         public StateMatcher Trigger => trigger;
-        public IEnumerable<EntityEffect> Effects => entityEffects;
+        public IEnumerable<EntityEffectDefinition> Effects => entityEffects;
 
-        public ModifierDefinition(string modifierKey, StateMatcher trigger, ISet<EntityEffect> entityEffects)
+        public ModifierDefinition(string modifierKey, StateMatcher trigger, ISet<EntityEffectDefinition> entityEffects)
         {
             this.modifierKey = modifierKey;
             this.trigger = trigger;

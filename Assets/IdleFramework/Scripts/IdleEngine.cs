@@ -10,14 +10,16 @@ namespace IdleFramework
         private float accruedTime;
         private readonly GameConfiguration configuration;
         private readonly Dictionary<string, GameEntity> _allEntities = new Dictionary<string, GameEntity>();
-        private readonly ISet<ModifierDefinition> _modifiers = new HashSet<ModifierDefinition>();
+        private readonly ISet<Modifier> _modifiers = new HashSet<Modifier>();
         private readonly Dictionary<string, GameEntity> _resources = new Dictionary<string, GameEntity>();
         private readonly Dictionary<EngineHookAction, Dictionary<string, List<EngineHookDefinition>>> hooks = new Dictionary<EngineHookAction, Dictionary<string, List<EngineHookDefinition>>>();
         private readonly Dictionary<string, SingletonEntityDefinition> singletons = new Dictionary<string, SingletonEntityDefinition>();
-        private readonly Dictionary<string, BigDouble> globalProperty = new Dictionary<string, BigDouble>();
+        private readonly Dictionary<string, BigDouble> globalProperties = new Dictionary<string, BigDouble>();
+        private readonly Dictionary<string, Achievement> achievements = new Dictionary<string, Achievement>();
+        private readonly ModifierEffectCache modifierEffectCache = new ModifierEffectCache();
 
         private System.Timers.Timer updateThrottleTimer = new System.Timers.Timer(100);
-        private ISet<ModifierDefinition> lastActiveModifiers;
+        private ISet<Modifier> lastActiveModifiers = new HashSet<Modifier>();
 
         public ReadOnlyDictionary<string, GameEntity> AllEntities
         {
@@ -27,7 +29,7 @@ namespace IdleFramework
             }
         }
 
-        public ISet<ModifierDefinition> Modifiers
+        public ISet<Modifier> Modifiers
         {
             get
             {
@@ -39,25 +41,15 @@ namespace IdleFramework
 
         public IdleEngine(GameConfiguration configuration)
         {
-            foreach (EntityDefinition entity in configuration.Entities)
+            if(configuration == null)
             {
-                foreach(var universalCustomProperty in configuration.UniversalCustomEntityProperties)
-                {
-                    if (!entity.CustomProperties.ContainsKey(universalCustomProperty.Key))
-                    {
-                        entity.CustomProperties.Add(universalCustomProperty.Key, Literal.Of(0));
-                    }
-                }
-                GameEntity entityInstance = new GameEntity(entity, this);
-                if (entity.Types.Contains("resource"))
-                {
-                    _resources.Add(entity.EntityKey, entityInstance);
-                }
-                _allEntities.Add(entity.EntityKey, entityInstance);
+                throw new InvalidOperationException("Configuration must not be null");
             }
+            this.configuration = configuration;
+            setupEntities();
             foreach (ModifierDefinition modifier in configuration.Modifiers)
             {
-                _modifiers.Add(modifier);
+                _modifiers.Add(new Modifier(modifier));
             }
             foreach (EngineHookDefinition hook in configuration.Hooks)
             {
@@ -74,45 +66,94 @@ namespace IdleFramework
                 }
                 hooksForActor.Add(hook);
             }
-
             foreach(SingletonEntityDefinition singleton in configuration.Singletons)
             {
                 singletons.Add(singleton.SingletonTypeKey, singleton);
+            }
+            foreach(AchievementConfiguration achievement in configuration.Achievements.Values)
+            {
+                achievements.Add(achievement.AchievementKey, new Achievement(achievement));
+            }
+            foreach(var globalProperty in configuration.GlobalProperties) {
+                this.globalProperties.Add(globalProperty.Key, globalProperty.Value);
+            }
+        }
+
+        private void setupEntities()
+        {
+            foreach (EntityDefinition entity in configuration.Entities)
+            {
+                foreach (var universalCustomProperty in configuration.UniversalCustomEntityProperties)
+                {
+                    if (!entity.CustomProperties.ContainsKey(universalCustomProperty.Key))
+                    {
+                        entity.CustomProperties.Add(universalCustomProperty.Key, Literal.Of(0));
+                    }
+                }
+                GameEntity entityInstance = new GameEntity(entity, this);
+                foreach(var otherEntity in configuration.Entities)
+                {
+                    PropertyReference baseInput;
+                    PropertyReference baseOutput;
+                    PropertyReference baseUpkeep;
+                    PropertyReference baseCost;
+                    PropertyReference baseRequirement;
+                    if(!entityInstance.BaseProductionInputs.TryGetValue(otherEntity.EntityKey, out baseInput))
+                    {
+                        baseInput = Literal.Of(0);
+                    }
+                    if(!entityInstance.BaseProductionOutputs.TryGetValue(otherEntity.EntityKey, out baseOutput))
+                    {
+                        baseOutput = Literal.Of(0);
+                    }
+                    if(!entityInstance.BaseUpkeep.TryGetValue(otherEntity.EntityKey, out baseUpkeep))
+                    {
+                        baseUpkeep = Literal.Of(0);
+                    }
+                    if(!entityInstance.BaseCosts.TryGetValue(otherEntity.EntityKey, out baseCost))
+                    {
+                        baseCost = Literal.Of(0);
+                    }
+                    if(!entityInstance.BaseRequirements.TryGetValue(otherEntity.EntityKey, out baseRequirement))
+                    {
+                        baseRequirement = Literal.Of(0);
+                    }
+
+                    entityInstance.ProductionInputs[otherEntity.EntityKey] = new ModifiableProperty("inputs-" + otherEntity.EntityKey, baseInput.Get(this), this);
+                    entityInstance.ProductionOutputs[otherEntity.EntityKey] = new ModifiableProperty("outputs-" + otherEntity.EntityKey, baseOutput.Get(this), this);
+                    entityInstance.Upkeep[otherEntity.EntityKey] = new ModifiableProperty("upkeep-" + otherEntity.EntityKey, baseUpkeep.Get(this), this);
+                    entityInstance.Costs[otherEntity.EntityKey] = new ModifiableProperty("costs-" + otherEntity.EntityKey, baseCost.Get(this), this);
+                    entityInstance.Requirements[otherEntity.EntityKey] = new ModifiableProperty("requirements-" + otherEntity.EntityKey, baseRequirement.Get(this), this);
+                }
+
+                _allEntities.Add(entity.EntityKey, entityInstance);
+            }
+            foreach (GameEntity entity in AllEntities.Values)
+            {
+                foreach (GameEntity otherEntity in AllEntities.Values)
+                {
+                    entity.QuantityChangePerSecond.AddModifierEffect(otherEntity.AsModifierEffectFor(this, otherEntity.EntityKey, "production"));
+                }
+                
             }
         }
 
         public BigDouble GetProductionForEntity(string entityKey)
         {
-            assertEntityExists(entityKey);
-            var queriedEntity = AllEntities[entityKey];
-            if (queriedEntity.ShouldBeDisabled(this))
-            {
-                return 0;
-            }
-            BigDouble totalProduction = 0;
-            foreach (var entity in AllEntities.Values)
-            {
-                GameEntityProperty entityProduction;
-                if (entity.ProductionOutputs.TryGetValue(entityKey, out entityProduction))
-                {
-                    totalProduction += entityProduction.Value * BigDouble.Floor(entity.Quantity);
-                }
-                if (entity.ProductionInputs.TryGetValue(entityKey, out entityProduction))
-                {
-                    totalProduction -= entityProduction.Value * BigDouble.Floor(entity.Quantity);
-                }
-                if (entity.Upkeep.TryGetValue(entityKey, out entityProduction))
-                {
-                    totalProduction -= entityProduction.Value * BigDouble.Floor(entity.Quantity);
-                }
-            }
-            return totalProduction;
+            return AllEntities[entityKey].QuantityChangePerSecond;
+        }
+
+        public Achievement GetAchievement(string achievementKey)
+        {
+            Achievement achievement ;
+            achievements.TryGetValue(achievementKey, out achievement);
+            return achievement;
         }
 
         public BigDouble GetGlobalProperty(string propertyName)
         {
             BigDouble value = 0;
-            globalProperty.TryGetValue(propertyName, out value);
+            globalProperties.TryGetValue(propertyName, out value);
             return value;
         }
 
@@ -146,69 +187,7 @@ namespace IdleFramework
 
         private void RecalculateAllEntityProperties()
         {
-            ISet<ModifierDefinition> activeModifiers = new HashSet<ModifierDefinition>();
-            foreach (var modifier in _modifiers)
-            {
-                if (modifier.IsActive(this))
-                {
-                    activeModifiers.Add(modifier);
-                }
-            }
-            lastActiveModifiers = activeModifiers;
-            foreach (var entity in AllEntities.Values)
-            {
-                entity.Costs.Clear();
-                foreach (var cost in entity.BaseCosts)
-                {
-                    entity.Costs.Add(cost.Key, cost.Value.Get(this));
-                }
-                entity.Requirements.Clear();
-                foreach (var requirement in entity.BaseRequirements)
-                {
-                    entity.Requirements.Add(requirement.Key, requirement.Value.Get(this));
-                }
-                entity.ProductionOutputs.Clear();
-                foreach (var output in entity.BaseProductionOutputs)
-                {
-                    entity.ProductionOutputs.Add(output.Key, output.Value.Get(this));
-                }
-                entity.ProductionInputs.Clear();
-                foreach (var input in entity.BaseProductionInputs)
-                {
-                    entity.ProductionInputs.Add(input.Key, input.Value.Get(this));
-                }
-                entity.Upkeep.Clear();
-                foreach (var upkeep in entity.BaseUpkeep)
-                {
-                    entity.Upkeep.Add(upkeep.Key, upkeep.Value.Get(this));
-                }
-                entity.MinimumProductionOutputs.Clear();
-                foreach (var minProduction in entity.BaseMinimumProductionOutputs)
-                {
-                    entity.MinimumProductionOutputs.Add(minProduction.Key, minProduction.Value.Get(this));
-                }
-            }
-            List<ModifierAndEffect> effectsToApply = new List<ModifierAndEffect>();
-            foreach (var modifier in activeModifiers)
-            {
-                foreach (var effect in modifier.Effects)
-                {
-                    effectsToApply.Add(new ModifierAndEffect(modifier, effect));
-                }
-            }
-            effectsToApply.Sort((a, b) =>
-            {
-                if (a.GetType() == b.GetType())
-                {
-                    return 0;
-                }
-                return 0;
-            });
-            foreach (var effect in effectsToApply)
-            {
-                effect.effect.ApplyEffect(this, effect.modifier);
-            }
-
+            
         }
 
         public BigDouble PerformUpkeepForEntity(GameEntity entity, float deltaTime)
@@ -276,7 +255,7 @@ namespace IdleFramework
                     continue;
                 }
                 var calculatedQuantity = resource.Value.Value * quantityProducing * deltaTime;
-                GameEntityProperty minimumQuantity;
+                ModifiableProperty minimumQuantity;
                 BigDouble quantityToProduce = calculatedQuantity;
                 if (entity.MinimumProductionOutputs.TryGetValue(resource.Key, out minimumQuantity))
                 {
@@ -425,6 +404,13 @@ namespace IdleFramework
             foreach (GameEntity entity in _allEntities.Values)
             {
                 PerformUpkeepForEntity(entity, accruedTime);
+            }
+            foreach(Achievement achievement in achievements.Values)
+            {
+                if (achievement.ShouldBeActive(this))
+                {
+                    achievement.Gain();
+                }
             }
         }
     }

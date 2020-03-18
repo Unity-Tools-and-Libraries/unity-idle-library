@@ -3,11 +3,12 @@ using System;
 
 namespace IdleFramework
 {
-    public class NothingEntityEffect : EntityEffect
+    public class NothingEntityEffect : EntityEffectDefinition
     {
-        public override void ApplyEffect(IdleEngine engine, ModifierDefinition parentModifier)
+        
+        public override BigDouble CalculateEffect(ModifiableProperty target, IdleEngine engine)
         {
-            
+            return target.Value;
         }
     }
 }

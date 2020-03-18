@@ -4,67 +4,32 @@ using System;
 
 namespace IdleFramework
 {
-    public class EntityPropertyModifierEffect : EntityEffect
+    public class EntityPropertyModifierEffectDefinition : EntityEffectDefinition
     {
-        private string entityKey;
+        private string subjectKey;
         private string entityProperty;
         private string entitySubProperty;
-        private BigDouble value;
+        private PropertyReference value;
         private EffectType type;
 
         public string EntityProperty { get => entityProperty; }
-        public BigDouble Value { get => value; }
+        public PropertyReference Value { get => value; }
         public EffectType Type { get => type; }
         public string EntitySubProperty { get => entitySubProperty; }
-        public string EntityKey { get => entityKey; }
+        public string SubjectKey { get => subjectKey; }
 
-        public EntityPropertyModifierEffect(string entityKey, string entityProperty, string entitySubProperty, BigDouble value, EffectType type)
+        public EntityPropertyModifierEffectDefinition(string subjectKey, string entityProperty, string entitySubProperty, PropertyReference value, EffectType type)
         {
-            this.entityKey = entityKey;
+            this.subjectKey = subjectKey;
             this.entityProperty = entityProperty;
             this.entitySubProperty = entitySubProperty;
             this.value = value;
             this.type = type;
         }
 
-        public override void ApplyEffect(IdleEngine engine, ModifierDefinition parentModifier)
+        public EntityPropertyModifierEffectDefinition(string subjectKey, string entityProperty, PropertyReference value, EffectType type): this(subjectKey, entityProperty, "", value, type)
         {
-            GameEntity entity = null;
-            if(engine.AllEntities.TryGetValue(EntityKey, out entity))
-            {
-                ApplyEffectToEntity(entity, engine, parentModifier);
-            }
-            
-        }
 
-        protected void ApplyEffectToEntity(GameEntity entity, IdleEngine engine, ModifierDefinition parentModifier)
-        {
-            BigDouble newValue = calculateValue(getBaseValue(entity, engine));
-            switch (entityProperty)
-            {
-                case "inputs":
-                    entity.ProductionInputs[entitySubProperty].Value = newValue;
-                    entity.ProductionInputs[entitySubProperty].AppliedModifiers.Add(new ModifierAndEffect(parentModifier, this));
-                    break;
-                case "outputs":
-                    entity.ProductionOutputs[entitySubProperty].Value = newValue;
-                    entity.ProductionOutputs[entitySubProperty].AppliedModifiers.Add(new ModifierAndEffect(parentModifier, this));
-                    break;
-                case "requirements":
-                    entity.Requirements[entitySubProperty].Value = newValue;
-                    entity.Requirements[entitySubProperty].AppliedModifiers.Add(new ModifierAndEffect(parentModifier, this));
-                    break;
-                case "costs":
-                    entity.Costs[entitySubProperty].Value = newValue;
-                    entity.Costs[entitySubProperty].AppliedModifiers.Add(new ModifierAndEffect(parentModifier, this));
-                    break;
-                case "upkeep":
-                    entity.Upkeep[entitySubProperty].Value = newValue;
-                    entity.Upkeep[entitySubProperty].AppliedModifiers.Add(new ModifierAndEffect(parentModifier, this));
-                    break;
-                default:
-                    throw new InvalidOperationException();
-            }
         }
 
         private BigDouble getBaseValue(GameEntity entity, IdleEngine engine)
@@ -105,16 +70,16 @@ namespace IdleFramework
             }
         }
 
-        private BigDouble calculateValue(BigDouble baseValue)
+        private BigDouble calculateValue(BigDouble currentValue, IdleEngine engine)
         {
             switch (type)
             {
                 case EffectType.ADD:
-                    return baseValue + value;
+                    return currentValue + value.Get(engine);
                 case EffectType.SUBTRACT:
-                    return baseValue - value;
+                    return currentValue - value.Get(engine);
                 case EffectType.MULTIPLY:
-                    return baseValue * value;
+                    return currentValue * value.Get(engine);
                 default:
                     throw new InvalidOperationException();
             }
@@ -131,6 +96,11 @@ namespace IdleFramework
                 default:
                     throw new InvalidOperationException();
             }
+        }
+
+        public override BigDouble CalculateEffect(ModifiableProperty target, IdleEngine engine)
+        {
+            return calculateValue(target.Value, engine);
         }
     }
 }

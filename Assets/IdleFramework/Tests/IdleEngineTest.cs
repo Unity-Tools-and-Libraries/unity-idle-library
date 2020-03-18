@@ -21,9 +21,10 @@ namespace Tests
                     .WithConsumption("food", 3))
                 .WithSingletonEntity(new SingletonEntityDefinitionBuilder("singleton"))
                 .WithModifier(new ModifierDefinitionBuilder("effect").Active().Always().And().DoesNothing())
-                .WithModifier(new ModifierDefinitionBuilder("food-bonus").Active().Always().And().HasEntityEffect(new GlobalEntityPropertyModifierEffect("outputs", "food", 1, EffectType.ADD)))
-                .WithModifier(new ModifierDefinitionBuilder("food-penalty-1").Active().Always().And().HasEntityEffect(new EntityPropertyModifierEffect("bar", "inputs", "food", 1, EffectType.SUBTRACT)))
-                .WithModifier(new ModifierDefinitionBuilder("food-penalty-2").Active().Always().And().HasEntityEffect(new EntityPropertyModifierEffect("bar", "inputs", "food", 1, EffectType.SUBTRACT)))
+                .WithModifier(new ModifierDefinitionBuilder("food-bonus").Active().Always().And().HasEntityEffect(new GlobalEntityPropertyModifierEffectDefinition("outputs", "food", Literal.Of(1), EffectType.ADD)))
+                .WithModifier(new ModifierDefinitionBuilder("food-penalty-1").Active().Always().And().HasEntityEffect(new EntityPropertyModifierEffectDefinition("bar", "inputs", "food", Literal.Of(1), EffectType.SUBTRACT)))
+                .WithModifier(new ModifierDefinitionBuilder("food-penalty-2").Active().Always().And().HasEntityEffect(new EntityPropertyModifierEffectDefinition("bar", "inputs", "food", Literal.Of(1), EffectType.SUBTRACT)))
+                .WithAchievement(new AchievementConfigurationBuilder("achievement").GainedWhen(new EntityPropertyMatcher("food", "enabled", Comparison.GREATER_THAN_OR_EQUAL, 1)))
                 .Build();
             engine = new IdleEngine(configuration);
             engine.Update(1f);
@@ -43,6 +44,12 @@ namespace Tests
 
         [Test]
         public void EngineCanApplyAnEffectThatAddsToAnEntitysOutput()
+        {
+            Assert.AreEqual(BigDouble.Floor(2), engine.AllEntities["food"].ProductionOutputs["food"].Value);
+        }
+
+        [Test]
+        public void EngineCanRemoveAnEffectThatAddsToAnEntitysOutput()
         {
             Assert.AreEqual(BigDouble.Floor(2), engine.AllEntities["food"].ProductionOutputs["food"].Value);
         }
@@ -94,6 +101,12 @@ namespace Tests
         [Test]
         public void EngineReturnsZeroForNonExistantGlobalProperty() {
             Assert.AreEqual(BigDouble.Floor(0), engine.GetGlobalProperty("fake"));
+        }
+
+        [Test]
+        public void EngineCanTriggerAchievements()
+        {
+            Assert.AreEqual(true, engine.GetAchievement("achievement").IsActive);
         }
     }
 

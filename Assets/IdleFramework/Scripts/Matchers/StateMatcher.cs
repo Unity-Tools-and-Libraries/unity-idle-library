@@ -16,7 +16,22 @@ namespace IdleFramework
     {
         EQUALS,
         GREATER_THAN,
-        LESS_THAN
+        GREATER_THAN_OR_EQUAL,
+        LESS_THAN,
+        LESS_THAN_OR_EQUAL
+    }
+
+    public static class StateMatcherExtensions
+    {
+        public static StateMatcher And(this StateMatcher left, StateMatcher right)
+        {
+            return All.Of(left, right);
+        }
+
+        public static StateMatcher Or(this StateMatcher left, StateMatcher right)
+        {
+            return Any.Of(left, right);
+        }
     }
 
 }

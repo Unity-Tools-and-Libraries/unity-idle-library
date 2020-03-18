@@ -38,7 +38,8 @@ public class Engine : MonoBehaviour
                         Literal.Of(1)),
                     Literal.Of(0)))
             .HiddenAndDisabled()
-                .When(new EntityPropertyMatcher("population", "quantity", Comparison.LESS_THAN, 10)).Done());
+                .When(new EntityPropertyMatcher("population", "quantity", Comparison.LESS_THAN, 20).Or(
+                    new EntityPropertyMatcher("population", "quantity", Comparison.GREATER_THAN, 10))).Done());
 
         configurationBuilder.WithEntity(new EntityDefinitionBuilder("culture").WithType("resource")
             .Unbuyable()
@@ -46,6 +47,9 @@ public class Engine : MonoBehaviour
             .WithRequirement("population", 100)
             .HiddenAndDisabled()
                 .When(new EntityPropertyMatcher("population", "quantity", Comparison.LESS_THAN, 100)).Done());
+
+        configurationBuilder.WithAchievement(new AchievementConfigurationBuilder("pop-10").GainedWhen(
+            new EntityPropertyMatcher("population", "quantity", Comparison.GREATER_THAN, 10)));
 
         framework = new IdleEngine(configurationBuilder.Build());
         InvokeRepeating("tick", 0f, .25f);

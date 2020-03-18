@@ -1,7 +1,10 @@
 ﻿using BreakInfinity;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Assertions;
+
 namespace IdleFramework
 {
     public class EntityPropertyReference: PropertyReference
@@ -31,7 +34,7 @@ namespace IdleFramework
                 {
                     case "inputs":
                         return entity.ProductionInputs[entitySubProperty].Value;
-                    case "ouputs":
+                    case "outputs":
                         return entity.ProductionOutputs[entitySubProperty].Value;
                     case "costs":
                         return entity.Costs[entitySubProperty].Value;
@@ -41,15 +44,18 @@ namespace IdleFramework
                         return entity.Quantity;
                     case "actual-quantity":
                         return entity.RealQuantity;
-                    default:
+                    case "custom":
                         {
                             PropertyReference customPropertyValue;
-                            if (entity.CustomProperties.TryGetValue(entityProperty, out customPropertyValue))
+                            if (entity.CustomProperties.TryGetValue(entitySubProperty, out customPropertyValue))
                             {
                                 return customPropertyValue.Get(engine);
                             };
                             return 0;
                         }
+                    default:
+                        Assert.AreEqual(entityProperty, "outputs");
+                        throw new InvalidOperationException();
                 }
             }
             return 0;

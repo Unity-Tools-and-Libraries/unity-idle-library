@@ -6,7 +6,7 @@ namespace IdleFramework
     public class GlobalEntityPropertyModifierEffectDefinition : EntityPropertyModifierEffectDefinition
     {
         bool addIfMissing = false;
-        public GlobalEntityPropertyModifierEffectDefinition(string entityProperty, string entitySubProperty, PropertyReference value, EffectType type, bool addIfMissing) : base("", entityProperty, entitySubProperty, value, type)
+        public GlobalEntityPropertyModifierEffectDefinition(string entityProperty, string entitySubProperty, PropertyReference value, EffectType type, bool addIfMissing) : base("*", entityProperty, entitySubProperty, value, type)
         {
             this.addIfMissing = addIfMissing;
         }

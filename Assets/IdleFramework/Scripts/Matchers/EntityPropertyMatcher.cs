@@ -7,146 +7,26 @@ namespace IdleFramework
     /*
      * A state comparison matcher that checks that the specified entity exists and compares the value it has for the specified property and sub property.
      */
-    public class EntityPropertyMatcher : EntityStateMatcher
+    public abstract class EntityPropertyMatcher : StateMatcher
     {
-        private string entityProperty;
-        private string entitySubproperty;
-        private Comparison comparison;
-        private PropertyReference valueSource;
+        private readonly string entityKey;
+        private readonly string entityProperty;
+        private readonly string entitySubproperty;
 
-        private EntityPropertyMatcher(string entityKey, string entityProperty, string entitySubproperty, Comparison comparison) : base(entityKey)
+        public EntityPropertyMatcher(string entityKey, string entityProperty, string entitySubproperty)
         {
+            this.entityKey = entityKey.ToLower();
             this.entityProperty = entityProperty.ToLower();
             this.entitySubproperty = entitySubproperty.ToLower();
-            this.comparison = comparison;
-        }
-        public EntityPropertyMatcher(string entityKey, string entityProperty, string entitySubproperty, Comparison comparison, BigDouble value) : this(entityKey, entityProperty, entitySubproperty, comparison)
-        {
-            this.valueSource = Literal.Of(value);
-        }
-        public EntityPropertyMatcher(string entityKey, string entityProperty, Comparison comparison, BigDouble value) : this(entityKey, entityProperty, "", comparison, value)
-        {
-            
         }
 
-        public EntityPropertyMatcher(string entityKey, string entityProperty, Comparison comparison, PropertyReference reference) : this(entityKey, entityProperty, "", comparison)
-        {
-            this.valueSource = reference;
-        }
+        public string EntityProperty => entityProperty;
 
-        public EntityPropertyMatcher(string entityKey, string entityProperty, string entitySubproperty, Comparison comparison, PropertyReference reference) : this(entityKey, entityProperty, entitySubproperty, comparison)
-        {
-            this.valueSource = reference;
-        }
+        public string EntitySubproperty => entitySubproperty;
 
-        
+        public string EntityKey => entityKey;
 
-        public override bool Matches(IdleEngine toCheck)
-        {
-            GameEntity entityToCheck = null;
-            if(toCheck.AllEntities.TryGetValue(EntityKey, out entityToCheck))
-            {
-                var entityValue = getNumberPropertyValue(entityToCheck, entityProperty, entitySubproperty, toCheck);
-                return performComparison(entityValue, toCheck);
-            }
-            return false;
-        }
-
-        private BigDouble getNumberPropertyValue(GameEntity entity, string property, string subproperty, IdleEngine engine)
-        {
-            BigDouble numberValue = 0;
-            switch(property)
-            {
-                case "requirements":
-                    if(entity.Requirements.ContainsKey(subproperty))
-                    {
-                        numberValue = entity.Requirements[subproperty].Value;
-                    } else if (entity.BaseRequirements.ContainsKey(subproperty))
-                    {
-                        numberValue = entity.BaseRequirements[subproperty].Get(engine);
-                    }
-                    else
-                    {
-                        numberValue = 0;
-                    }
-                    break;
-                case "costs":
-                    if (entity.Costs.ContainsKey(subproperty))
-                    {
-                        numberValue = entity.Costs[subproperty].Value;
-                    }
-                    else if (entity.BaseCosts.ContainsKey(subproperty))
-                    {
-                        numberValue = entity.BaseCosts[subproperty].Get(engine);
-                    }
-                    else
-                    {
-                        numberValue = 0;
-                    }
-                    break;
-                case "inputs":
-                    if (entity.ProductionInputs.ContainsKey(subproperty))
-                    {
-                        numberValue = entity.ProductionInputs[subproperty].Value;
-                    }
-                    else if (entity.BaseProductionInputs.ContainsKey(subproperty))
-                    {
-                        numberValue = entity.BaseProductionInputs[subproperty].Get(engine);
-                    }
-                    else
-                    {
-                        numberValue = 0;
-                    }
-                    break;
-                case "outputs":
-                    if (entity.ProductionOutputs.ContainsKey(subproperty))
-                    {
-                        numberValue = entity.ProductionOutputs[subproperty].Value;
-                    }
-                    else if (entity.BaseProductionOutputs.ContainsKey(subproperty))
-                    {
-                        numberValue = entity.BaseProductionOutputs[subproperty].Get(engine);
-                    } else
-                    {
-                        numberValue = 0;
-                    }
-                    break;
-                case "quantity":
-                    numberValue = entity.Quantity;
-                    break;
-                case "enabled":
-                    numberValue = entity.ShouldBeDisabled(engine) ? 0 : 1;
-                    break;
-                case "disabled":
-                    numberValue = entity.ShouldBeDisabled(engine) ? 1 : 0;
-                    break;
-                case "shown":
-                    numberValue = entity.ShouldBeHidden(engine) ? 0 : 1;
-                    break;
-                case "hidden":
-                    numberValue = entity.ShouldBeHidden(engine) ? 1 : 0;
-                    break;
-            }
-            return numberValue;
-        }
-
-        private bool performComparison(BigDouble entityValue, IdleEngine engine)
-        {
-            switch(comparison)
-            {
-                case Comparison.EQUALS:
-                    return entityValue.CompareTo(this.valueSource.Get(engine)) == 0;
-                case Comparison.GREATER_THAN:
-                    return entityValue.CompareTo(this.valueSource.Get(engine)) > 0;
-                case Comparison.GREATER_THAN_OR_EQUAL:
-                    return entityValue.CompareTo(this.valueSource.Get(engine)) >= 0;
-                case Comparison.LESS_THAN:
-                    return entityValue.CompareTo(this.valueSource.Get(engine)) < 0;
-                case Comparison.LESS_THAN_OR_EQUAL:
-                    return entityValue.CompareTo(this.valueSource.Get(engine)) <= 0;
-            }
-            return false;
-        }
+        public abstract bool Matches(IdleEngine toCheck);
     }       
 
 }

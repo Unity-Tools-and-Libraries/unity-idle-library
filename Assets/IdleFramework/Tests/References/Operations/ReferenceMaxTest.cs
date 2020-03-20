@@ -10,6 +10,6 @@ public class ReferenceMaxTest
     [Test]
     public void MaxReturnsLargestValue()
     {
-        Assert.AreEqual(BigDouble.Floor(3), Max.Of(Literal.Of(1), Literal.Of(2), Literal.Of(3)).Get(null));
+        Assert.AreEqual(BigDouble.Floor(3), Max.Of(Literal.Of(1), Literal.Of(2), Literal.Of(3)).GetAsNumber(null));
     }
 }

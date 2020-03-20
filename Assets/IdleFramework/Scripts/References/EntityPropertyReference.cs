@@ -25,7 +25,7 @@ namespace IdleFramework
 
         }
 
-        public BigDouble Get(IdleEngine engine)
+        public BigDouble GetAsNumber(IdleEngine engine)
         {
             GameEntity entity;
             if(engine.AllEntities.TryGetValue(entityKey, out entity))
@@ -49,7 +49,7 @@ namespace IdleFramework
                             PropertyReference customPropertyValue;
                             if (entity.CustomProperties.TryGetValue(entitySubProperty, out customPropertyValue))
                             {
-                                return customPropertyValue.Get(engine);
+                                return customPropertyValue.GetAsNumber(engine);
                             };
                             return 0;
                         }
@@ -59,6 +59,17 @@ namespace IdleFramework
                 }
             }
             return 0;
+        }
+
+        public override string ToString()
+        {
+            if(entitySubProperty == null)
+            {
+                return String.Format("Property {0} of {1}", this.entityProperty, this.entityKey);
+            } else
+            {
+                return String.Format("Property {0}[{2}] of {1}", this.entityProperty, this.entityKey, this.entitySubProperty);
+            }
         }
     }
 }

@@ -17,6 +17,7 @@ namespace IdleFramework
         private ISet<SingletonEntityDefinition> singletons;
         private Dictionary<string, BigDouble> globalProperties;
         private Dictionary<string, AchievementConfiguration> achievements = new Dictionary<string, AchievementConfiguration>();
+        private ISet<TutorialConfiguration> tutorials;
 
         public ISet<EntityDefinition> Entities { get => entities; set => entities = value; }
         public ISet<ModifierDefinitionProperties> Modifiers { get => modifiers;  }
@@ -26,7 +27,9 @@ namespace IdleFramework
         public Dictionary<string, AchievementConfiguration> Achievements { get => achievements; }
         public Dictionary<string, BigDouble> GlobalProperties => globalProperties;
 
-        public GameConfiguration(ISet<EntityDefinition> entities, ISet<ModifierDefinitionProperties> modifiers, ISet<EngineHookDefinition> hooks, ISet<SingletonEntityDefinition> singletons, Dictionary<string, BigDouble> universalCustomEntityProperties, Dictionary<string, BigDouble> globalProperties, ISet<AchievementConfiguration> achievements)
+        public ISet<TutorialConfiguration> Tutorials => tutorials;
+
+        public GameConfiguration(ISet<EntityDefinition> entities, ISet<ModifierDefinitionProperties> modifiers, ISet<EngineHookDefinition> hooks, ISet<SingletonEntityDefinition> singletons, Dictionary<string, BigDouble> universalCustomEntityProperties, Dictionary<string, BigDouble> globalProperties, ISet<AchievementConfiguration> achievements, ISet<TutorialConfiguration> tutorials)
         {
             var entityKeys = new HashSet<string>();
             foreach(var entityDefinition in entities)
@@ -42,6 +45,7 @@ namespace IdleFramework
             this.universalCustomEntityProperties = universalCustomEntityProperties;
             this.singletons = singletons;
             this.globalProperties = globalProperties;
+            this.tutorials = tutorials;
             foreach(var achievement in achievements)
             {
                 this.achievements.Add(achievement.AchievementKey, achievement);

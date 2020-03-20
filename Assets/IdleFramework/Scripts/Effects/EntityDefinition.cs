@@ -78,7 +78,12 @@ namespace IdleFramework
 
         private static StateMatcher EntityExistsMatcher(string entityKey)
         {
-            return new EntityPropertyMatcher(entityKey, "quantity", Comparison.GREATER_THAN, 0);
+            return new EntityNumberPropertyMatcher(entityKey, "quantity", Comparison.GREATER_THAN, 0);
+        }
+
+        public override string ToString()
+        {
+            return String.Format("Entity({0}", EntityKey);
         }
     }
 }

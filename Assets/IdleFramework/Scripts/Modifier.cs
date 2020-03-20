@@ -23,11 +23,11 @@ namespace IdleFramework
 
         public string ModifierKey => definition.ModifierKey;
 
-        public IEnumerable<Effect> Effects { get; internal set; }
+        public IEnumerable<Effect> Effects => effects;
 
         internal bool IsActive(IdleEngine idleEngine)
         {
-            throw new NotImplementedException();
+            return definition.Trigger.Matches(idleEngine);
         }
     }
 }

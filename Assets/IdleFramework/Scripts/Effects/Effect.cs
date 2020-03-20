@@ -8,22 +8,27 @@ namespace IdleFramework
 {
     public class Effect
     {
-        private readonly EffectDefinition defintion;
+        private readonly EffectDefinition definition;
         private readonly IdleEngine engine;
         private bool isActive;
         public Effect(EffectDefinition defintion, IdleEngine engine)
         {
             this.engine = engine;
-            this.defintion = defintion;
+            this.definition = defintion;
         }
 
-        public EffectDefinition Defintion => defintion;
+        public EffectDefinition Definition => definition;
 
         public bool IsActive { get => isActive; set => isActive = value; }
 
         public BigDouble CalculateEffect(ModifiableProperty modifiableProperty)
         {
-            return this.defintion.CalculateEffect(modifiableProperty, engine);
+            return this.definition.CalculateEffect(modifiableProperty, engine);
+        }
+
+        public override string ToString()
+        {
+            return String.Format("{0} effect '{1}'", IsActive ? "Active" : "Inactive", definition);
         }
     }
 }

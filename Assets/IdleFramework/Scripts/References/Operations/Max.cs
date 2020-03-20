@@ -10,16 +10,16 @@ namespace IdleFramework
             this.children = children;
         }
 
-        public BigDouble Get(IdleEngine engine)
+        public BigDouble GetAsNumber(IdleEngine engine)
         {
             if (children.Length == 0)
             {
                 return 0;
             }
-            var largest = children[0].Get(engine);
+            var largest = children[0].GetAsNumber(engine);
             foreach (var reference in children)
             {
-                largest = BigDouble.Max(largest, reference.Get(engine));
+                largest = BigDouble.Max(largest, reference.GetAsNumber(engine));
             }
             return largest;
         }

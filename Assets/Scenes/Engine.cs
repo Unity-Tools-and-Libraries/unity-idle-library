@@ -1,7 +1,4 @@
-﻿using BreakInfinity;
-using IdleFramework;
-using System.Collections;
-using System.Collections.Generic;
+﻿using IdleFramework;
 using UnityEngine;
 
 public class Engine : MonoBehaviour
@@ -38,18 +35,18 @@ public class Engine : MonoBehaviour
                         Literal.Of(1)),
                     Literal.Of(0)))
             .HiddenAndDisabled()
-                .When(new EntityPropertyMatcher("population", "quantity", Comparison.LESS_THAN, 20).Or(
-                    new EntityPropertyMatcher("population", "quantity", Comparison.GREATER_THAN, 10))).Done());
+                .When(new EntityNumberPropertyMatcher("population", "quantity", Comparison.LESS_THAN, Literal.Of(20)).Or(
+                    new EntityNumberPropertyMatcher("population", "quantity", Comparison.GREATER_THAN, Literal.Of(10)))).Done());
 
         configurationBuilder.WithEntity(new EntityDefinitionBuilder("culture").WithType("resource")
             .Unbuyable()
             .WithName("Culture")
             .WithRequirement("population", 100)
             .HiddenAndDisabled()
-                .When(new EntityPropertyMatcher("population", "quantity", Comparison.LESS_THAN, 100)).Done());
+                .When(new EntityNumberPropertyMatcher("population", "quantity", Comparison.LESS_THAN, Literal.Of(100))).Done());
 
         configurationBuilder.WithAchievement(new AchievementConfigurationBuilder("pop-10").GainedWhen(
-            new EntityPropertyMatcher("population", "quantity", Comparison.GREATER_THAN, 10)));
+            new EntityNumberPropertyMatcher("population", "quantity", Comparison.GREATER_THAN, Literal.Of(10))));
 
         framework = new IdleEngine(configurationBuilder.Build());
         InvokeRepeating("tick", 0f, .25f);

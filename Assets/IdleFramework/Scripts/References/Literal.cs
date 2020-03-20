@@ -13,7 +13,7 @@ namespace IdleFramework
             this.value = value;
         }
 
-        public BigDouble Get(IdleEngine engine)
+        public BigDouble GetAsNumber(IdleEngine engine)
         {
             return value;
         }

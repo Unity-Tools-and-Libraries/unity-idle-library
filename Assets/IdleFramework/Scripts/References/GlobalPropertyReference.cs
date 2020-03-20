@@ -16,7 +16,7 @@ namespace IdleFramework
             this.propertyName = propertyName;
         }
 
-        public BigDouble Get(IdleEngine engine)
+        public BigDouble GetAsNumber(IdleEngine engine)
         {
             return engine.GetGlobalProperty(propertyName);
         }

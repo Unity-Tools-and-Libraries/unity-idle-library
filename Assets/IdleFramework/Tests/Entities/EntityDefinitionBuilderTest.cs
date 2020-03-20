@@ -19,7 +19,7 @@ namespace Tests
             EntityDefinition ed = new EntityDefinitionBuilder("foo")
                 .WithProduction("food", 1)
                 .Build();
-            Assert.AreEqual(BigDouble.Floor(1), ed.BaseProductionOutputs["food"].Get(null));
+            Assert.AreEqual(BigDouble.Floor(1), ed.BaseProductionOutputs["food"].GetAsNumber(null));
         }
 
         [Test]
@@ -28,7 +28,7 @@ namespace Tests
             EntityDefinition ed = new EntityDefinitionBuilder("foo")
                 .WithConsumption("food", 1)
                 .Build();
-            Assert.AreEqual(BigDouble.Floor(1), ed.BaseProductionInputs["food"].Get(null));
+            Assert.AreEqual(BigDouble.Floor(1), ed.BaseProductionInputs["food"].GetAsNumber(null));
         }
 
         [Test]
@@ -37,7 +37,7 @@ namespace Tests
             EntityDefinition ed = new EntityDefinitionBuilder("foo")
                 .WithUpkeepRequirement("food", 1)
                 .Build();
-            Assert.AreEqual(BigDouble.Floor(1), ed.BaseUpkeep["food"].Get(null));
+            Assert.AreEqual(BigDouble.Floor(1), ed.BaseUpkeep["food"].GetAsNumber(null));
         }
 
         [Test]
@@ -47,7 +47,7 @@ namespace Tests
                 .WithProduction("food", 1)
                 .WithProduction("food", 2)
                 .Build();
-            Assert.AreEqual(BigDouble.Floor(2), ed.BaseProductionOutputs["food"].Get(null));
+            Assert.AreEqual(BigDouble.Floor(2), ed.BaseProductionOutputs["food"].GetAsNumber(null));
         }
 
         [Test]
@@ -57,7 +57,7 @@ namespace Tests
                 .WithConsumption("food", 1)
                 .WithConsumption("food", 2)
                 .Build();
-            Assert.AreEqual(BigDouble.Floor(2), ed.BaseProductionInputs["food"].Get(null));
+            Assert.AreEqual(BigDouble.Floor(2), ed.BaseProductionInputs["food"].GetAsNumber(null));
         }
 
         [Test]
@@ -66,7 +66,7 @@ namespace Tests
             EntityDefinition ed = new EntityDefinitionBuilder("foo")
                 .WithFlatMinimumProduction("food", 1)
                 .Build();
-            Assert.AreEqual(BigDouble.Floor(1), ed.BaseMinimumProductionOutputs["food"].Get(null));
+            Assert.AreEqual(BigDouble.Floor(1), ed.BaseMinimumProductionOutputs["food"].GetAsNumber(null));
         }
     }
 }

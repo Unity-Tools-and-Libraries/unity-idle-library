@@ -16,10 +16,10 @@ namespace IdleFramework
             this.b = b;
         }
 
-        public BigDouble Get(IdleEngine engine)
+        public BigDouble GetAsNumber(IdleEngine engine)
         {
-            var aValue = a.Get(engine);
-            var bValue = b.Get(engine);
+            var aValue = a.GetAsNumber(engine);
+            var bValue = b.GetAsNumber(engine);
             if(bValue.Equals(0))
             {
                 return BigDouble.NaN;

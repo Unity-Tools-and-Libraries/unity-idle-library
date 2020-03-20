@@ -18,12 +18,12 @@ namespace IdleFramework
             return new Sum(operands);
         }
 
-        public BigDouble Get(IdleEngine engine)
+        public BigDouble GetAsNumber(IdleEngine engine)
         {
             BigDouble value = 0;
             foreach(var operand in operands)
             {
-                value += operand.Get(engine);
+                value += operand.GetAsNumber(engine);
             }
             return value;
         }

@@ -16,15 +16,17 @@ namespace Tests
                 .WithCustomEntityProperty("property")
                 .WithEntity(new EntityDefinitionBuilder("food")
                     .WithCustomProperty("is-food")
-                    .WithProduction("food", 1))
+                    .WithProduction("food", 1)
+                    .WithStartingQuantity(1))
                 .WithEntity(new EntityDefinitionBuilder("bar")
-                    .WithConsumption("food", 3))
+                    .WithConsumption("food", 3)
+                    .WithStartingQuantity(1))
                 .WithSingletonEntity(new SingletonEntityDefinitionBuilder("singleton"))
                 .WithModifier(new ModifierDefinitionBuilder("effect").Active().Always().And().DoesNothing())
                 .WithModifier(new ModifierDefinitionBuilder("food-bonus").Active().Always().And().HasEntityEffect(new GlobalEntityPropertyModifierEffectDefinition("outputs", "food", Literal.Of(1), EffectType.ADD)))
                 .WithModifier(new ModifierDefinitionBuilder("food-penalty-1").Active().Always().And().HasEntityEffect(new EntityPropertyModifierEffectDefinition("bar", "inputs", "food", Literal.Of(1), EffectType.SUBTRACT)))
                 .WithModifier(new ModifierDefinitionBuilder("food-penalty-2").Active().Always().And().HasEntityEffect(new EntityPropertyModifierEffectDefinition("bar", "inputs", "food", Literal.Of(1), EffectType.SUBTRACT)))
-                .WithAchievement(new AchievementConfigurationBuilder("achievement").GainedWhen(new EntityPropertyMatcher("food", "enabled", Comparison.GREATER_THAN_OR_EQUAL, 1)))
+                .WithAchievement(new AchievementConfigurationBuilder("achievement").GainedWhen(new EntityNumberPropertyMatcher("food", "enabled", Comparison.GREATER_THAN_OR_EQUAL, 1)))
                 .Build();
             engine = new IdleEngine(configuration);
             engine.Update(1f);
@@ -39,13 +41,13 @@ namespace Tests
         [Test]
         public void EngineAddsModifiersFromConfiguration()
         {
-            Assert.AreEqual(4, engine.Modifiers.Count);
+            Assert.AreEqual(6, engine.Modifiers.Count);
         }
 
         [Test]
-        public void EngineCanApplyAnEffectThatAddsToAnEntitysOutput()
+        public void EngineCanApplyAnEffectThatAddsToAnEntitysProduction()
         {
-            Assert.AreEqual(BigDouble.Floor(2), engine.AllEntities["food"].ProductionOutputs["food"].Value);
+            Assert.AreEqual(BigDouble.Floor(2), engine.AllEntities["food"].QuantityChangePerSecond.Value);
         }
 
         [Test]
@@ -57,7 +59,7 @@ namespace Tests
         [Test]
         public void EngineCanApplyAnEffectThatModifiedAnEntitiesInputs()
         {
-            Assert.AreEqual(BigDouble.Floor(1), engine.AllEntities["bar"].ProductionInputs["food"].Value);
+            Assert.AreEqual(2, engine.AllEntities["bar"].ProductionInputs["food"].AppliedModifiers.Count);
         }
 
         [Test]

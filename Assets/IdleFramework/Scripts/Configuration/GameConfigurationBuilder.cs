@@ -16,6 +16,7 @@ namespace IdleFramework
         private ISet<EngineHookDefinition> hooks = new HashSet<EngineHookDefinition>();
         private ISet<SingletonEntityDefinition> singletons = new HashSet<SingletonEntityDefinition>();
         private ISet<AchievementConfiguration> achievements = new HashSet<AchievementConfiguration>();
+        private ISet<TutorialConfiguration> tutorials = new HashSet<TutorialConfiguration>();
 
         public GameConfigurationBuilder WithCustomGlobalProperty(string propertyName, BigDouble baseValue)
         {
@@ -79,6 +80,11 @@ namespace IdleFramework
             return this;
         }
 
+        public void WithTutorial(TutorialConfigurationBuilder.TerminalTutorialConfigurationBuilderStage tutorialConfigurationBuilder)
+        {
+            throw new NotImplementedException();
+        }
+
         public GameConfigurationBuilder WithHook(EngineHookConfigurationBuilder hook)
         {
             hooks.Add(hook.Build());
@@ -87,7 +93,7 @@ namespace IdleFramework
 
         public GameConfiguration Build()
         {
-            return new GameConfiguration(entities, modifiers, hooks, singletons, universalCustomEntityProperties, globalProperties, achievements);
+            return new GameConfiguration(entities, modifiers, hooks, singletons, universalCustomEntityProperties, globalProperties, achievements, tutorials);
         }
     }
 }

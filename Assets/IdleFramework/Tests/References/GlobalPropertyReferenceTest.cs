@@ -20,11 +20,11 @@ public class GlobalPropertyReferenceTest
     [Test]
     public void Returns0ForANonexistantProperty()
     {
-        Assert.AreEqual(BigDouble.Zero, new GlobalPropertyReference("foo").Get(engine));
+        Assert.AreEqual(BigDouble.Zero, new GlobalPropertyReference("foo").GetAsNumber(engine));
     }
     [Test]
     public void ReturnsTheValueOfTheGlobalProperty()
     {
-        Assert.AreEqual(BigDouble.Floor(2), new GlobalPropertyReference("exists").Get(engine));
+        Assert.AreEqual(BigDouble.Floor(2), new GlobalPropertyReference("exists").GetAsNumber(engine));
     }
 }

@@ -1,5 +1,6 @@
 ﻿using BreakInfinity;
 using System;
+using System.Collections.Generic;
 
 namespace IdleFramework
 {
@@ -9,6 +10,11 @@ namespace IdleFramework
         public override BigDouble CalculateEffect(ModifiableProperty target, IdleEngine engine)
         {
             return target.Value;
+        }
+
+        public override IReadOnlyList<ModifiableProperty> GetAffectableProperties(IdleEngine engine)
+        {
+            return new List<ModifiableProperty>().AsReadOnly();
         }
     }
 }

@@ -58,3 +58,5 @@ The following events within the engine exist and can have hooks associated with 
 * Offline mechanics
 * Support for prestige mechanics
 * Auto-buy for entities.
+* Custom logging - Default Unity logging is barebones.
+* Web saving

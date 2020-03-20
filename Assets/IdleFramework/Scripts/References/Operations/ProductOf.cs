@@ -1,20 +1,26 @@
 ﻿using BreakInfinity;
 namespace IdleFramework
 {
-    public class ProductOf : PropertyReference
+    public class Product
+        : PropertyReference
     {
         private PropertyReference left;
         private PropertyReference right;
 
-        public ProductOf(PropertyReference left, PropertyReference right)
+        private Product(PropertyReference left, PropertyReference right)
         {
             this.left = left;
             this.right = right;
         }
 
-        public BigDouble Get(IdleEngine engine)
+        public BigDouble GetAsNumber(IdleEngine engine)
         {
-            return left.Get(engine) * right.Get(engine);
+            return left.GetAsNumber(engine) * right.GetAsNumber(engine);
+        }
+
+        public static Product Of(PropertyReference left, PropertyReference right)
+        {
+            return new Product(left, right);
         }
     }
 }

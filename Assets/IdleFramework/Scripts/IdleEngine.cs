@@ -16,7 +16,7 @@ namespace IdleFramework
         private readonly Dictionary<string, SingletonEntityDefinition> singletons = new Dictionary<string, SingletonEntityDefinition>();
         private readonly Dictionary<string, BigDouble> globalProperties = new Dictionary<string, BigDouble>();
         private readonly Dictionary<string, Achievement> achievements = new Dictionary<string, Achievement>();
-        private readonly ModifierEffectCache modifierEffectCache = new ModifierEffectCache();
+        private readonly ISet<Tutorial> tutorials = new HashSet<Tutorial>();
 
         private System.Timers.Timer updateThrottleTimer = new System.Timers.Timer(100);
         private ISet<Modifier> lastActiveModifiers = new HashSet<Modifier>();
@@ -47,10 +47,27 @@ namespace IdleFramework
             }
             this.configuration = configuration;
             setupEntities();
-            foreach (ModifierDefinition modifier in configuration.Modifiers)
+            setupModifiers();
+            setupHooks();
+            foreach(SingletonEntityDefinition singleton in configuration.Singletons)
             {
-                _modifiers.Add(new Modifier(modifier));
+                singletons.Add(singleton.SingletonTypeKey, singleton);
             }
+            foreach(AchievementConfiguration achievement in configuration.Achievements.Values)
+            {
+                achievements.Add(achievement.AchievementKey, new Achievement(achievement));
+            }
+            foreach(var globalProperty in configuration.GlobalProperties) {
+                this.globalProperties.Add(globalProperty.Key, globalProperty.Value);
+            }
+            foreach(var tutorial in configuration.Tutorials)
+            {
+                tutorials.Add(new Tutorial(tutorial));
+            }
+        }
+
+        private void setupHooks()
+        {
             foreach (EngineHookDefinition hook in configuration.Hooks)
             {
                 Dictionary<string, List<EngineHookDefinition>> hooksForAction;
@@ -66,16 +83,29 @@ namespace IdleFramework
                 }
                 hooksForActor.Add(hook);
             }
-            foreach(SingletonEntityDefinition singleton in configuration.Singletons)
+        }
+
+        private void setupModifiers()
+        {
+            foreach (ModifierDefinition modifierDefinition in configuration.Modifiers)
             {
-                singletons.Add(singleton.SingletonTypeKey, singleton);
-            }
-            foreach(AchievementConfiguration achievement in configuration.Achievements.Values)
-            {
-                achievements.Add(achievement.AchievementKey, new Achievement(achievement));
-            }
-            foreach(var globalProperty in configuration.GlobalProperties) {
-                this.globalProperties.Add(globalProperty.Key, globalProperty.Value);
+                var modifierEffects = new HashSet<Effect>();
+                foreach (var effectDefinition in modifierDefinition.Effects)
+                {
+                    var effect = new Effect(effectDefinition, this);
+                    modifierEffects.Add(effect);
+                }
+                var modifier = new Modifier(modifierDefinition, modifierEffects);
+                foreach (var effect in modifierEffects)
+                {
+                    var affectable = effect.Definition.GetAffectableProperties(this);
+                    foreach (var canBeAffected in affectable)
+                    {
+                        Debug.Log(String.Format("Adding {0} from modifier {1} to {2}", effect, modifier.ModifierKey, canBeAffected));
+                        canBeAffected.AddModifierEffect(new ModifierEffect(modifier, effect));
+                    }
+                }
+                _modifiers.Add(modifier);
             }
         }
 
@@ -87,6 +117,7 @@ namespace IdleFramework
                 {
                     if (!entity.CustomProperties.ContainsKey(universalCustomProperty.Key))
                     {
+                        Debug.Log(String.Format("Adding universtal property {1} to entity {0} with initial value of {2}", entity.EntityKey, universalCustomProperty.Key, universalCustomProperty.Value));
                         entity.CustomProperties.Add(universalCustomProperty.Key, Literal.Of(0));
                     }
                 }
@@ -119,11 +150,11 @@ namespace IdleFramework
                         baseRequirement = Literal.Of(0);
                     }
 
-                    entityInstance.ProductionInputs[otherEntity.EntityKey] = new ModifiableProperty("inputs-" + otherEntity.EntityKey, baseInput.Get(this), this);
-                    entityInstance.ProductionOutputs[otherEntity.EntityKey] = new ModifiableProperty("outputs-" + otherEntity.EntityKey, baseOutput.Get(this), this);
-                    entityInstance.Upkeep[otherEntity.EntityKey] = new ModifiableProperty("upkeep-" + otherEntity.EntityKey, baseUpkeep.Get(this), this);
-                    entityInstance.Costs[otherEntity.EntityKey] = new ModifiableProperty("costs-" + otherEntity.EntityKey, baseCost.Get(this), this);
-                    entityInstance.Requirements[otherEntity.EntityKey] = new ModifiableProperty("requirements-" + otherEntity.EntityKey, baseRequirement.Get(this), this);
+                    entityInstance.ProductionInputs[otherEntity.EntityKey] = new ModifiableProperty(entityInstance, "inputs-" + otherEntity.EntityKey, baseInput.GetAsNumber(this), this);
+                    entityInstance.ProductionOutputs[otherEntity.EntityKey] = new ModifiableProperty(entityInstance, "outputs-" + otherEntity.EntityKey, baseOutput.GetAsNumber(this), this);
+                    entityInstance.Upkeep[otherEntity.EntityKey] = new ModifiableProperty(entityInstance, "upkeep-" + otherEntity.EntityKey, baseUpkeep.GetAsNumber(this), this);
+                    entityInstance.Costs[otherEntity.EntityKey] = new ModifiableProperty(entityInstance, "costs-" + otherEntity.EntityKey, baseCost.GetAsNumber(this), this);
+                    entityInstance.Requirements[otherEntity.EntityKey] = new ModifiableProperty(entityInstance, "requirements-" + otherEntity.EntityKey, baseRequirement.GetAsNumber(this), this);
                 }
 
                 _allEntities.Add(entity.EntityKey, entityInstance);
@@ -132,9 +163,11 @@ namespace IdleFramework
             {
                 foreach (GameEntity otherEntity in AllEntities.Values)
                 {
-                    entity.QuantityChangePerSecond.AddModifierEffect(otherEntity.AsModifierEffectFor(this, otherEntity.EntityKey, "production"));
+                    Debug.Log(String.Format("Adding entity {0} as a production source to entity {1}", otherEntity.EntityKey, entity.EntityKey));
+                    var modifier = otherEntity.AsModifierEffectFor(this, entity.EntityKey, "production");
+                    entity.QuantityChangePerSecond.AddModifierEffect(modifier);
+                    _modifiers.Add(modifier.modifier);
                 }
-                
             }
         }
 
@@ -185,9 +218,29 @@ namespace IdleFramework
             }
         }
 
-        private void RecalculateAllEntityProperties()
+        private void RecalculateAllEntityProperties(float deltaTime)
         {
-            
+            foreach(var entity in AllEntities.Values)
+            {
+                if (entity.IsActive(this))
+                {
+                    Debug.Log(String.Format("Updating properties of active entity {0}", entity.EntityKey));
+                    entity.ForEachProperty((name, property) =>
+                    {
+                        property.Update(this, deltaTime);
+                    });
+                } else
+                {
+                    Debug.Log(String.Format("Skipping inactive entity {0}", entity.EntityKey));
+                }
+            }
+            foreach(var entity in AllEntities.Values)
+            {
+                if (entity.IsActive(this))
+                {
+                    entity.QuantityChangePerSecond.Update(this, deltaTime);
+                }
+            }
         }
 
         public BigDouble PerformUpkeepForEntity(GameEntity entity, float deltaTime)
@@ -396,7 +449,8 @@ namespace IdleFramework
 
         private void doUpdate(float accruedTime)
         {
-            RecalculateAllEntityProperties();
+
+            RecalculateAllEntityProperties(accruedTime);
             foreach (GameEntity entity in _allEntities.Values)
             {
                 PerformProductionForEntity(entity, accruedTime);

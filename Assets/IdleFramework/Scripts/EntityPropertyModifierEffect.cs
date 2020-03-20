@@ -1,6 +1,7 @@
 ﻿using BreakInfinity;
 using IdleFramework;
 using System;
+using System.Collections.Generic;
 
 namespace IdleFramework
 {
@@ -42,7 +43,7 @@ namespace IdleFramework
                         return entity.ProductionOutputs[entitySubProperty].Value;
                     } else if (entity.BaseProductionOutputs.ContainsKey(entitySubProperty))
                     {
-                        return entity.BaseProductionOutputs[entitySubProperty].Get(engine);
+                        return entity.BaseProductionOutputs[entitySubProperty].GetAsNumber(engine);
                     }
                     return 0;
                 case "inputs":
@@ -52,7 +53,7 @@ namespace IdleFramework
                     }
                     else if (entity.BaseProductionInputs.ContainsKey(entitySubProperty))
                     {
-                        return entity.BaseProductionInputs[entitySubProperty].Get(engine);
+                        return entity.BaseProductionInputs[entitySubProperty].GetAsNumber(engine);
                     }
                     return 0;
                 case "upkeep":
@@ -62,7 +63,7 @@ namespace IdleFramework
                     }
                     else if (entity.BaseUpkeep.ContainsKey(entitySubProperty))
                     {
-                        return entity.BaseUpkeep[entitySubProperty].Get(engine);
+                        return entity.BaseUpkeep[entitySubProperty].GetAsNumber(engine);
                     }
                     return 0;
                 default:
@@ -75,11 +76,11 @@ namespace IdleFramework
             switch (type)
             {
                 case EffectType.ADD:
-                    return currentValue + value.Get(engine);
+                    return currentValue + value.GetAsNumber(engine);
                 case EffectType.SUBTRACT:
-                    return currentValue - value.Get(engine);
+                    return currentValue - value.GetAsNumber(engine);
                 case EffectType.MULTIPLY:
-                    return currentValue * value.Get(engine);
+                    return currentValue * value.GetAsNumber(engine);
                 default:
                     throw new InvalidOperationException();
             }
@@ -101,6 +102,42 @@ namespace IdleFramework
         public override BigDouble CalculateEffect(ModifiableProperty target, IdleEngine engine)
         {
             return calculateValue(target.Value, engine);
+        }
+
+        private IEnumerable<GameEntity> findEntity(IdleEngine engine, string entityKey)
+        {
+            switch(entityKey)
+            {
+                case "*":
+                    return engine.AllEntities.Values;
+                default:
+                    return new List<GameEntity>() { engine.AllEntities[entityKey] };
+            }
+        }
+
+        public override IReadOnlyList<ModifiableProperty> GetAffectableProperties(IdleEngine engine)
+        {
+            IEnumerable<GameEntity> entities = findEntity(engine, subjectKey);
+            List<ModifiableProperty> affected = new List<ModifiableProperty>();
+            foreach (var entity in entities) {
+                switch (entityProperty)
+                {
+                    case "outputs":
+                        affected.Add(entity.ProductionOutputs[entitySubProperty]);
+                        break;
+                    case "inputs":
+                        affected.Add(entity.ProductionInputs[entitySubProperty]);
+                        break;
+                    default:
+                        throw new InvalidOperationException();
+                }
+            }
+            return affected.AsReadOnly();
+        }
+
+        public override string ToString()
+        {
+            return String.Format("{0} {1} to property {2} of entity {3}", type, value, entityProperty + (EntitySubProperty != null ? "[" + EntitySubProperty + "]" : ""), subjectKey);
         }
     }
 }

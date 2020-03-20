@@ -46,7 +46,7 @@ namespace IdleFramework
 
         public override string ToString()
         {
-            return string.Format("Modifier({0})");
+            return string.Format("Modifier({0})", modifierKey);
         }
     }
 

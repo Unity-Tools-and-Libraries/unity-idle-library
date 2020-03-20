@@ -10,16 +10,16 @@ namespace IdleFramework
             this.children = children;
         }
 
-        public BigDouble Get(IdleEngine engine)
+        public BigDouble GetAsNumber(IdleEngine engine)
         {
             if(children.Length == 0 )
             {
                 return 0;
             }
-            var smallest = children[0].Get(engine);
+            var smallest = children[0].GetAsNumber(engine);
             foreach(var reference in children)
             {
-                smallest = BigDouble.Min(smallest, reference.Get(engine));
+                smallest = BigDouble.Min(smallest, reference.GetAsNumber(engine));
             }
             return smallest;
         }

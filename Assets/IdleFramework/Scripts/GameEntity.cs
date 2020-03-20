@@ -5,9 +5,10 @@ using System.Numerics;
 
 namespace IdleFramework
 {
-    public class GameEntity : Modifier, EntityDefinitionProperties
+    public class GameEntity : Modifier, EntityDefinitionProperties, Updates
     {
         private readonly IdleEngine engine;
+        private readonly ISet<Updates> updateables = new HashSet<Updates>();
         private BigDouble quantityCap;
         private BigDouble _quantity = 0;
         private BigDouble _progress = 0;
@@ -36,7 +37,7 @@ namespace IdleFramework
         public BigDouble Quantity {
             get {
                 var actualQuantity = _quantity;
-                var cap = QuantityCap != null ? QuantityCap.Get(engine) : _quantity;
+                var cap = QuantityCap != null ? QuantityCap.GetAsNumber(engine) : _quantity;
                 return BigDouble.Min(actualQuantity, cap);
            }
         }
@@ -83,10 +84,32 @@ namespace IdleFramework
             _quantity = definition.StartingQuantity;
             foreach(var property in definition.CustomProperties)
             {
-                customProperties.Add(property.Key, new IdleFramework.ModifiableProperty(property.Key, 0, engine));
+                customProperties.Add(property.Key, new IdleFramework.ModifiableProperty(this, property.Key, 0, engine));
             }
             this.engine = engine;
-            quantityChangePerSecond = new ModifiableProperty("production-per-second", 0, engine);
+            quantityChangePerSecond = new ModifiableProperty(this, "production-per-second", 0, engine);
+
+            foreach(var updateable in requirements.Values)
+            {
+                updateables.Add(updateable);
+            }
+            foreach (var updateable in upkeep.Values)
+            {
+                updateables.Add(updateable);
+            }
+            foreach (var updateable in costs.Values)
+            {
+                updateables.Add(updateable);
+            }
+            foreach (var updateable in productionInputs.Values)
+            {
+                updateables.Add(updateable);
+            }
+            foreach (var updateable in productionOutputs.Values)
+            {
+                updateables.Add(updateable);
+            }
+            updateables.Add(QuantityChangePerSecond);
         }
 
         public void Buy(BigDouble quantityToBuy, bool buyAllOrNone)
@@ -135,13 +158,13 @@ namespace IdleFramework
         public void ChangeQuantity(BigDouble changeBy)
         {
             _quantity += changeBy;
-            _quantity = BigDouble.Min(_quantity, definition.QuantityCap.Get(engine));
+            _quantity = BigDouble.Min(_quantity, definition.QuantityCap.GetAsNumber(engine));
         }
 
         public void SetQuantity(BigDouble newQuantity)
         {
             _quantity = newQuantity;
-            _quantity = BigDouble.Min(_quantity, definition.QuantityCap.Get(engine));
+            _quantity = BigDouble.Min(_quantity, definition.QuantityCap.GetAsNumber(engine));
         }
 
         public void ChangeProgress(BigDouble changeBy)
@@ -152,7 +175,7 @@ namespace IdleFramework
                 _progress = 0;
                 _quantity += 1;
             }
-            _quantity = BigDouble.Min(_quantity, definition.QuantityCap.Get(engine));
+            _quantity = BigDouble.Min(_quantity, definition.QuantityCap.GetAsNumber(engine));
         }
 
         public void SetProgress(int newProgress)
@@ -177,41 +200,52 @@ namespace IdleFramework
 
         public override string ToString()
         {
-            return String.Format("GameEntity({0}) x {1}", this.Name, this.Quantity);
+            return String.Format("GameEntity({0}) x {1} + {2}/sec", this.EntityKey, this.Quantity, quantityChangePerSecond.Value);
         }
 
         public ModifierEffect AsModifierEffectFor(IdleEngine engine, string subject, string property)
         {
-            string modifierKey = String.Format("{0}-{1}-{2}-{3}", EntityKey, subject, "production", property);
+            string modifierKey = String.Format("{0}-{1}-{2}", EntityKey, subject, "production");
             switch(property)
             {
                 case "production":
                     return new ModifierEffect(
                         this,
-                        new Effect(new EntityPropertyModifierEffectDefinition(subject, "production", new EntityPropertyReference(this.EntityKey, "outputs", subject), EffectType.ADD), engine)
+                        new Effect(new EntityPropertyModifierEffectDefinition(subject, "production", 
+                        new EntityPropertyReference(this.EntityKey, "outputs", subject)
+                        .Minus(new EntityPropertyReference(this.EntityKey, "inputs", subject)), EffectType.ADD), engine)
                         );
                 default:
                     throw new InvalidOperationException();
             }
         }
+
+        public void Update(IdleEngine engine, float deltaTime)
+        {
+            foreach(var updateable in updateables)
+            {
+                updateable.Update(engine, deltaTime);
+            }
+        }
     }
 
-    public class ModifiableProperty
+    public class ModifiableProperty : Updates
     {
+        private readonly GameEntity parent;
         private readonly string propertyName;
         private readonly BigDouble baseValue;
         private BigDouble calculatedValue;
         private List<ModifierEffect> appliedModifiers = new List<ModifierEffect>();
-        private IdleEngine engine;
+        private readonly IdleEngine engine;
 
-        public ModifiableProperty(string propertyName, BigDouble quantity, IdleEngine engine, params ModifierEffect[] initialModifiers)
+        public ModifiableProperty(GameEntity parent, string propertyName, BigDouble quantity, IdleEngine engine, params ModifierEffect[] initialModifiers)
         {
+            this.parent = parent;
             this.propertyName = propertyName;
             this.engine = engine;
             this.baseValue = quantity != null ? quantity : default(BigDouble);
             this.calculatedValue = this.baseValue;
             appliedModifiers.AddRange(initialModifiers);
-            calculateValue();
         }
 
         private void calculateValue()
@@ -227,16 +261,16 @@ namespace IdleFramework
 
         public IReadOnlyList<ModifierEffect> AppliedModifiers => appliedModifiers.AsReadOnly();
 
+        public GameEntity Parent => parent;
+
         public void AddModifierEffect(ModifierEffect modifierEffect)
         {
             appliedModifiers.Add(modifierEffect);
-            calculateValue();
         }
 
         public void RemoveModifierEFfect(ModifierEffect modifierAndEffect)
         {
             appliedModifiers.Remove(modifierAndEffect);
-            calculateValue();
         }
 
         public static implicit operator BigDouble(ModifiableProperty gep) => gep.calculatedValue;
@@ -271,7 +305,12 @@ namespace IdleFramework
 
         public override string ToString()
         {
-            return String.Format("Property({0}) x {1}", propertyName, calculatedValue);
+            return String.Format("Property({0}) with value {2} in {1}", propertyName, parent.EntityKey, Value);
+        }
+
+        public void Update(IdleEngine engine, float deltaTime)
+        {
+            calculateValue();
         }
     }
 
@@ -284,6 +323,44 @@ namespace IdleFramework
         {
             this.modifier = modifier;
             this.effect = effect;
+        }
+
+        public BigDouble Apply(ModifiableProperty modifiableProperty, IdleEngine engine)
+        {
+            if (modifier.IsActive(engine))
+            {
+                return this.effect.CalculateEffect(modifiableProperty);
+            } else
+            {
+                return modifiableProperty.Value;
+            }
+        }
+    }
+
+    public static class GameEntityExtensions
+    {
+        public static void ForEachProperty(this GameEntity entity, Action<string, ModifiableProperty> action)
+        {
+            foreach(var output in entity.ProductionOutputs)
+            {
+                action(output.Key, output.Value);
+            }
+            foreach (var input in entity.ProductionInputs)
+            {
+                action(input.Key, input.Value);
+            }
+            foreach (var upkeep in entity.Upkeep)
+            {
+                action(upkeep.Key, upkeep.Value);
+            }
+            foreach (var cost in entity.Costs)
+            {
+                action(cost.Key, cost.Value);
+            }
+            foreach (var requirement in entity.Requirements)
+            {
+                action(requirement.Key, requirement.Value);
+            }
         }
     }
 }

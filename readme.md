@@ -33,11 +33,7 @@ There are two kinds of entites: normal entities and singleton entities.
 
 Normal entities are things which the player will accrue in large numbers. For example, in a "Civilization" type game the resources the player gains, such as food, gold, research, etc. would all be "normal entities".
 
-<<<<<<< HEAD
-Singleton entities are things which the player will have which are each distinct from each other. In an RPG style game, party members would likely be defined as singleton entities. Singleton entities are defined as templates, with each instanc being a distinct object.
-=======
 Singleton entities are things which the player will have which are distinct from each other. In an RPG style game, party members would likely be defined as singleton entities. Singleton entities are defined as templates, with each instance being a distinct object.
->>>>>>> singletons
 
 ## 4. Hooks
 Hooks provide a standardized interface for a developer to customize fundamental elements of how the engine works and watch for when things occur within the engine.
@@ -46,32 +42,10 @@ The following events within the engine exist and can have hooks associated with 
 * Entity Production
 
 ## I. Future Features
-<<<<<<< HEAD
 * Engine hooks - This will allow custom user-defined code that can be run when things occur inside the engine that is more sophisticated than what can be done declaratively.
 	- Entity purchase
 	- Entity production input
 	- Entity production output
-<<<<<<<< HEAD:readme.md
-=======
-Engine hooks - This will allow custom user-defined code that can be run when things occur inside the engine that is more sophisticated than what can be done declaratively.
-	- Entity purchase
-	- Entity production input
-	- Entity production output
->>>>>>> singletons
-Tutorial system
-Metrics - Track meta information over the course of play
-Minimum and maximum quantities - Set caps and floors on entity quantities
-Tracking of property modifiers - For e.g. tooltips
-Read-only views of entity, engine state - So state can be queries without allowing for modification.
-Unpurchaseable entities - Support entities that cannot be purchased, only produced by e.g. other entities.
-Actions which occur over a period of time.
-Singleton entities - For things like upgrades/research, characters, etc.
-UI Component generation framework
-Offline mechanics
-<<<<<<< HEAD
-Support for prestige mechanics.
-Engine listeners - Asynchronous listeners, unlike hooks they are not synchronous and don't impact the engine execution. 
-========
 * Tutorial system
 * Metrics - Track meta information over the course of play
 * Minimum and maximum quantities - Set caps and floors on entity quantities
@@ -83,7 +57,4 @@ Engine listeners - Asynchronous listeners, unlike hooks they are not synchronous
 * UI Component generation framework
 * Offline mechanics
 * Support for prestige mechanics
->>>>>>>> singletons:Assets/IdleFramework/readme.md
-=======
-Support for prestige mechanics
->>>>>>> singletons
+* Auto-buy for entities.

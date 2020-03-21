@@ -3,9 +3,9 @@ namespace IdleFramework
 {
     public class Max : PropertyReference
     {
-        private PropertyReference[] children;
+        private ValueContainer[] children;
 
-        private Max(params PropertyReference[] children)
+        private Max(params ValueContainer[] children)
         {
             this.children = children;
         }
@@ -24,9 +24,24 @@ namespace IdleFramework
             return largest;
         }
 
-        public static Max Of(params PropertyReference[] references)
+        public static Max Of(params ValueContainer[] references)
         {
             return new Max(references);
+        }
+
+        public bool GetAsBoolean(IdleEngine toCheck)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public string GetAsString(IdleEngine engine)
+        {
+            return GetAsNumber(engine).ToString();
+        }
+
+        public object RawValue(IdleEngine engine)
+        {
+            return GetAsNumber(engine);
         }
     }
 }

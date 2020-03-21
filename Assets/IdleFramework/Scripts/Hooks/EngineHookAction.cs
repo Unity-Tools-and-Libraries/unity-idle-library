@@ -1,5 +1,10 @@
-﻿public enum EngineHookAction
+﻿namespace IdleFramework
 {
-    WILL_PRODUCE,
-    PRODUCED
+    public enum EngineHookAction
+    {
+        // An entity is about to perform it's production.
+        WILL_PRODUCE,
+        // The engine has completed initialization and begun running.
+        ENGINE_START
+    }
 }

@@ -7,9 +7,9 @@ namespace IdleFramework
     public class NothingEntityEffect : EntityEffectDefinition
     {
         
-        public override BigDouble CalculateEffect(ModifiableProperty target, IdleEngine engine)
+        public override object CalculateEffect(ModifiableProperty target, IdleEngine engine)
         {
-            return target.Value;
+            return target.RawValue(engine);
         }
 
         public override IReadOnlyList<ModifiableProperty> GetAffectableProperties(IdleEngine engine)

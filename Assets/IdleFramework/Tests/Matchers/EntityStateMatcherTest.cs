@@ -19,12 +19,12 @@ namespace Tests
             engine = new IdleEngine(new GameConfigurationBuilder()
                 .WithEntity(new EntityDefinitionBuilder("food"))
                 .WithEntity(new EntityDefinitionBuilder("test-1")
-                    .WithProduction("food", 0))
+                    .WithOutput("food", 0))
                 .WithEntity(new EntityDefinitionBuilder("test-2")
-                    .WithProduction("food", 1))
+                    .WithOutput("food", 1))
                 .WithEntity(new EntityDefinitionBuilder("test-3")
                     .WithStartingQuantity(1)
-                    .WithProduction("food", 2))
+                    .WithOutput("food", 2))
                 .Build());
             engine.Update(1f);
         }
@@ -61,7 +61,7 @@ namespace Tests
         [Test]
         public void EntityNumberPropertyMatcherCanMatchOnEntityQuantity()
         {
-            Assert.IsTrue(new EntityNumberPropertyMatcher("test-3", "quantity", "food", Comparison.GREATER_THAN, 0).Matches(engine));
+            Assert.IsTrue(new EntityNumberPropertyMatcher("test-3", "quantity", Comparison.GREATER_THAN, 0).Matches(engine));
         }
 
         [Test]

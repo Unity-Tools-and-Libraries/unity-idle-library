@@ -12,11 +12,11 @@ namespace Tests
         public void setup()
         {
             var configuration = new GameConfigurationBuilder()
-                .WithCustomGlobalProperty("multiplier", 1)
-                .WithCustomEntityProperty("property")
+                .WithCustomGlobalProperty("multiplier", Literal.Of(1))
+                .WithCustomEntityProperty("property", Literal.Of(0))
                 .WithEntity(new EntityDefinitionBuilder("food")
-                    .WithCustomProperty("is-food")
-                    .WithProduction("food", 1)
+                    .WithCustomBooleanProperty("is-food", true)
+                    .WithOutput("food", 1)
                     .WithStartingQuantity(1))
                 .WithEntity(new EntityDefinitionBuilder("bar")
                     .WithConsumption("food", 3)
@@ -26,7 +26,7 @@ namespace Tests
                 .WithModifier(new ModifierDefinitionBuilder("food-bonus").Active().Always().And().HasEntityEffect(new GlobalEntityPropertyModifierEffectDefinition("outputs", "food", Literal.Of(1), EffectType.ADD)))
                 .WithModifier(new ModifierDefinitionBuilder("food-penalty-1").Active().Always().And().HasEntityEffect(new EntityPropertyModifierEffectDefinition("bar", "inputs", "food", Literal.Of(1), EffectType.SUBTRACT)))
                 .WithModifier(new ModifierDefinitionBuilder("food-penalty-2").Active().Always().And().HasEntityEffect(new EntityPropertyModifierEffectDefinition("bar", "inputs", "food", Literal.Of(1), EffectType.SUBTRACT)))
-                .WithAchievement(new AchievementConfigurationBuilder("achievement").GainedWhen(new EntityNumberPropertyMatcher("food", "enabled", Comparison.GREATER_THAN_OR_EQUAL, 1)))
+                .WithAchievement(new AchievementConfigurationBuilder("achievement").GainedWhen(new EntityBooleanPropertyMatcher("food", "enabled", true)))
                 .Build();
             engine = new IdleEngine(configuration);
             engine.Update(1f);
@@ -47,13 +47,13 @@ namespace Tests
         [Test]
         public void EngineCanApplyAnEffectThatAddsToAnEntitysProduction()
         {
-            Assert.AreEqual(BigDouble.Floor(2), engine.AllEntities["food"].QuantityChangePerSecond.Value);
+            Assert.AreEqual(BigDouble.Floor(2), engine.AllEntities["food"].QuantityChangePerSecond.GetAsNumber(engine));
         }
 
         [Test]
         public void EngineCanRemoveAnEffectThatAddsToAnEntitysOutput()
         {
-            Assert.AreEqual(BigDouble.Floor(2), engine.AllEntities["food"].ProductionOutputs["food"].Value);
+            Assert.AreEqual(BigDouble.Floor(2), engine.AllEntities["food"].ProductionOutputs["food"].GetAsNumber(engine));
         }
 
         [Test]
@@ -65,7 +65,7 @@ namespace Tests
         [Test]
         public void MultipleEffectsStack()
         {
-            Assert.AreEqual(BigDouble.Floor(1), engine.AllEntities["bar"].ProductionInputs["food"].Value);
+            Assert.AreEqual(BigDouble.Floor(1), engine.AllEntities["bar"].ProductionInputs["food"].GetAsNumber(engine));
         }
 
         [Test]
@@ -102,7 +102,7 @@ namespace Tests
 
         [Test]
         public void EngineReturnsZeroForNonExistantGlobalProperty() {
-            Assert.AreEqual(BigDouble.Floor(0), engine.GetGlobalProperty("fake"));
+            Assert.AreEqual(BigDouble.Floor(0), engine.GetGlobalNumberProperty("fake"));
         }
 
         [Test]

@@ -21,9 +21,9 @@ namespace IdleFramework
 
         public bool IsActive { get => isActive; set => isActive = value; }
 
-        public BigDouble CalculateEffect(ModifiableProperty modifiableProperty)
+        public object CalculateEffect(ModifiableProperty modifiableProperty)
         {
-            return this.definition.CalculateEffect(modifiableProperty, engine);
+            return definition.CalculateEffect(modifiableProperty, engine);
         }
 
         public override string ToString()

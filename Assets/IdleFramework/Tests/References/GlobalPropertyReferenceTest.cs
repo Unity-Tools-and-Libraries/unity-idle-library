@@ -1,10 +1,6 @@
 ﻿using BreakInfinity;
 using IdleFramework;
 using NUnit.Framework;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 
 public class GlobalPropertyReferenceTest
 {
@@ -12,19 +8,30 @@ public class GlobalPropertyReferenceTest
     [SetUp]
     public void setup()
     {
-        var config = new GameConfigurationBuilder().
-            WithCustomGlobalProperty("exists", 2)
+        var config = new GameConfigurationBuilder()
+            .WithCustomGlobalProperty("exists", Literal.Of(true))
+            .WithCustomGlobalProperty("foo", Literal.Of("string"))
             .Build();
         engine = new IdleEngine(config);
     }
     [Test]
-    public void Returns0ForANonexistantProperty()
+    public void Returns0ForANonexistantNumberProperty()
     {
         Assert.AreEqual(BigDouble.Zero, new GlobalPropertyReference("foo").GetAsNumber(engine));
     }
     [Test]
-    public void ReturnsTheValueOfTheGlobalProperty()
+    public void ReturnsTheValueOfAGlobalNumberProperty()
     {
-        Assert.AreEqual(BigDouble.Floor(2), new GlobalPropertyReference("exists").GetAsNumber(engine));
+        Assert.IsTrue(new GlobalPropertyReference("exists").GetAsBoolean(engine));
+    }
+    [Test]
+    public void ReturnsTheValueOfAGlobalStringProperty()
+    {
+        Assert.AreEqual("string", new GlobalPropertyReference("foo").GetAsString(engine));
+    }
+    [Test]
+    public void ReturnsTheValueOfTheGlobalStringProperty()
+    {
+        Assert.AreEqual("string", new GlobalPropertyReference("foo").GetAsString(engine));
     }
 }

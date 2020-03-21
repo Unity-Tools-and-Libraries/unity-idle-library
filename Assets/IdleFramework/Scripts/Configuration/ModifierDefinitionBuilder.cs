@@ -79,9 +79,9 @@ namespace IdleFramework
                 return parent;
             }
 
-            public EffectTriggerDefinitionConfigurer When(EntityPropertyMatcher entityPropertyMatcher)
+            public EffectTriggerDefinitionConfigurer When(StateMatcher stateMatcher)
             {
-                parent.stateMatcher = entityPropertyMatcher;
+                parent.stateMatcher = stateMatcher;
                 return this;
             }
         }

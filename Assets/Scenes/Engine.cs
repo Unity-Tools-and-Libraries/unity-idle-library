@@ -14,10 +14,10 @@ public class Engine : MonoBehaviour
             .WithStartingQuantity(5)
             .WithCost("food", 100)
             .WithUpkeepRequirement("food", 1)
-            .WithProduction("food", 1.05)
-            .WithProduction("culture", .01)
-            .WithProduction("primitive-tools", .1)
-            .WithProduction("population", .01));
+            .WithOutput("food", 1.05)
+            .WithOutput("culture", .01)
+            .WithOutput("primitive-tools", .1)
+            .WithOutput("population", .01));
 
         configurationBuilder.WithEntity(new EntityDefinitionBuilder("food").WithType("resource")
             .WithName("Food")
@@ -47,6 +47,11 @@ public class Engine : MonoBehaviour
 
         configurationBuilder.WithAchievement(new AchievementConfigurationBuilder("pop-10").GainedWhen(
             new EntityNumberPropertyMatcher("population", "quantity", Comparison.GREATER_THAN, Literal.Of(10))));
+
+        configurationBuilder.WithTutorial(new TutorialConfigurationBuilder().WhenGameStarts().ThenExecute(()=>
+        {
+            Debug.Log("Game start hook executed.");
+        }));
 
         framework = new IdleEngine(configurationBuilder.Build());
         InvokeRepeating("tick", 0f, .25f);

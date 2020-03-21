@@ -5,7 +5,7 @@ namespace IdleFramework
 {    
     public interface EffectDefinition
     {
-        BigDouble CalculateEffect(ModifiableProperty target, IdleEngine engine);
+        object CalculateEffect(ModifiableProperty target, IdleEngine engine);
 
         /*
          * Returns all instances of ModifiableProperty which this Effect can be affecting.

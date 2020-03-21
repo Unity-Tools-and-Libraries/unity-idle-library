@@ -10,26 +10,33 @@ namespace IdleFramework
      **/
     public class GameConfiguration
     {
-        private ISet<EntityDefinition> entities;
-        private ISet<ModifierDefinitionProperties> modifiers;
-        private ISet<EngineHookDefinition> hooks;
-        private Dictionary<string, BigDouble> universalCustomEntityProperties;
-        private ISet<SingletonEntityDefinition> singletons;
-        private Dictionary<string, BigDouble> globalProperties;
-        private Dictionary<string, AchievementConfiguration> achievements = new Dictionary<string, AchievementConfiguration>();
-        private ISet<TutorialConfiguration> tutorials;
+        private readonly ISet<EntityDefinition> entities;
+        private readonly ISet<ModifierDefinitionProperties> modifiers;
+        private readonly HooksContainer hooks;
+        private readonly Dictionary<string, ValueContainer> sharedEntityProperties;
+        private readonly ISet<SingletonEntityDefinition> singletons;
+        private readonly Dictionary<string, ValueContainer> globalProperties;
+        private readonly Dictionary<string, AchievementConfiguration> achievements = new Dictionary<string, AchievementConfiguration>();
+        private readonly ISet<TutorialConfiguration> tutorials;
 
-        public ISet<EntityDefinition> Entities { get => entities; set => entities = value; }
+        public ISet<EntityDefinition> Entities { get => entities; }
         public ISet<ModifierDefinitionProperties> Modifiers { get => modifiers;  }
-        public ISet<EngineHookDefinition> Hooks { get => hooks; }
-        public Dictionary<string, BigDouble> UniversalCustomEntityProperties { get => universalCustomEntityProperties; }
+        public HooksContainer Hooks => hooks;
+        public Dictionary<string, ValueContainer> SharedEntityProperties => sharedEntityProperties;
         public IEnumerable<SingletonEntityDefinition> Singletons => singletons;
         public Dictionary<string, AchievementConfiguration> Achievements { get => achievements; }
-        public Dictionary<string, BigDouble> GlobalProperties => globalProperties;
+        public Dictionary<string, ValueContainer> GlobalProperties => globalProperties;
 
         public ISet<TutorialConfiguration> Tutorials => tutorials;
 
-        public GameConfiguration(ISet<EntityDefinition> entities, ISet<ModifierDefinitionProperties> modifiers, ISet<EngineHookDefinition> hooks, ISet<SingletonEntityDefinition> singletons, Dictionary<string, BigDouble> universalCustomEntityProperties, Dictionary<string, BigDouble> globalProperties, ISet<AchievementConfiguration> achievements, ISet<TutorialConfiguration> tutorials)
+        public GameConfiguration(ISet<EntityDefinition> entities, 
+            ISet<ModifierDefinitionProperties> modifiers, 
+            HookConfigurationBuilder hooks, 
+            ISet<SingletonEntityDefinition> singletons, 
+            Dictionary<string, ValueContainer> sharedCustomEntityProperties, 
+            Dictionary<string, ValueContainer> globalProperties,
+            ISet<AchievementConfiguration> achievements, 
+            ISet<TutorialConfiguration> tutorials)
         {
             var entityKeys = new HashSet<string>();
             foreach(var entityDefinition in entities)
@@ -41,8 +48,8 @@ namespace IdleFramework
             }
             this.entities = entities;
             this.modifiers = modifiers;
-            this.hooks = hooks;
-            this.universalCustomEntityProperties = universalCustomEntityProperties;
+            this.hooks = hooks.Build();
+            this.sharedEntityProperties = sharedCustomEntityProperties;
             this.singletons = singletons;
             this.globalProperties = globalProperties;
             this.tutorials = tutorials;

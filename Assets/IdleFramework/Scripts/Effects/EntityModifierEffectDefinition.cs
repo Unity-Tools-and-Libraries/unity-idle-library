@@ -21,7 +21,7 @@ namespace IdleFramework
         }
 
         
-        public BigDouble CalculateEffect(ModifiableProperty target, IdleEngine engine)
+        public object CalculateEffect(ModifiableProperty target, IdleEngine engine)
         {
             throw new System.NotImplementedException();
         }

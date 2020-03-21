@@ -6,6 +6,7 @@ namespace IdleFramework
     {
         private string message;
         private StateMatcher triggerMatcher;
+        private Action action;
 
         public TutorialActionConfigurationBuilder WhenGameStarts()
         {
@@ -28,6 +29,11 @@ namespace IdleFramework
                 return new TerminalTutorialConfigurationBuilderStage(parent);
             }
 
+            public TerminalTutorialConfigurationBuilderStage ThenExecute(Action action)
+            {
+                this.parent.action = action;
+                return new TerminalTutorialConfigurationBuilderStage(parent);
+            }
         }
 
         public class TerminalTutorialConfigurationBuilderStage

@@ -7,13 +7,18 @@ namespace IdleFramework
 {
     public class RatioOf : PropertyReference
     {
-        private PropertyReference a;
-        private PropertyReference b;
+        private ValueContainer a;
+        private ValueContainer b;
 
-        public RatioOf(PropertyReference a, PropertyReference b)
+        public RatioOf(ValueContainer a, ValueContainer b)
         {
             this.a = a;
             this.b = b;
+        }
+
+        public bool GetAsBoolean(IdleEngine toCheck)
+        {
+            return !BigDouble.Zero.Equals(GetAsNumber(toCheck));
         }
 
         public BigDouble GetAsNumber(IdleEngine engine)
@@ -25,6 +30,16 @@ namespace IdleFramework
                 return BigDouble.NaN;
             }
             return aValue / bValue;
+        }
+
+        public string GetAsString(IdleEngine engine)
+        {
+            return GetAsNumber(engine).ToString();
+        }
+
+        public object RawValue(IdleEngine engine)
+        {
+            return GetAsNumber(engine);
         }
     }
 }

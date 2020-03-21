@@ -9,7 +9,7 @@ namespace IdleFramework
         /*
          * Calculate what the new value of the target property would be if this effect were applied.
          */
-        public abstract BigDouble CalculateEffect(ModifiableProperty target, IdleEngine engine);
+        public abstract object CalculateEffect(ModifiableProperty target, IdleEngine engine);
         public abstract IReadOnlyList<ModifiableProperty> GetAffectableProperties(IdleEngine engine);
     }
 }

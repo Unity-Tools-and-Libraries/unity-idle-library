@@ -17,7 +17,7 @@ namespace Tests
         public void EntityDefinitionBuilderCanAddToProductionOutputs()
         {
             EntityDefinition ed = new EntityDefinitionBuilder("foo")
-                .WithProduction("food", 1)
+                .WithOutput("food", 1)
                 .Build();
             Assert.AreEqual(BigDouble.Floor(1), ed.BaseProductionOutputs["food"].GetAsNumber(null));
         }
@@ -44,8 +44,8 @@ namespace Tests
         public void EntityDefinitionBuilderSpecifyingProductionMultipleTimesOverwrites()
         {
             EntityDefinition ed = new EntityDefinitionBuilder("foo")
-                .WithProduction("food", 1)
-                .WithProduction("food", 2)
+                .WithOutput("food", 1)
+                .WithOutput("food", 2)
                 .Build();
             Assert.AreEqual(BigDouble.Floor(2), ed.BaseProductionOutputs["food"].GetAsNumber(null));
         }

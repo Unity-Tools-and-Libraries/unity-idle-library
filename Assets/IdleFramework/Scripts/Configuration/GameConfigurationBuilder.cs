@@ -10,29 +10,13 @@ namespace IdleFramework
     public class GameConfigurationBuilder: Builder<GameConfiguration>
     {
         private ISet<EntityDefinition> entities = new HashSet<EntityDefinition>();
-        private Dictionary<string, BigDouble> globalProperties = new Dictionary<string, BigDouble>();
+        private Dictionary<string, ValueContainer> globalProperties = new Dictionary<string, ValueContainer>();
         private ISet<ModifierDefinitionProperties> modifiers = new HashSet<ModifierDefinitionProperties>();
-        private Dictionary<string, BigDouble> universalCustomEntityProperties = new Dictionary<string, BigDouble>();
-        private ISet<EngineHookDefinition> hooks = new HashSet<EngineHookDefinition>();
+        private Dictionary<string, ValueContainer> sharedCustomEntityProperties = new Dictionary<string, ValueContainer>();
+        private HookConfigurationBuilder hooks = new HookConfigurationBuilder();
         private ISet<SingletonEntityDefinition> singletons = new HashSet<SingletonEntityDefinition>();
         private ISet<AchievementConfiguration> achievements = new HashSet<AchievementConfiguration>();
         private ISet<TutorialConfiguration> tutorials = new HashSet<TutorialConfiguration>();
-
-        public GameConfigurationBuilder WithCustomGlobalProperty(string propertyName, BigDouble baseValue)
-        {
-            globalProperties.Add(propertyName, baseValue);
-            return this;
-        }
-
-        public GameConfigurationBuilder WithCustomEntityProperty(string customProperty)
-        {
-            if (EntityDefinition.RESERVED_PROPERTY_NAMES.Contains(customProperty))
-            {
-                throw new InvalidOperationException(String.Format("Cannot use {0} as a custom property name as it is reserved. Reserved names are {1}", customProperty, EntityDefinition.RESERVED_PROPERTY_NAMES));
-            }
-            universalCustomEntityProperties.Add(customProperty, 0);
-            return this;
-        }
         /**
          * Add a definition for a new entity.
          */
@@ -80,20 +64,33 @@ namespace IdleFramework
             return this;
         }
 
-        public void WithTutorial(TutorialConfigurationBuilder.TerminalTutorialConfigurationBuilderStage tutorialConfigurationBuilder)
+        public GameConfigurationBuilder WithTutorial(TutorialConfigurationBuilder.TerminalTutorialConfigurationBuilderStage tutorialConfigurationBuilder)
         {
-            throw new NotImplementedException();
+            tutorials.Add(tutorialConfigurationBuilder.Build());
+            return this;
         }
 
-        public GameConfigurationBuilder WithHook(EngineHookConfigurationBuilder hook)
+        public GameConfigurationBuilder WithStartupHook(EngineStartHook hook)
         {
-            hooks.Add(hook.Build());
+            hooks.AddStartHook(hook);
+            return this;
+        }
+
+        public GameConfigurationBuilder WithCustomGlobalProperty(string propertyName, ValueContainer propertyValue)
+        {
+            globalProperties.Add(propertyName, propertyValue);
+            return this;
+        }
+
+        public GameConfigurationBuilder WithCustomEntityProperty(string propertyName, ValueContainer value)
+        {
+            sharedCustomEntityProperties.Add(propertyName, value);
             return this;
         }
 
         public GameConfiguration Build()
         {
-            return new GameConfiguration(entities, modifiers, hooks, singletons, universalCustomEntityProperties, globalProperties, achievements, tutorials);
+            return new GameConfiguration(entities, modifiers, hooks, singletons, sharedCustomEntityProperties, globalProperties, achievements, tutorials);
         }
     }
 }

@@ -61,3 +61,4 @@ The following events within the engine exist and can have hooks associated with 
 * Custom logging - Default Unity logging is barebones.
 * Web saving
 * Scheduled/random events
+* Event system

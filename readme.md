@@ -60,3 +60,4 @@ The following events within the engine exist and can have hooks associated with 
 * Auto-buy for entities.
 * Custom logging - Default Unity logging is barebones.
 * Web saving
+* Scheduled/random events

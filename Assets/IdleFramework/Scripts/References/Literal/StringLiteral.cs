@@ -21,6 +21,11 @@ namespace IdleFramework
             return boolValue;
         }
 
+        public PropertyContainer GetAsContainer(IdleEngine engine)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public BigDouble GetAsNumber(IdleEngine engine)
         {
             return BigDouble.Parse(value);

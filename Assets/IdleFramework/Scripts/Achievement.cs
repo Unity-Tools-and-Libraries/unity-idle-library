@@ -8,7 +8,7 @@ namespace IdleFramework
         private bool gained;
 
         public bool IsActive => gained;
-        public string AchievementKey => ((AchievementProperties)configuration).AchievementKey;
+        public string AchievementKey => configuration.AchievementKey;
 
         public Achievement(AchievementConfiguration configuration)
         {

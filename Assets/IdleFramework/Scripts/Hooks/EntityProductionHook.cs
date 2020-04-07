@@ -8,7 +8,7 @@ namespace IdleFramework
 {
     public class EntityProductionHook : EngineHookDefinition<GameEntity, BigDouble>
     {
-        public EntityProductionHook(string producingEntity, string producedEntity, Func<GameEntity, BigDouble> hook) : base(new EngineHookSelector(EngineHookAction.WILL_PRODUCE, producingEntity, producedEntity), hook)
+        public EntityProductionHook(string producingEntity, string producedEntity, Func<GameEntity, BigDouble> hook) : base(new EngineHookSelector(EngineHookEvent.WILL_PRODUCE, producingEntity, producedEntity), hook)
         {
 
         }
@@ -55,7 +55,6 @@ namespace IdleFramework
             public class EntityProductionHookAction
             {
                 Builder parent;
-                private Func<GameEntity, BigDouble> hook;
 
                 public EntityProductionHookAction(Builder parent)
                 {
@@ -64,7 +63,7 @@ namespace IdleFramework
 
                 public EntityProductionHookTerminal ThenExecute(Func<GameEntity, BigDouble> hook)
                 {
-                    this.hook = hook;
+                    parent.hook = hook;
                     return new EntityProductionHookTerminal(parent);
                 }
             }

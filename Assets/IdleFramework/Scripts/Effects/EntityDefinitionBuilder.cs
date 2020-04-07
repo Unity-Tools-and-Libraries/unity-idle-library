@@ -4,39 +4,45 @@ using System.Collections.Generic;
 
 namespace IdleFramework
 {
-    public class EntityDefinitionBuilder
+    public class EntityDefinitionBuilder : Builder<EntityDefinition>
     {
         private ISet<string> types = new HashSet<string>();
         private string key;
         private string name;
-        private Dictionary<string, ValueContainer> requires = new Dictionary<string, ValueContainer>();
         private Dictionary<string, ValueContainer> costs = new Dictionary<string, ValueContainer>();
         private Dictionary<string, ValueContainer> productionInputs = new Dictionary<string, ValueContainer>();
         private Dictionary<string, ValueContainer> productionOutputs = new Dictionary<string, ValueContainer>();
+        private Dictionary<string, ValueContainer> fixedInputs = new Dictionary<string, ValueContainer>();
+        private Dictionary<string, ValueContainer> fixedOutputs = new Dictionary<string, ValueContainer>();
         private Dictionary<string, ValueContainer> upkeep = new Dictionary<string, ValueContainer>();
         private Dictionary<string, ValueContainer> minimumProductionOutputs = new Dictionary<string, ValueContainer>();
         private BigDouble startingQuantity = 0;
         private StateMatcher hideEntityMatcher = Never.Instance;
         private StateMatcher disabledWhenMatcher = Never.Instance;
+        private StateMatcher availableWhenMatcher = Always.Instance;
         private ISet<ModifierDefinition> modifiers = new HashSet<ModifierDefinition>();
         private ValueContainer quantityCap;
         private bool scaleProduction = true;
         private readonly Dictionary<string, ValueContainer> customProperties = new Dictionary<string, ValueContainer>();
 
         private bool canBeBought = true;
+        private ValueContainer calculatedQuantity;
+
         public string EntityKey => key;
         public string Name => name;
         public ISet<string> Types => types;
         public BigDouble StartingQuantity => startingQuantity;
-        public Dictionary<string, ValueContainer> BaseRequirements => requires;
         public Dictionary<string, ValueContainer> BaseCosts => costs;
         public Dictionary<string, ValueContainer> BaseProductionInputs => productionInputs;
         public Dictionary<string, ValueContainer> BaseProductionOutputs => productionOutputs;
+        public Dictionary<string, ValueContainer> BaseFixedProductionInputs => fixedInputs;
+        public Dictionary<string, ValueContainer> BaseFixedProductionOutputs => fixedOutputs;
         public Dictionary<string, ValueContainer> BaseUpkeep => upkeep;
         public Dictionary<string, ValueContainer> BaseMinimumProductionOutputs => minimumProductionOutputs;
         public bool ScaleProductionOnAvailableInputs => scaleProduction;
         public StateMatcher HiddenMatcher => hideEntityMatcher;
         public StateMatcher DisabledMatcher => disabledWhenMatcher;
+        public StateMatcher AvailableMatcher => availableWhenMatcher;
         public ISet<ModifierDefinition> Modifiers => modifiers;
         public bool CanBeBought => canBeBought;
         public ValueContainer QuantityCap => quantityCap;
@@ -44,6 +50,8 @@ namespace IdleFramework
         public Dictionary<string, ValueContainer> CustomStringProperties => customProperties;
 
         public Dictionary<string, ValueContainer> CustomProperties => customProperties;
+
+        public ValueContainer CalculatedQuantity => calculatedQuantity;
 
         /*
          * Create a new EntityDefinitionBuilder, for an entity that will have the given key.
@@ -73,12 +81,9 @@ namespace IdleFramework
             return this;
         }
 
-        /*
-         * Add a requirement to the entity. These requirements must be met to purchase new instances of the entity.
-         */
-        public EntityDefinitionBuilder WithRequirement(string entityRequired, BigDouble quantityRequired)
+        public EntityDefinitionBuilder AvailableWhen(StateMatcher matcher)
         {
-            requires.Add(entityRequired, Literal.Of(quantityRequired));
+            this.availableWhenMatcher = matcher;
             return this;
         }
 
@@ -96,6 +101,12 @@ namespace IdleFramework
          * 
          * The quantity specified is a fixed amount per entity.
          */
+        public EntityDefinitionBuilder WithConsumption(string entity, ValueContainer quantityConsumedPerTick)
+        {
+            productionInputs[entity] = quantityConsumedPerTick;
+            return this;
+        }
+
         public EntityDefinitionBuilder WithConsumption(string entity, BigDouble quantityConsumedPerTick)
         {
             productionInputs[entity] = Literal.Of(quantityConsumedPerTick);
@@ -113,11 +124,31 @@ namespace IdleFramework
             return this;
         }
 
+
+        public EntityDefinitionBuilder WithFixedProduction(string entityKey, ValueContainer quantity)
+        {
+            fixedOutputs[entityKey] = quantity;
+            return this;
+        }
+
+
+        public EntityDefinitionBuilder WithFixedConsumption(string entityKey, ValueContainer quantity)
+        {
+            fixedInputs[entityKey] = quantity;
+            return this;
+        }
+
         /*
          * Add a production output to the entity. These outputs are generated by the entity.
          * 
          * The quantity specified is a fixed amount.
          */
+        public EntityDefinitionBuilder WithOutput(string entityKey, ValueContainer quantityPerTick)
+        {
+            productionOutputs[entityKey] = quantityPerTick;
+            return this;
+        }
+
         public EntityDefinitionBuilder WithOutput(string entityKey, BigDouble quantityPerTick)
         {
             productionOutputs[entityKey] = Literal.Of(quantityPerTick);
@@ -135,11 +166,17 @@ namespace IdleFramework
             return this;
         }
 
+        public EntityDefinitionBuilder WithProduction(string entityKey, BigDouble quantityPerTick)
+        {
+            productionOutputs[entityKey] = Literal.Of(quantityPerTick);
+            return this;
+        }
+
         /*
          * Add a production output to the entity. These outputs are generated by the entity.
          * 
          * The quantity specified is based on some other value and is capped.
-         */ 
+         */
         public EntityDefinitionBuilder WithProduction(string entityKey, ValueContainer quantityPerTick, ValueContainer cap)
         {
             return WithProduction(entityKey, Min.Of(quantityPerTick, cap));
@@ -200,7 +237,7 @@ namespace IdleFramework
          */
         public EntityDefinitionBuilder Unbuyable()
         {
-            this.canBeBought = false;
+            this.availableWhenMatcher = Never.Instance;
             return this;
         }
 
@@ -215,9 +252,17 @@ namespace IdleFramework
             return this;
         }
 
-        public HiddenAndDisabledConfigurationBuilder HiddenAndDisabled()
+        public EntityDefinitionBuilder WithCalculatedQuantity(ValueContainer value)
         {
-            return new HiddenAndDisabledConfigurationBuilder(this);
+            this.calculatedQuantity = value;
+            return this;
+        }
+
+        public EntityDefinitionBuilder HiddenAndDisabledWhen(StateMatcher matcher)
+        {
+            hideEntityMatcher = matcher;
+            disabledWhenMatcher = matcher;
+            return this;
         }
 
         /*
@@ -240,7 +285,6 @@ namespace IdleFramework
 
             public BigDouble StartingQuantity => parent.StartingQuantity;
 
-            public Dictionary<string, ValueContainer> BaseRequirements => parent.BaseRequirements;
 
             public Dictionary<string, ValueContainer> BaseCosts => parent.BaseCosts;
 
@@ -331,28 +375,6 @@ namespace IdleFramework
             public EntityDefinition Build()
             {
                 return parent.Build();
-            }
-        }
-
-        public class HiddenAndDisabledConfigurationBuilder
-        {
-            private EntityDefinitionBuilder parent;
-
-            public HiddenAndDisabledConfigurationBuilder(EntityDefinitionBuilder parent)
-            {
-                this.parent = parent;
-            }
-
-            public HiddenAndDisabledConfigurationBuilder When(StateMatcher matcher)
-            {
-                parent.hideEntityMatcher = matcher;
-                parent.disabledWhenMatcher = matcher;
-                return this;
-            }
-
-            public EntityDefinitionBuilder Done()
-            {
-                return parent;
             }
         }
     }

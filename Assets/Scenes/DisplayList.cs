@@ -4,24 +4,26 @@ using UnityEngine;
 using IdleFramework;
 using UnityEngine.UI;
 
-public class ResourceList : MonoBehaviour
+public class DisplayList : MonoBehaviour
 {
+    public string textTemplate;
     private Dictionary<string, GameObject> listItems = new Dictionary<string, GameObject>();
+    public string categoryToDisplay;
     private IdleEngine engine;
     // Start is called before the first frame update
     void Start()
     {
-        engine = GameObject.Find("Engine").GetComponent<Engine>().framework;
+        engine = GameObject.Find("Canvas").GetComponent<ShadowSpiritsDemoEngine>().framework;
         foreach(GameEntity resource in engine.AllEntities.Values)
         {
-            if(!resource.Types.Contains("resource"))
+            if(!resource.Types.Contains(categoryToDisplay))
             {
                 continue;
             }
-            var display = Resources.Load<GameObject>("ResourceDisplay");
+            var display = Resources.Load<GameObject>("Item");
             var instantiated = GameObject.Instantiate(display);
             instantiated.transform.SetParent(this.transform);
-            instantiated.GetComponent<ResourceDisplay>().displayedResource = resource;
+            instantiated.GetComponent<ListItem>().displayedResource = resource;
             listItems.Add(resource.EntityKey, instantiated);
         }
     }
@@ -31,7 +33,7 @@ public class ResourceList : MonoBehaviour
     {
         foreach (GameEntity resource in engine.AllEntities.Values)
         {
-            if (!resource.Types.Contains("resource"))
+            if (!resource.Types.Contains(categoryToDisplay))
             {
                 continue;
             }

@@ -25,5 +25,15 @@ namespace IdleFramework
         {
             return new StringLiteral(stringValue);
         } 
+
+        public static ContainerLiteral Of(Dictionary<string, ValueContainer> properties)
+        {
+            return new ContainerLiteral(properties);
+        }
+
+        public static ListLiteral Containing(params ValueContainer[] values)
+        {
+            return new ListLiteral(values);
+        }
     }
 }

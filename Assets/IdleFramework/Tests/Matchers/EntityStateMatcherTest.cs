@@ -31,43 +31,43 @@ namespace Tests
         [Test]
         public void EntityNumberPropertyMatcherCanPerformEqualsMatch()
         {
-            Assert.IsFalse(new EntityNumberPropertyMatcher("test-1", "outputs", "food", Comparison.EQUALS, 1).Matches(engine));
-            Assert.IsTrue(new EntityNumberPropertyMatcher("test-2", "outputs", "food", Comparison.EQUALS, 1).Matches(engine));
-            Assert.IsFalse(new EntityNumberPropertyMatcher("test-3", "outputs", "food", Comparison.EQUALS, 1).Matches(engine));
+            Assert.IsFalse(new EntityNumberPropertyMatcher("test-1", "Outputs.food", Comparison.EQUALS, 1).Matches(engine));
+            Assert.IsTrue(new EntityNumberPropertyMatcher("test-2", "Outputs.food", Comparison.EQUALS, 1).Matches(engine));
+            Assert.IsFalse(new EntityNumberPropertyMatcher("test-3", "Outputs.food", Comparison.EQUALS, 1).Matches(engine));
         }
 
         [Test]
         public void EntityNumberPropertyMatcherCanPerformLessThanMatch()
         {
-            Assert.IsTrue(new EntityNumberPropertyMatcher("test-1", "Outputs", "food", Comparison.LESS_THAN, 1).Matches(engine));
-            Assert.IsFalse(new EntityNumberPropertyMatcher("test-2", "Outputs", "food", Comparison.LESS_THAN, 1).Matches(engine));
-            Assert.IsFalse(new EntityNumberPropertyMatcher("test-3", "Outputs", "food", Comparison.LESS_THAN, 1).Matches(engine));
+            Assert.IsTrue(new EntityNumberPropertyMatcher("test-1", "Outputs.food", Comparison.LESS_THAN, 1).Matches(engine));
+            Assert.IsFalse(new EntityNumberPropertyMatcher("test-2", "Outputs.food", Comparison.LESS_THAN, 1).Matches(engine));
+            Assert.IsFalse(new EntityNumberPropertyMatcher("test-3", "Outputs.food", Comparison.LESS_THAN, 1).Matches(engine));
         }
 
         [Test]
         public void EntityNumberPropertyMatcherCanPerformGreaterThanMatch()
         {
-            Assert.IsFalse(new EntityNumberPropertyMatcher("test-1", "Outputs", "food", Comparison.GREATER_THAN, 1).Matches(engine));
-            Assert.IsFalse(new EntityNumberPropertyMatcher("test-2", "Outputs", "food", Comparison.GREATER_THAN, 1).Matches(engine));
-            Assert.IsTrue(new EntityNumberPropertyMatcher("test-3", "Outputs", "food", Comparison.GREATER_THAN, 1).Matches(engine));
+            Assert.IsFalse(new EntityNumberPropertyMatcher("test-1", "Outputs.food", Comparison.GREATER_THAN, 1).Matches(engine));
+            Assert.IsFalse(new EntityNumberPropertyMatcher("test-2", "Outputs.food", Comparison.GREATER_THAN, 1).Matches(engine));
+            Assert.IsTrue(new EntityNumberPropertyMatcher("test-3", "Outputs.food", Comparison.GREATER_THAN, 1).Matches(engine));
         }
 
         [Test]
         public void EntityNumberPropertyMatcherCanMatchOnEntityProductionOutputs()
         {
-            Assert.IsTrue(new EntityNumberPropertyMatcher("test-1", "outputs", "food", Comparison.LESS_THAN, 1).Matches(engine));
+            Assert.IsTrue(new EntityNumberPropertyMatcher("test-1", "Outputs.food", Comparison.LESS_THAN, 1).Matches(engine));
         }
 
         [Test]
         public void EntityNumberPropertyMatcherCanMatchOnEntityQuantity()
         {
-            Assert.IsTrue(new EntityNumberPropertyMatcher("test-3", "quantity", Comparison.GREATER_THAN, 0).Matches(engine));
+            Assert.IsTrue(new EntityNumberPropertyMatcher("test-3", "Quantity", Comparison.GREATER_THAN, 0).Matches(engine));
         }
 
         [Test]
         public void EntityNumberPropertyMatcherCanMatchOnEntityProductionInputs()
         {
-            Assert.IsTrue(new EntityNumberPropertyMatcher("test-1", "inputs", "food", Comparison.EQUALS, 0).Matches(engine));
+            Assert.IsTrue(new EntityNumberPropertyMatcher("test-1", "Inputs.food", Comparison.EQUALS, 0).Matches(engine));
         }
 
         public void EntityNumberPropertyMatcherReturnsFalseForNonexistantEntity()

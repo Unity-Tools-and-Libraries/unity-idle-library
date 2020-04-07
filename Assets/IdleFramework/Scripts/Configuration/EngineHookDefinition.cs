@@ -19,7 +19,7 @@ namespace IdleFramework
         public EngineHookSelector Selector => selector;
         public Func<I, O> Function => function;
 
-        public EngineHookAction Action => selector.Action;
+        public EngineHookEvent Action => selector.Action;
 
         public string Actor => selector.Actor;
 

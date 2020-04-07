@@ -16,8 +16,10 @@ namespace IdleFramework
         private readonly Dictionary<string, ValueContainer> sharedEntityProperties;
         private readonly ISet<SingletonEntityDefinition> singletons;
         private readonly Dictionary<string, ValueContainer> globalProperties;
+        private readonly Dictionary<string, GlobalSingletonPropertyDefinition> globalSingletonProperties;
         private readonly Dictionary<string, AchievementConfiguration> achievements = new Dictionary<string, AchievementConfiguration>();
         private readonly ISet<TutorialConfiguration> tutorials;
+        private readonly Dictionary<string, string> strings;
 
         public ISet<EntityDefinition> Entities { get => entities; }
         public ISet<ModifierDefinitionProperties> Modifiers { get => modifiers;  }
@@ -29,14 +31,20 @@ namespace IdleFramework
 
         public ISet<TutorialConfiguration> Tutorials => tutorials;
 
+        public Dictionary<string, string> Strings => strings;
+
+        public Dictionary<string, GlobalSingletonPropertyDefinition> GlobalSingletonProperties => globalSingletonProperties;
+
         public GameConfiguration(ISet<EntityDefinition> entities, 
             ISet<ModifierDefinitionProperties> modifiers, 
             HookConfigurationBuilder hooks, 
             ISet<SingletonEntityDefinition> singletons, 
             Dictionary<string, ValueContainer> sharedCustomEntityProperties, 
             Dictionary<string, ValueContainer> globalProperties,
+            Dictionary<string, GlobalSingletonPropertyDefinition> globalSingletonProperties,
             ISet<AchievementConfiguration> achievements, 
-            ISet<TutorialConfiguration> tutorials)
+            ISet<TutorialConfiguration> tutorials,
+            Dictionary<string, string> strings)
         {
             var entityKeys = new HashSet<string>();
             foreach(var entityDefinition in entities)
@@ -57,6 +65,8 @@ namespace IdleFramework
             {
                 this.achievements.Add(achievement.AchievementKey, achievement);
             }
+            this.strings = strings;
+            this.globalSingletonProperties = globalSingletonProperties;
         }
     }
 }

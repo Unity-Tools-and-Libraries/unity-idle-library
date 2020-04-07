@@ -14,7 +14,9 @@ namespace IdleFramework
 
         public BigDouble GetAsNumber(IdleEngine engine)
         {
-            return left.GetAsNumber(engine) * right.GetAsNumber(engine);
+            var leftValue = left.GetAsNumber(engine);
+            var rightValue = right.GetAsNumber(engine);
+            return  leftValue * rightValue;
         }
 
         public static Product Of(ValueContainer left, ValueContainer right)
@@ -35,6 +37,11 @@ namespace IdleFramework
         public object RawValue(IdleEngine engine)
         {
             return GetAsNumber(engine);
+        }
+
+        public PropertyContainer GetAsContainer(IdleEngine engine)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

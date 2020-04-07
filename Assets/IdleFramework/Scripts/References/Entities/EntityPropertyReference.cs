@@ -7,32 +7,26 @@ using UnityEngine.Assertions;
 
 namespace IdleFramework
 {
-    public class EntityPropertyReference: PropertyReference
+    public class EntityPropertyReference : PropertyReference
     {
         private string entityKey;
         private string entityProperty;
-        private string entitySubProperty;
 
-        public EntityPropertyReference(string entityKey, string entityProperty, string entitySubProperty)
+        public EntityPropertyReference(string entityKey, string entityProperty)
         {
-            this.entityKey = entityKey.ToLower();
-            this.entityProperty = entityProperty.ToLower();
-            this.entitySubProperty = entitySubProperty.ToLower();
-        }
-
-        public EntityPropertyReference(string entityKey, string entityProperty): this(entityKey, entityProperty, null)
-        {
-
+            this.entityKey = entityKey;
+            this.entityProperty = entityProperty;
         }
 
         public BigDouble GetAsNumber(IdleEngine engine)
         {
-            GameEntity entity;
-            if(engine.AllEntities.TryGetValue(entityKey, out entity))
+            object value = engine.AllEntities.ContainsKey(entityKey) ? engine.AllEntities[entityKey] : null;
+            value = engine.Traverse(value, entityProperty);
+            if(value != null && typeof(ModifiableProperty) == value.GetType())
             {
-                return entity.GetPropertyAsNumber(entityProperty, entitySubProperty);
+                return (value as ModifiableProperty).GetAsNumber(engine);
             }
-            return 0;
+            return value != null ? (BigDouble)value : 0;
         }
 
         public bool GetAsBoolean(IdleEngine engine)
@@ -40,20 +34,14 @@ namespace IdleFramework
             GameEntity entity;
             if (engine.AllEntities.TryGetValue(entityKey, out entity))
             {
-                return entity.GetPropertyAsBoolean(entityProperty, entitySubProperty);
+                return entity.GetPropertyAsBoolean(entityProperty);
             }
             return false;
         }
 
         public override string ToString()
         {
-            if(entitySubProperty == null)
-            {
-                return String.Format("Property {0} of {1}", this.entityProperty, this.entityKey);
-            } else
-            {
-                return String.Format("Property {0}[{2}] of {1}", this.entityProperty, this.entityKey, this.entitySubProperty);
-            }
+            return String.Format("Property {0} of {1}", this.entityProperty, this.entityKey);
         }
 
         public string GetAsString(IdleEngine engine)
@@ -61,7 +49,7 @@ namespace IdleFramework
             GameEntity entity;
             if (engine.AllEntities.TryGetValue(entityKey, out entity))
             {
-                return entity.GetPropertyAsString(entityProperty, entitySubProperty);
+                return entity.GetPropertyAsString(entityProperty);
             }
             return "";
         }
@@ -71,9 +59,14 @@ namespace IdleFramework
             GameEntity entity;
             if (engine.AllEntities.TryGetValue(entityKey, out entity))
             {
-                return entity.GetRawProperty(entityProperty, entitySubProperty);
+                return entity.GetRawProperty(entityProperty);
             }
             return null;
+        }
+
+        public PropertyContainer GetAsContainer(IdleEngine engine)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -6,21 +6,21 @@
     public class EngineHookSelector
     {
         private readonly string actor;
-        private readonly EngineHookAction action;
+        private readonly EngineHookEvent action;
         private readonly string subject;
 
         public string Actor { get => actor; }
-        public EngineHookAction Action { get => action; }
+        public EngineHookEvent Action { get => action; }
         public string Subject { get => subject; }
 
-        public EngineHookSelector(EngineHookAction action, string actor, string subject)
+        public EngineHookSelector(EngineHookEvent action, string actor, string subject)
         {
             this.actor = actor;
             this.action = action;
             this.subject = subject;
         }
 
-        public EngineHookSelector(EngineHookAction action)
+        public EngineHookSelector(EngineHookEvent action)
         {
             this.action = action;
         }

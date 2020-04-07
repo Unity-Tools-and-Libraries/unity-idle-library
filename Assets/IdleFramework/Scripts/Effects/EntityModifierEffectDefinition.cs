@@ -35,10 +35,10 @@ namespace IdleFramework
                 switch (propertySelector)
                 {
                     case "outputs":
-                        affected.Add(entity.ProductionOutputs[subProperty]);
+                        affected.Add(entity.Outputs[subProperty]);
                         break;
                     case "inputs":
-                        affected.Add(entity.ProductionInputs[subProperty]);
+                        affected.Add(entity.Inputs[subProperty]);
                         break;
                     default:
                         throw new InvalidOperationException();

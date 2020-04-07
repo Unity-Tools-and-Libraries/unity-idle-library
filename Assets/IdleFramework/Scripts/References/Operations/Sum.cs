@@ -5,15 +5,15 @@ using UnityEngine;
 
 namespace IdleFramework
 {
-    public class Sum : PropertyReference
+    public class Sum : ValueContainer
     {
-        private readonly PropertyReference[] operands;
+        private readonly ValueContainer[] operands;
 
-        private Sum(params PropertyReference[] operands)
+        private Sum(params ValueContainer[] operands)
         {
             this.operands = operands;
         }
-        public static Sum Of(params PropertyReference[] operands)
+        public static Sum Of(params ValueContainer[] operands)
         {
             return new Sum(operands);
         }
@@ -26,6 +26,11 @@ namespace IdleFramework
                 value = value && operand.GetAsBoolean(toCheck);
             }
             return value;
+        }
+
+        public PropertyContainer GetAsContainer(IdleEngine engine)
+        {
+            return null;
         }
 
         public BigDouble GetAsNumber(IdleEngine engine)

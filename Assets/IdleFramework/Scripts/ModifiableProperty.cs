@@ -8,7 +8,7 @@ namespace IdleFramework
     {
         private readonly GameEntity parent;
         private readonly string propertyName;
-        private readonly object baseValue;
+        private ValueContainer baseValue;
         private object calculatedValue;
         private List<ModifierEffect> appliedModifiers = new List<ModifierEffect>();
         private readonly IdleEngine engine;
@@ -18,14 +18,14 @@ namespace IdleFramework
             this.parent = parent;
             this.propertyName = propertyName;
             this.engine = engine;
-            this.baseValue = baseValue.RawValue(engine);
-            this.calculatedValue = this.baseValue;
+            this.baseValue = baseValue;
+            this.calculatedValue = this.baseValue.RawValue(engine);
             appliedModifiers.AddRange(initialModifiers);
         }
 
         private void calculateValue()
         {
-            calculatedValue = baseValue;
+            calculatedValue = baseValue.RawValue(engine);
             foreach (var modifierEffect in appliedModifiers)
             {
                 calculatedValue = modifierEffect.effect.CalculateEffect(this);
@@ -73,6 +73,10 @@ namespace IdleFramework
 
         public bool GetAsBoolean(IdleEngine engine)
         {
+            if (calculatedValue == null)
+            {
+                return false;
+            }
             if (typeof(BigDouble).Equals(calculatedValue.GetType()))
             {
                 return !BigDouble.Zero.Equals(calculatedValue);
@@ -87,11 +91,19 @@ namespace IdleFramework
             {
                 return (bool)calculatedValue;
             }
+            if(calculatedValue is null)
+            {
+                return false;
+            }
             throw new InvalidOperationException();
         }
 
         public BigDouble GetAsNumber(IdleEngine engine)
         {
+            if(calculatedValue == null)
+            {
+                return 0;
+            }
             if (typeof(BigDouble).Equals(calculatedValue.GetType()))
             {
                 return (BigDouble)calculatedValue;
@@ -110,17 +122,36 @@ namespace IdleFramework
             {
                 return (bool)calculatedValue ? 1 : 0;
             }
+            if(calculatedValue is null)
+            {
+                return 0;
+            }
             throw new InvalidOperationException();
         }
 
         public string GetAsString(IdleEngine engine)
         {
+            if (calculatedValue == null)
+            {
+                return "";
+            }
             return calculatedValue.ToString();
         }
 
         public object RawValue(IdleEngine engine)
         {
             return calculatedValue;
+        }
+
+        public void SetBaseValue(ValueContainer value)
+        {
+            this.baseValue = value;
+            calculateValue();
+        }
+
+        public PropertyContainer GetAsContainer(IdleEngine engine)
+        {
+            throw new NotImplementedException();
         }
     }
 }

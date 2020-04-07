@@ -40,5 +40,10 @@ namespace IdleFramework
         {
             return value;
         }
+
+        public PropertyContainer GetAsContainer(IdleEngine engine)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

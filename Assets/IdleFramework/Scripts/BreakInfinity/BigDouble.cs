@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using Random = System.Random;
+using IdleFramework;
 
 // I'm not sure if there's a "Yes, this is Unity" define symbol
 // (#if UNITY doesn't seem to work). If you happen to know one - please create

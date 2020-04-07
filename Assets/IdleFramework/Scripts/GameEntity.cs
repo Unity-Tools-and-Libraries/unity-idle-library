@@ -3,10 +3,11 @@ using IdleFramework;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using UnityEngine;
 
 namespace IdleFramework
 {
-    public class GameEntity : Modifier, Updates
+    public class GameEntity : Updates
     {
         private readonly IdleEngine engine;
         private readonly ISet<Updates> updateables = new HashSet<Updates>();
@@ -16,24 +17,25 @@ namespace IdleFramework
         private readonly EntityDefinition definition;
         private readonly ModifiableProperty quantityChangePerSecond;
         
-        private readonly Dictionary<string, ModifiableProperty> requirements = new Dictionary<string, ModifiableProperty>();
         private readonly Dictionary<string, ModifiableProperty> costs = new Dictionary<string, ModifiableProperty>();
         private readonly Dictionary<string, ModifiableProperty> productionInputs = new Dictionary<string, ModifiableProperty>();
         private readonly Dictionary<string, ModifiableProperty> productionOutputs = new Dictionary<string, ModifiableProperty>();
+        private readonly Dictionary<string, ModifiableProperty> fixedInputs = new Dictionary<string, ModifiableProperty>();
+        private readonly Dictionary<string, ModifiableProperty> fixedOutputs = new Dictionary<string, ModifiableProperty>();
         private readonly Dictionary<string, ModifiableProperty> upkeep = new Dictionary<string, ModifiableProperty>();
         private readonly Dictionary<string, ModifiableProperty> minimumProduction = new Dictionary<string, ModifiableProperty>();
         private readonly Dictionary<string, ModifiableProperty> customProperties = new Dictionary<string, ModifiableProperty>();
-
+        private readonly SimplePropertyContainer propertyContainer = new SimplePropertyContainer.SimplePropertyContainerBuilder().Build();
         public string EntityKey => definition.EntityKey;
         public string Name => definition.Name;
         public BigDouble StartingQuantity => definition.StartingQuantity;
-
         public bool IsEnabled => !ShouldBeDisabled(engine);
-
         public Dictionary<string, ValueContainer> BaseRequirements => definition.BaseRequirements;
         public Dictionary<string, ValueContainer> BaseCosts => definition.BaseCosts;
         public Dictionary<string, ValueContainer> BaseProductionInputs => definition.BaseProductionInputs;
         public Dictionary<string, ValueContainer> BaseProductionOutputs => definition.BaseProductionOutputs;
+        public Dictionary<string, ValueContainer> BaseFixedProductionInputs => definition.BaseFixedProductionInputs;
+        public Dictionary<string, ValueContainer> BaseFixedProductionOutputs => definition.BaseFixedProductionOutputs;
         public Dictionary<string, ValueContainer> BaseUpkeep => definition.BaseUpkeep;
         public BigDouble Quantity {
             get {
@@ -55,10 +57,6 @@ namespace IdleFramework
         }
 
         /*
-         * The quantities of entities which are required when trying to buy this entity.
-         */
-        public Dictionary<string, ModifiableProperty> Requirements => requirements;
-        /*
          * The entities and quantities which are consumed to buy this entity.
          */
         public Dictionary<string, ModifiableProperty> Costs => costs;
@@ -69,21 +67,29 @@ namespace IdleFramework
         /*
          * The entities and quantities which are consumed by this entity as inputs to their production.
          */
-        public Dictionary<string, ModifiableProperty> ProductionInputs => productionInputs;
+        public Dictionary<string, ModifiableProperty> Inputs => productionInputs;
         /*
          * The entities and quantities that this entity produces each tick, and the entities and quantities that are required to produce without being consumed and entities and quantities which are consumed to produce.
          */
-        public Dictionary<string, ModifiableProperty> ProductionOutputs => productionOutputs;
+        public Dictionary<string, ModifiableProperty> Outputs => productionOutputs;
+        /*
+         * The entities and quantities which are consumed by this entity as inputs to their production.
+         */
+        public Dictionary<string, ModifiableProperty> FixedInputs => fixedInputs;
+        /*
+         * The entities and quantities that this entity produces each tick, and the entities and quantities that are required to produce without being consumed and entities and quantities which are consumed to produce.
+         */
+        public Dictionary<string, ModifiableProperty> FixedOutputs => fixedOutputs;
         public Dictionary<string, ModifiableProperty> MinimumProductionOutputs => minimumProduction;
         public ISet<ModifierDefinition> Modifiers => definition.Modifiers;
         public Dictionary<string, ValueContainer> BaseMinimumProductionOutputs => definition.BaseMinimumProductionOutputs;
-        public bool CanBeBought => definition.CanBeBought;
         public BigDouble RealQuantity => _quantity;
         public Dictionary<string, ModifiableProperty> CustomProperties => customProperties;
 
         public ModifiableProperty QuantityChangePerSecond => quantityChangePerSecond;
+        public bool IsAvailable => definition.AvailableWhenMatcher.Matches(engine);
 
-        public GameEntity(EntityDefinition definition, IdleEngine engine): base(definition, new HashSet<Effect>())
+        public GameEntity(EntityDefinition definition, IdleEngine engine)
         {
             this.definition = definition;
             _quantity = definition.StartingQuantity;
@@ -92,12 +98,8 @@ namespace IdleFramework
                 customProperties.Add(property.Key, new ModifiableProperty(this, property.Key, property.Value, engine));
             }
             this.engine = engine;
-            quantityChangePerSecond = new ModifiableProperty(this, "production-per-second", Literal.Of(0), engine);
+            quantityChangePerSecond = new ModifiableProperty(this, "QuantityChangePerSecond", Literal.Of(0), engine);
 
-            foreach(var updateable in requirements.Values)
-            {
-                updateables.Add(updateable);
-            }
             foreach (var updateable in upkeep.Values)
             {
                 updateables.Add(updateable);
@@ -129,35 +131,12 @@ namespace IdleFramework
 
         public bool RequirementAreMet()
         {
-            var requirementsMet = true;
-            foreach(var requirement in Requirements)
-            {
-                requirementsMet = engine.AllEntities[requirement.Key].Quantity >= requirement.Value.GetAsNumber(engine);
-            }
-            return requirementsMet;
+            return definition.AvailableWhenMatcher.Matches(engine);
         }
 
         internal void AddModifier(ModifierDefinition modifier)
         {
             throw new NotImplementedException();
-        }
-
-        /**
-         * Determine the number of entities which are able to produce.
-         */
-        public BigDouble DetermineProduction()
-        {
-            var quantityAbleToProduce = Quantity;
-            foreach (var requirement in ProductionInputs)
-            {
-                var quantityWithSufficientInputs = BigDouble.Min(engine.AllEntities[requirement.Key].Quantity / requirement.Value.GetAsNumber(engine), this.Quantity);
-                if(!ScaleProductionOnAvailableInputs)
-                {
-                    quantityAbleToProduce = 0;
-                    break;
-                }
-            }
-            return quantityAbleToProduce;
         }
 
         public void ChangeQuantity(BigDouble changeBy)
@@ -204,18 +183,25 @@ namespace IdleFramework
         }
 
 
-        internal ValueContainer GetRawProperty(string entityProperty, string entitySubProperty)
+        internal ValueContainer GetRawProperty(string entityProperty)
         {
-            switch (entityProperty)
+            string[] tokenized = entityProperty.Split('.');
+            switch (tokenized[0])
             {
-                case "outputs":
-                    return ProductionOutputs[entitySubProperty];
-                case "inputs":
-                    return ProductionInputs[entitySubProperty];
-                case "quantity":
+                case "Name":
+                    return Literal.Of(Name);
+                case "Qutputs":
+                    return Outputs[tokenized[1]];
+                case "Inputs":
+                    return Inputs[tokenized[1]];
+                case "Quantity":
                     return _quantity.AsContainer();
-                case "enabled":
+                case "Enabled":
                     return IsEnabled.AsContainer();
+                case "Upkeep":
+                    return Upkeep[tokenized[1]];
+                case "QuantityChangePerSecond":
+                    return quantityChangePerSecond;
                 default:
                     assertCustomPropertyExists(entityProperty);
                     return CustomProperties[entityProperty];
@@ -223,43 +209,44 @@ namespace IdleFramework
         }
 
 
-        public bool GetPropertyAsBoolean(string entityProperty, string entitySubProperty)
+        public bool GetPropertyAsBoolean(string entityProperty)
         {
-            return GetRawProperty(entityProperty, entitySubProperty).GetAsBoolean(engine);
+            return GetRawProperty(entityProperty).GetAsBoolean(engine);
         }
 
-        public BigDouble GetPropertyAsNumber(string entityProperty, string entitySubProperty)
+        public BigDouble GetPropertyAsNumber(string entityProperty)
         {
-            return GetRawProperty(entityProperty, entitySubProperty).GetAsNumber(engine);
+            return GetRawProperty(entityProperty).GetAsNumber(engine);
         }
 
-        public string GetPropertyAsString(string entityProperty, string entitySubProperty)
+        public string GetPropertyAsString(string entityProperty)
         {
-            return GetRawProperty(entityProperty, entitySubProperty).GetAsString(engine);
-        }
-
-        public ModifierEffect AsModifierEffectFor(IdleEngine engine, string subject, string property)
-        {
-            string modifierKey = String.Format("{0}-{1}-{2}", EntityKey, subject, "production");
-            switch(property)
-            {
-                case "production":
-                    return new ModifierEffect(
-                        this,
-                        new Effect(new EntityPropertyModifierEffectDefinition(subject, "production", 
-                        new EntityPropertyReference(this.EntityKey, "outputs", subject)
-                        .Minus(new EntityPropertyReference(this.EntityKey, "inputs", subject)), EffectType.ADD), engine)
-                        );
-                default:
-                    throw new InvalidOperationException();
-            }
+            return GetRawProperty(entityProperty).GetAsString(engine);
         }
 
         public void Update(IdleEngine engine, float deltaTime)
         {
+            
             foreach(var updateable in updateables)
             {
                 updateable.Update(engine, deltaTime);
+            }
+        }
+
+        public void Update(IdleEngine engine, int stage, float deltaTime)
+        {
+            switch(stage) {
+                case 1:
+                    if(definition.CalculatedQuantity != null)
+                    {
+                        _quantity = definition.CalculatedQuantity.GetAsNumber(engine);
+                    } else
+                    {
+                        ChangeQuantity(QuantityChangePerSecond.GetAsNumber(engine));
+                    }
+                    break;
+                default:
+                    throw new InvalidOperationException();
             }
         }
 
@@ -270,31 +257,48 @@ namespace IdleFramework
                 throw new InvalidOperationException(String.Format("Custom property {0} not defined.", property));
             }
         }
+
+        public void setProperty(string propertyName, ValueContainer value)
+        {
+            propertyContainer.SetProperty(propertyName, value);
+        }
     }
 
     public static class GameEntityExtensions
     {
+        private static readonly Logger logger = Logger.GetLogger();
         public static void ForEachProperty(this GameEntity entity, Action<string, ModifiableProperty> action)
         {
-            foreach(var output in entity.ProductionOutputs)
+            logger.Debug(string.Format("Updating properties for entity {0}", entity.Name));
+            foreach(var output in entity.Outputs)
             {
+                logger.Debug(String.Format("Updating property {0}[{1}]", "outputs", output.Key));
                 action(output.Key, output.Value);
             }
-            foreach (var input in entity.ProductionInputs)
+            foreach (var input in entity.FixedInputs)
             {
+                logger.Debug(String.Format("Updating property {0}[{1}]", "fixedInputs", input.Key));
+                action(input.Key, input.Value);
+            }
+            foreach (var output in entity.FixedOutputs)
+            {
+                logger.Debug(String.Format("Updating property {0}[{1}]", "fixedOutputs", output.Key));
+                action(output.Key, output.Value);
+            }
+            foreach (var input in entity.Inputs)
+            {
+                logger.Debug(String.Format("Updating property {0}[{1}]", "inputs", input.Key));
                 action(input.Key, input.Value);
             }
             foreach (var upkeep in entity.Upkeep)
             {
+                logger.Debug(String.Format("Updating property {0}[{1}]", "upkeep", upkeep.Key));
                 action(upkeep.Key, upkeep.Value);
             }
             foreach (var cost in entity.Costs)
             {
+                logger.Debug(String.Format("Updating property {0}[{1}]", "costs", cost.Key));
                 action(cost.Key, cost.Value);
-            }
-            foreach (var requirement in entity.Requirements)
-            {
-                action(requirement.Key, requirement.Value);
             }
         }
     }

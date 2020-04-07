@@ -9,7 +9,7 @@ namespace IdleFramework
         /*
          * Returns true if the given object matches, false otherwise.
          */
-        bool Matches(IdleEngine toCheck);
+        bool Matches(IdleEngine engine);
     }
 
     public enum Comparison

@@ -4,49 +4,78 @@ namespace IdleFramework
 {
     public class TutorialConfigurationBuilder
     {
+        private string tutorialKey;
         private string message;
-        private StateMatcher triggerMatcher;
-        private Action action;
+        private StateMatcher availableMatcher;
+        private Action<object> onAvailableAction;
+        private StateMatcher initiatedMatcher;
+        private Action<object> onInitiatedAction;
+        private StateMatcher completedMatcher;
+        private Action<object> onCompletedAction;
 
-        public TutorialActionConfigurationBuilder WhenGameStarts()
+        public TutorialConfigurationBuilder(string tutorialKey)
         {
-            triggerMatcher = Always.Instance;
-            return new TutorialActionConfigurationBuilder(this);
+            this.tutorialKey = tutorialKey;
         }
 
-        public class TutorialActionConfigurationBuilder
+        public TutorialInitiationSelector InitiatesWhen(StateMatcher initiatesWhen)
         {
-            private readonly TutorialConfigurationBuilder parent;
+            initiatedMatcher = initiatesWhen;
+            return new TutorialInitiationSelector(this);
+        }
 
-            public TutorialActionConfigurationBuilder(TutorialConfigurationBuilder parent)
+        public class TutorialInitiationSelector
+        {
+            private TutorialConfigurationBuilder parent;
+
+            public TutorialInitiationSelector(TutorialConfigurationBuilder parent)
             {
                 this.parent = parent;
             }
 
-            public TerminalTutorialConfigurationBuilderStage ThenDisplay(string messageToDisplay)
+            public TutorialInitiationSelector WhichExecutes(Action<object> onInitiatedAction)
             {
-                parent.message = messageToDisplay;
-                return new TerminalTutorialConfigurationBuilderStage(parent);
+                parent.onInitiatedAction = onInitiatedAction;
+                return this;
             }
 
-            public TerminalTutorialConfigurationBuilderStage ThenExecute(Action action)
+            public TutorialCompletionActionSelector AndCompletesWhen(StateMatcher completesWhen)
             {
-                this.parent.action = action;
-                return new TerminalTutorialConfigurationBuilderStage(parent);
+                parent.completedMatcher = completesWhen;
+                return new TutorialCompletionActionSelector(parent);
             }
         }
 
-        public class TerminalTutorialConfigurationBuilderStage
+        public class TutorialCompletionActionSelector
         {
             private TutorialConfigurationBuilder parent;
-            public TerminalTutorialConfigurationBuilderStage(TutorialConfigurationBuilder parent)
+
+            public TutorialCompletionActionSelector(TutorialConfigurationBuilder parent)
+            {
+                this.parent = parent;
+            }
+
+            public TutorialConfigurationTerminal WhichExecutes(Action<object> onCompletion)
+            {
+                parent.onCompletedAction = onCompletion;
+                return new TutorialConfigurationTerminal(parent);
+            }
+        }
+
+        public class TutorialConfigurationTerminal
+        {
+            private TutorialConfigurationBuilder parent;
+
+            public TutorialConfigurationTerminal(TutorialConfigurationBuilder parent)
             {
                 this.parent = parent;
             }
 
             public TutorialConfiguration Build()
             {
-                return new TutorialConfiguration(parent.triggerMatcher);
+                return new TutorialConfiguration(parent.tutorialKey,
+                    parent.initiatedMatcher, parent.onInitiatedAction,
+                    parent.completedMatcher, parent.onCompletedAction);
             }
         }
     }

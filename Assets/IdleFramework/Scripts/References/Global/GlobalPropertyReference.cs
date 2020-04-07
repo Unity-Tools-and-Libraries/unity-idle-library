@@ -33,5 +33,10 @@ namespace IdleFramework
         {
             return engine.GetRawGlobalProperty(propertyName);
         }
+
+        public PropertyContainer GetAsContainer(IdleEngine engine)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

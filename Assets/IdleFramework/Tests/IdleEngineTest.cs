@@ -23,10 +23,10 @@ namespace Tests
                     .WithStartingQuantity(1))
                 .WithSingletonEntity(new SingletonEntityDefinitionBuilder("singleton"))
                 .WithModifier(new ModifierDefinitionBuilder("effect").Active().Always().And().DoesNothing())
-                .WithModifier(new ModifierDefinitionBuilder("food-bonus").Active().Always().And().HasEntityEffect(new GlobalEntityPropertyModifierEffectDefinition("outputs", "food", Literal.Of(1), EffectType.ADD)))
-                .WithModifier(new ModifierDefinitionBuilder("food-penalty-1").Active().Always().And().HasEntityEffect(new EntityPropertyModifierEffectDefinition("bar", "inputs", "food", Literal.Of(1), EffectType.SUBTRACT)))
-                .WithModifier(new ModifierDefinitionBuilder("food-penalty-2").Active().Always().And().HasEntityEffect(new EntityPropertyModifierEffectDefinition("bar", "inputs", "food", Literal.Of(1), EffectType.SUBTRACT)))
-                .WithAchievement(new AchievementConfigurationBuilder("achievement").GainedWhen(new EntityBooleanPropertyMatcher("food", "enabled", true)))
+                .WithModifier(new ModifierDefinitionBuilder("food-bonus").Active().Always().And().HasEntityEffect(new GlobalEntityPropertyModifierEffectDefinition("Outputs.food", Literal.Of(1), EffectType.ADD)))
+                .WithModifier(new ModifierDefinitionBuilder("food-penalty-1").Active().Always().And().HasEntityEffect(new EntityPropertyModifierEffectDefinition("bar", "Inputs.food", Literal.Of(1), EffectType.SUBTRACT)))
+                .WithModifier(new ModifierDefinitionBuilder("food-penalty-2").Active().Always().And().HasEntityEffect(new EntityPropertyModifierEffectDefinition("bar", "Inputs.food", Literal.Of(1), EffectType.SUBTRACT)))
+                .WithAchievement(new AchievementConfigurationBuilder("achievement").GainedWhen(new EntityBooleanPropertyMatcher("food", "Enabled", true)))
                 .Build();
             engine = new IdleEngine(configuration);
             engine.Update(1f);
@@ -41,7 +41,7 @@ namespace Tests
         [Test]
         public void EngineAddsModifiersFromConfiguration()
         {
-            Assert.AreEqual(6, engine.Modifiers.Count);
+            Assert.AreEqual(4, engine.Modifiers.Count);
         }
 
         [Test]
@@ -53,19 +53,19 @@ namespace Tests
         [Test]
         public void EngineCanRemoveAnEffectThatAddsToAnEntitysOutput()
         {
-            Assert.AreEqual(BigDouble.Floor(2), engine.AllEntities["food"].ProductionOutputs["food"].GetAsNumber(engine));
+            Assert.AreEqual(BigDouble.Floor(2), engine.AllEntities["food"].Outputs["food"].GetAsNumber(engine));
         }
 
         [Test]
         public void EngineCanApplyAnEffectThatModifiedAnEntitiesInputs()
         {
-            Assert.AreEqual(2, engine.AllEntities["bar"].ProductionInputs["food"].AppliedModifiers.Count);
+            Assert.AreEqual(2, engine.AllEntities["bar"].Inputs["food"].AppliedModifiers.Count);
         }
 
         [Test]
         public void MultipleEffectsStack()
         {
-            Assert.AreEqual(BigDouble.Floor(1), engine.AllEntities["bar"].ProductionInputs["food"].GetAsNumber(engine));
+            Assert.AreEqual(BigDouble.Floor(1), engine.AllEntities["bar"].Inputs["food"].GetAsNumber(engine));
         }
 
         [Test]
@@ -110,6 +110,7 @@ namespace Tests
         {
             Assert.AreEqual(true, engine.GetAchievement("achievement").IsActive);
         }
+
     }
 
 }

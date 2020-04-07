@@ -38,18 +38,18 @@ namespace IdleFramework
             switch(entityProperty)
             {
                 case "outputs":
-                    if(entity.ProductionOutputs.ContainsKey(entitySubProperty))
+                    if(entity.Outputs.ContainsKey(entitySubProperty))
                     {
-                        return entity.ProductionOutputs[entitySubProperty].GetAsNumber(engine);
+                        return entity.Outputs[entitySubProperty].GetAsNumber(engine);
                     } else if (entity.BaseProductionOutputs.ContainsKey(entitySubProperty))
                     {
                         return entity.BaseProductionOutputs[entitySubProperty].GetAsNumber(engine);
                     }
                     return 0;
                 case "inputs":
-                    if (entity.ProductionInputs.ContainsKey(entitySubProperty))
+                    if (entity.Inputs.ContainsKey(entitySubProperty))
                     {
-                        return entity.ProductionInputs[entitySubProperty].GetAsNumber(engine);
+                        return entity.Inputs[entitySubProperty].GetAsNumber(engine);
                     }
                     else if (entity.BaseProductionInputs.ContainsKey(entitySubProperty))
                     {
@@ -73,14 +73,15 @@ namespace IdleFramework
 
         private BigDouble calculateValue(BigDouble currentValue, IdleEngine engine)
         {
+            var toAdd = value.GetAsNumber(engine);
             switch (type)
             {
                 case EffectType.ADD:
-                    return currentValue + value.GetAsNumber(engine);
+                    return currentValue + toAdd;
                 case EffectType.SUBTRACT:
-                    return currentValue - value.GetAsNumber(engine);
+                    return currentValue - toAdd;
                 case EffectType.MULTIPLY:
-                    return currentValue * value.GetAsNumber(engine);
+                    return currentValue * toAdd;
                 default:
                     throw new InvalidOperationException();
             }
@@ -120,16 +121,10 @@ namespace IdleFramework
             IEnumerable<GameEntity> entities = findEntity(engine, subjectKey);
             List<ModifiableProperty> affected = new List<ModifiableProperty>();
             foreach (var entity in entities) {
-                switch (entityProperty)
+                object value = engine.Traverse(entity, this.entityProperty);
+                if (typeof(ModifiableProperty) == value.GetType())
                 {
-                    case "outputs":
-                        affected.Add(entity.ProductionOutputs[entitySubProperty]);
-                        break;
-                    case "inputs":
-                        affected.Add(entity.ProductionInputs[entitySubProperty]);
-                        break;
-                    default:
-                        throw new InvalidOperationException();
+                    affected.Add((ModifiableProperty)value);
                 }
             }
             return affected.AsReadOnly();

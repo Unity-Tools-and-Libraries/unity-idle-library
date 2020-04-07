@@ -18,10 +18,12 @@ namespace IdleFramework
 
         public BigDouble GetAsNumber(IdleEngine engine)
         {
+            var leftHand = left.GetAsNumber(engine);
+            var rightHand = right.GetAsNumber(engine);
             return left.GetAsNumber(engine) - right.GetAsNumber(engine);
         }
 
-        public static Difference Of(ValueContainer left, ValueContainer right)
+        public static Difference Between(ValueContainer left, ValueContainer right)
         {
             return new Difference(left, right);
         }
@@ -39,6 +41,11 @@ namespace IdleFramework
         object ValueContainer.RawValue(IdleEngine engine)
         {
             return GetAsNumber(engine);
+        }
+
+        public PropertyContainer GetAsContainer(IdleEngine engine)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

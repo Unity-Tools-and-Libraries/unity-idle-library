@@ -1,6 +1,6 @@
 ﻿namespace IdleFramework
 {
-    public enum EngineHookAction
+    public enum EngineHookEvent
     {
         // An entity is about to perform it's production.
         WILL_PRODUCE,

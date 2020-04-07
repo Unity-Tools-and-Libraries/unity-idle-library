@@ -24,17 +24,19 @@ public class SingletonEntityDefinitionTest
     public void SingletonEntityInstancesCanHaveDifferentPropertyValues()
     {
         var singleton = new SingletonEntityDefinitionBuilder("test").CanHaveProperty("foo")
-            .WithInstance("1").WithProperty("foo", 1).And()
-            .WithInstance("2").WithProperty("foo", 2)
+            .WithInstance(SingletonEntityInstanceBuilder.For("1").WithProperties(new System.Collections.Generic.Dictionary<string, ValueContainer> {
+                {"foo", Literal.Of(1) } }))
+            .WithInstance(SingletonEntityInstanceBuilder.For("2").WithProperties(new System.Collections.Generic.Dictionary<string, ValueContainer> {
+                {"foo", Literal.Of(2) } }))
             .Build();
-        Assert.AreEqual(BigDouble.Floor(1), singleton.Instances["1"].GetPropertyValue("foo"));
-        Assert.AreEqual(BigDouble.Floor(2), singleton.Instances["2"].GetPropertyValue("foo"));
+        Assert.AreEqual(BigDouble.Floor(1), singleton.Instances["1"].GetProperty("foo").GetAsNumber(null));
+        Assert.AreEqual(BigDouble.Floor(2), singleton.Instances["2"].GetProperty("foo").GetAsNumber(null));
     }
 
     [Test]
     public void SingletonEntityCanHaveMultipleInstances()
     {
-        var singletonDef = new SingletonEntityDefinitionBuilder("test").WithInstance("1")
+        var singletonDef = new SingletonEntityDefinitionBuilder("test").WithInstance(SingletonEntityInstanceBuilder.For("1"))
             .Build();
         Assert.AreEqual(1, singletonDef.Instances.Count);
         Assert.IsNotNull(singletonDef.GetInstanceByKey("1"));

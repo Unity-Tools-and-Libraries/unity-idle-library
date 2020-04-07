@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using IdleFramework;
 using BreakInfinity;
+using System;
 
 namespace Tests
 {
@@ -14,12 +15,11 @@ namespace Tests
         [SetUp]
         public void setup()
         {
-            var startHooks = new List<EngineStartHook>();
-            startHooks.Add(new EngineStartHook((object payload) =>
+            var startHooks = new List<Action<IdleEngine>>();
+            startHooks.Add(engine =>
             {
                 engineStartHookCalled = true;
-                return null;
-            }));
+            });
             var entityHooks = new List<EntityProductionHook>();
             entityHooks.Add(new EntityProductionHook("*", "*", (GameEntity entity) => {
                 return entity.QuantityChangePerSecond.GetAsNumber(null) * 2;

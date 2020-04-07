@@ -5,12 +5,12 @@ using UnityEngine;
 
 namespace IdleFramework
 {
-    public class RatioOf : PropertyReference
+    public class Ratio : PropertyReference
     {
         private ValueContainer a;
         private ValueContainer b;
 
-        public RatioOf(ValueContainer a, ValueContainer b)
+        private Ratio(ValueContainer a, ValueContainer b)
         {
             this.a = a;
             this.b = b;
@@ -40,6 +40,16 @@ namespace IdleFramework
         public object RawValue(IdleEngine engine)
         {
             return GetAsNumber(engine);
+        }
+
+        public static Ratio Of(ValueContainer left, ValueContainer right)
+        {
+            return new Ratio(left, right);
+        }
+
+        public PropertyContainer GetAsContainer(IdleEngine engine)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

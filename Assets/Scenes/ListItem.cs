@@ -1,17 +1,15 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
-using System.Numerics;
 using System;
 using BreakInfinity;
 using System.Text.RegularExpressions;
+using IdleFramework;
 
 public class ListItem : MonoBehaviour
 {
     private string textTemplate;
-    public IdleFramework.GameEntity displayedResource;
+    public IdleFramework.Entity displayedResource;
     private Button button;
     private IdleFramework.IdleEngine engine;
     private List<string> itemProperties = new List<string>();
@@ -31,7 +29,7 @@ public class ListItem : MonoBehaviour
             textTemplate = extractor.Replace(textTemplate, string.Format("{{{0}}}", i), 1);
         }
         button = GetComponent<Button>();
-        engine = GameObject.Find("Canvas").GetComponent<Engine>().framework;
+        engine = GameObject.Find("Canvas").GetComponent<CivDemoEngine>().framework;
         button.onClick.AddListener(() => {
             engine.BuyEntity(displayedResource, 1, false);
         });
@@ -45,8 +43,20 @@ public class ListItem : MonoBehaviour
             List<String> values = new List<String>();
             foreach(var property in itemProperties)
             {
-                var value = displayedResource.GetPropertyAsString(property);
-                values.Add(value);
+                switch (property)
+                {
+                    case "Name":
+                        values.Add(displayedResource.Name.Get(engine));
+                        break;
+                    case "Quantity":
+                        values.Add(displayedResource.Quantity.ToString());
+                        break;
+                    case "QuantityChangePerSecond":
+                        values.Add(displayedResource.QuantityChangePerSecond.ToString());
+                        break;
+                    default:
+                        throw new InvalidOperationException();
+                }
             }
             var toDisplay = String.Format(textTemplate, values.ToArray());
             displayText.text = toDisplay;

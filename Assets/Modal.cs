@@ -22,8 +22,8 @@ public class Modal : MonoBehaviour
             {
                 onClose();
             }
-            this.UpdateModal(new ModalValues(null, null, false));
             transform.parent.SendMessageUpwards("modalClosed");
+            content.SetActive(false);
         });
     }
 

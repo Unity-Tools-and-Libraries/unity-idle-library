@@ -13,8 +13,8 @@ public class DisplayList : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        engine = GameObject.Find("Canvas").GetComponent<ShadowSpiritsDemoEngine>().framework;
-        foreach(GameEntity resource in engine.AllEntities.Values)
+        engine = GameObject.Find("Canvas").GetComponent<CivDemoEngine>().framework;
+        foreach(Entity resource in engine.AllEntities.Values)
         {
             if(!resource.Types.Contains(categoryToDisplay))
             {
@@ -31,14 +31,14 @@ public class DisplayList : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        foreach (GameEntity resource in engine.AllEntities.Values)
+        foreach (Entity resource in engine.AllEntities.Values)
         {
             if (!resource.Types.Contains(categoryToDisplay))
             {
                 continue;
             }
             var item = listItems[resource.EntityKey];
-            if(resource.ShouldBeHidden(engine))
+            if(resource.IsVisible)
             {
                 item.transform.SetParent(null);
                 item.transform.localScale = Vector3.zero;
@@ -46,7 +46,7 @@ public class DisplayList : MonoBehaviour
             {
                 item.transform.SetParent(transform);
                 item.transform.localScale = Vector3.one;
-                if(resource.ShouldBeDisabled(engine))
+                if(!resource.IsEnabled)
                 {
                     item.GetComponent<Button>().interactable = false;
                 } else

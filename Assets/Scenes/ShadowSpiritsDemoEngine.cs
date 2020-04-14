@@ -3,82 +3,118 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 using Weighted_Randomizer;
+using BreakInfinity;
 
 public class ShadowSpiritsDemoEngine : MonoBehaviour
 {
     public IdleFramework.IdleEngine framework;
-    private bool paused = false;
     private float tickRate = 1f;
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         GameConfigurationBuilder configurationBuilder = new GameConfigurationBuilder();
 
-        configurationBuilder.WithCustomGlobalProperty("player", "character", "player");
         configurationBuilder.WithCustomGlobalProperty("playerMode", Literal.Of("exploration"));
-        configurationBuilder.WithCustomGlobalProperty("activeEncounter");
+        configurationBuilder.WithCustomGlobalProperty("activeEncounter", Literal.Of(""));
 
-        configurationBuilder.WithSingletonEntity(new SingletonEntityDefinitionBuilder("character")
-            .CanHaveProperty("attributes")
-            .WithInstance(new SingletonEntityInstanceBuilder("player")
-                .WithProperties(new Dictionary<string, ValueContainer>() {
-                    { "attributes", Literal.Of(new Dictionary<string, ValueContainer>(){
-                        { "strength",       Literal.Of(10) },
-                        { "constitution",   Literal.Of(10) },
-                        { "dexterity",      Literal.Of(10) },
-                        { "intelligence",   Literal.Of(10) },
-                        { "wisdom",         Literal.Of(10) },
-                        { "charisma",       Literal.Of(10) }
-                        })
-                    }
-                }))
+        configurationBuilder.WithSingletonEntity(new EntityDefinitionBuilder("character")
+            .WithCustomMapProperty("attributes")
+            .WithVariant(new EntityDefinitionBuilder("player"))
+            .WithVariant(new EntityDefinitionBuilder("human skeleton"))
             );
-         
-        configurationBuilder.WithSingletonEntity(new SingletonEntityDefinitionBuilder("encounter")
-            .CanHaveProperty("type")
-            .CanHaveProperty("weight")
-            .WithInstance(new SingletonEntityInstanceBuilder("fight")
-                .WithProperties(new Dictionary<string, ValueContainer>() {
-                    { "type", Literal.Of("combat") },
-                    { "weight", Literal.Of(1) }
-                }))
+
+        configurationBuilder.WithEntity(new EntityDefinitionBuilder("encounter")
+            .WithCustomStringProperty("type")
+            .WithCustomNumberProperty("weight")
+            .WithVariant(new EntityDefinitionBuilder("fight"))
             );
 
         IWeightedRandomizer<string> encounterTable = new DynamicWeightedRandomizer<string>();
 
         configurationBuilder.WithStartupHook(engine =>
         {
-            foreach(var encounter in engine.AllSingletons["encounter"].Instances.Values)
+            foreach (var encounter in engine.GetEntity("encounter").Variants.Values)
             {
-                encounterTable.Add(encounter.InstanceKey, Convert.ToInt32(encounter.GetProperty("weight").GetAsNumber(engine).ToDouble()));
+                int weight = (int)encounter.GetNumberProperty("weight").ToDouble();
+                encounterTable.Add(encounter.VariantKey, weight);
             }
         });
 
         float randomEncounterChance = .1f;
 
-        configurationBuilder.WithEventHook("encounterStart", (engine, arg) => {
-        
+        configurationBuilder.WithEventHook("encounterStart", (engine, arg) =>
+        {
+            string nextEncounter = encounterTable.NextWithReplacement();
+            Entity encounter = engine.GetEntity("encounter").GetVariant(nextEncounter);
+            MapLiteral activeEncounter = Literal.Of(new Dictionary<string, ValueContainer>(){
+                { "encounterId", Literal.Of(encounter.VariantKey)},
+                { "participants", Literal.Containing(
+                    Literal.Of(new Dictionary<string, ValueContainer>(){
+                        { "id", Literal.Of("player") },
+                        { "actionGauge", Literal.Of(0) }
+                    }))
+                }
+            });
+
+            ListLiteral participants = Literal.Containing();
+
+            engine.SetGlobalProperty("activeEncounter", activeEncounter);
+            switch (encounter.GetStringProperty("type"))
+            {
+                case "combat":
+                    engine.Log("Beginning combat encounter.", Logger.Level.TRACE);
+                    engine.SetGlobalProperty("playerMode", "combat");
+                    // Add enemy to the fight.
+                    participants.Add(Literal.Of(new Dictionary<string, ValueContainer>() {
+                        { "id", Literal.Of("skeleton") }
+                    }));
+                    break;
+
+            }
         });
 
-        configurationBuilder.WithUpdateHook((IdleEngine engine, float deltaTime) => {
-            var mode = engine.GetGlobalStringProperty("playerMode");
-            switch(mode)
+        Func<ListContainer, IList<string>> actionSelector = (participants) =>
+        {
+            List<string> actions = new List<string>();
+            // Determine if actions
+            foreach (var participant in participants)
+            {
+
+            }
+            return actions;
+        };
+
+        configurationBuilder.WithUpdateHook((IdleEngine engine, float deltaTime) =>
+        {
+            var mode = engine.GetGlobalStringProperty("playerMode").Get(engine);
+            MapContainer activeEncounter = engine.GetGlobalMapProperty("activeEncounter");
+            switch (mode)
             {
                 case "exploration":
                     float randomEncounterOccuranceCheck = UnityEngine.Random.value;
                     bool randomEncounterOccured = randomEncounterChance.CompareTo(randomEncounterOccuranceCheck) != 1;
-                    if(randomEncounterOccured)
+                    if (randomEncounterOccured)
                     {
-                        engine.DispatchEvent("encounterStart");
+                        engine.Log("random encounter triggered", Logger.Level.TRACE);
+                        engine.Events.DispatchEvent("encounterStart");
                     }
+                    break;
+                case "combat":
+                    ListContainer participants = activeEncounter.Get(engine)["particpants"].AsList();
+                    foreach (var participant in participants)
+                    {
+                        BigDouble currentActionGauge = participant.AsMap().Get(engine)["actionGauge"].AsNumber().Get(engine);
+                        participant.AsMap().Set("actionGague", Literal.Of(currentActionGauge + deltaTime));
+                    }
+                    IList<string> participantActions = actionSelector(participants);
                     break;
                 default:
                     throw new InvalidOperationException();
             }
         });
 
-        framework = new IdleEngine(configurationBuilder.Build());
-        Logger.globalLevel = Logger.Level.DEBUG;
+        framework = new IdleEngine(configurationBuilder.Build(), gameObject);
+        Logger.globalLevel = Logger.Level.TRACE;
         InvokeRepeating("tick", 0f, tickRate);
     }
 
@@ -90,6 +126,6 @@ public class ShadowSpiritsDemoEngine : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 }

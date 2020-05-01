@@ -24,5 +24,10 @@ namespace IdleFramework
         {
             return value;
         }
+
+        public override int GetHashCode()
+        {
+            return value.GetHashCode();
+        }
     }
 }

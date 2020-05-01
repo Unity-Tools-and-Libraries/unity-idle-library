@@ -25,5 +25,10 @@ namespace IdleFramework
             return obj is NumberLiteral literal &&
                    value.Equals(literal.value);
         }
+
+        public override int GetHashCode()
+        {
+            return value.GetHashCode();
+        }
     }
 }

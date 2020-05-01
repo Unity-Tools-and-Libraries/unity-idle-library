@@ -14,7 +14,7 @@ namespace IdleFramework
             this.properties = properties != null ? properties : new Dictionary<string, ValueContainer>();
         }
 
-        public new Dictionary<string, ValueContainer> Get(IdleEngine engine)
+        public Dictionary<string, ValueContainer> Get(IdleEngine engine)
         {
             return properties;
         }

@@ -25,6 +25,11 @@ namespace IdleFramework
             return value;
         }
 
+        public override int GetHashCode()
+        {
+            return EqualityComparer<string>.Default.GetHashCode(value);
+        }
+
         public override string ToString()
         {
             return string.Format("StringLiteral(\"{0}\")", value);

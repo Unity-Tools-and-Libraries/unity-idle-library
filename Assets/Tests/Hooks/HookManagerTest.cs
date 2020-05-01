@@ -12,6 +12,7 @@ namespace Tests
     {
         private HookManager manager;
         private bool engineStartHookCalled;
+        private HooksConfigurationContainer hooksConfig;
         [SetUp]
         public void setup()
         {
@@ -24,7 +25,7 @@ namespace Tests
             entityHooks.Add(new EntityProductionHook("*", "*", (Entity entity) => {
                 return entity.QuantityChangePerSecond * 2;
             }));
-            manager = new HookManager(startHooks, entityHooks);
+            manager = new HookManager(hooksConfig, null);
             engineStartHookCalled = false;
         }
         [Test]

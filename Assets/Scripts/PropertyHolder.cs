@@ -1,10 +1,12 @@
-﻿using System;
+﻿using BreakInfinity;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace IdleFramework
 {
-    public class PropertyHolder : IPropertiesHolder
+    public class PropertyHolder : IPropertiesHolder, CanSnapshot<PropertyHolderSnapshot>
     {
         private readonly Dictionary<string, NumberContainer> numberProperties = new Dictionary<string, NumberContainer>();
         private readonly Dictionary<string, StringContainer> stringProperties = new Dictionary<string, StringContainer>();
@@ -144,6 +146,40 @@ namespace IdleFramework
                 return "boolean";
             }
             return "unknown";
+        }
+
+        public PropertyHolderSnapshot GetSnapshot(IdleEngine engine)
+        {
+            return new PropertyHolderSnapshot(
+                numberProperties.Select(np => new KeyValuePair<string, BigDouble>(np.Key, np.Value.Get(engine))), 
+                stringProperties.Select(np => new KeyValuePair<string, string>(np.Key, np.Value.Get(engine))),
+                booleanProperties.Select(np => new KeyValuePair<string, bool>(np.Key, np.Value.Get(engine)))
+                );
+        }
+
+        public void LoadFromSnapshot(PropertyHolderSnapshot snapshot)
+        {
+            foreach(var stringProperty in snapshot.StringProperties)
+            {
+                if(stringProperties[stringProperty.Key] is StringLiteral)
+                {
+                    stringProperties[stringProperty.Key] = Literal.Of(stringProperty.Value);
+                }
+            }
+            foreach (var numberProperty in snapshot.NumberProperties)
+            {
+                if (numberProperties[numberProperty.Key] is NumberLiteral)
+                {
+                    numberProperties[numberProperty.Key] = Literal.Of(numberProperty.Value);
+                }
+            }
+            foreach (var booleanProperty in snapshot.BooleanProperties)
+            {
+                if (booleanProperties[booleanProperty.Key] is StringLiteral)
+                {
+                    booleanProperties[booleanProperty.Key] = Literal.Of(booleanProperty.Value);
+                }
+            }
         }
     }
 }

@@ -5,29 +5,38 @@ using UnityEngine;
 
 namespace IdleFramework
 {
-    public class EntityNumberPropertyModifierDefinition : EntityModifierDefinition<BigDouble>
+    public class EntityNumberPropertyModifierDefinition : EntityModifierDefinition
     {
         private readonly string entityKey;
         private readonly string entityPropertyPath;
-        private readonly NumberContainer modifierValue;
-        private readonly StringContainer modifierOperators;
+        private readonly EffectType operation;
+        private readonly NumberContainer operand;
+        private readonly StateMatcher isActiveMatcher;
 
-        public EntityNumberPropertyModifierDefinition(string entityKey, string entityPropertyPath, NumberContainer modifierValue, StringContainer modifierOperators)
+        public EntityNumberPropertyModifierDefinition(string entityKey, string entityPropertyPath, EffectType operation, NumberContainer operand, StateMatcher activeWhenMatcher)
         {
             this.entityKey = entityKey;
             this.entityPropertyPath = entityPropertyPath;
-            this.modifierValue = modifierValue;
-            this.modifierOperators = modifierOperators;
+            this.operation = operation;
+            this.operand = operand;
+            this.isActiveMatcher = new EntityBooleanPropertyMatcher(entityKey, "Enabled", true)
+                .And(new EntityNumberPropertyMatcher(entityKey, "Quantity", Comparison.GREATER_THAN_OR_EQUAL, Literal.Of(1)))
+                .And(activeWhenMatcher);
         }
 
-        public override BigDouble CalculateEffect(IdleEngine engine)
+        public EntityNumberPropertyModifierDefinition(string entityKey, string entityPropertyPath, EffectType operation, NumberContainer operand) : this(entityKey, entityPropertyPath, operation, operand, Always.Instance)
         {
-            throw new System.NotImplementedException();
+            
         }
 
-        public override void Update(IdleEngine engine, float deltaTime)
-        {
-            throw new System.NotImplementedException();
-        }
+        public string EntityKey => entityKey;
+
+        public string EntityPropertyPath => entityPropertyPath;
+
+        public EffectType Operation => operation;
+
+        public NumberContainer Operand => operand;
+
+        public override StateMatcher IsActiveMatcher => isActiveMatcher;
     }
 }

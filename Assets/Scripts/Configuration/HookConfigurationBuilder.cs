@@ -9,28 +9,21 @@ namespace IdleFramework
     public class HookConfigurationBuilder
     {
         private readonly List<Action<IdleEngine>> engineStartHooks = new List<Action<IdleEngine>>();
-        private readonly List<EntityProductionHook> entityProductionHooks = new List<EntityProductionHook>();
         private readonly List<Action<IdleEngine, float>> updateHooks = new List<Action<IdleEngine, float>>();
         private readonly List<Action<IdleEngine, float>> beforeUpdateHooks = new List<Action<IdleEngine, float>>();
-        private readonly Dictionary<string, IList<Action<IdleEngine, object>>> eventHooks = new Dictionary<string, IList<Action<IdleEngine, object>>>();
+        private readonly Dictionary<string, List<Action<IdleEngine, float>>> customEventHooks = new Dictionary<string, List<Action<IdleEngine, float>>>();
+        private readonly Dictionary<string, List<Action<Entity, IdleEngine>>> beforeBuyHooks = new Dictionary<string, List<Action<Entity, IdleEngine>>>();
 
         public IReadOnlyList<Action<IdleEngine>> EngineStartHooks => engineStartHooks;
-
-        public IReadOnlyList<EntityProductionHook> EntityProductionHooks => entityProductionHooks;
 
         public void AddStartHook(Action<IdleEngine> hook)
         {
             engineStartHooks.Add(hook);
         }
 
-        public void AddEntityProductionHook(EntityProductionHook hook)
+        public HooksConfigurationContainer Build()
         {
-            entityProductionHooks.Add(hook);
-        }
-
-        public HooksContainer Build()
-        {
-            return new HooksContainer(engineStartHooks, entityProductionHooks, updateHooks, beforeUpdateHooks, eventHooks);
+            return new HooksConfigurationContainer(engineStartHooks, updateHooks, beforeUpdateHooks, beforeBuyHooks);
         }
 
         public void AddUpdateHook(Action<IdleEngine, float> hook)
@@ -43,13 +36,23 @@ namespace IdleFramework
             updateHooks.Add(hook);
         }
 
-        public void AddEventHook(string eventName, Action<IdleEngine, object> hook)
+        internal void AddCustomEventHook(string customEventName, Action<IdleEngine, float> hook)
         {
-            IList<Action<IdleEngine, object>> hooks;
-            if(!eventHooks.TryGetValue(eventName, out hooks))
+            List<Action<IdleEngine, float>> hooks;
+            if(!customEventHooks.TryGetValue(customEventName, out hooks)) {
+                hooks = new List<Action<IdleEngine, float>>();
+                customEventHooks.Add(customEventName, hooks);
+            }
+            hooks.Add(hook);
+        }
+
+        internal void AddBeforeEntityBuyHook(string entityName, Action<Entity, IdleEngine> hook)
+        {
+            List<Action<Entity, IdleEngine>> hooks;
+            if(!beforeBuyHooks.TryGetValue(entityName, out hooks))
             {
-                hooks = new List<Action<IdleEngine, object>>();
-                eventHooks.Add(eventName, hooks);
+                hooks = new List<Action<Entity, IdleEngine>>();
+                beforeBuyHooks.Add(entityName, hooks);
             }
             hooks.Add(hook);
         }

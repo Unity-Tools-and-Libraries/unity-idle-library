@@ -27,6 +27,7 @@ namespace IdleFramework
         private readonly NumberContainer calculatedQuantity;
         private readonly bool accumulates;
         private readonly Dictionary<string, EntityDefinition> instances = new Dictionary<string, EntityDefinition>();
+        private readonly IList<ModifierDefinition> modifiers = new List<ModifierDefinition>();
         public EntityDefinition(EntityDefinitionBuilder other)
         {
             entityKey = other.EntityKey;
@@ -52,6 +53,7 @@ namespace IdleFramework
             {
                 instances.Add(instance.Key, instance.Value);
             }
+            modifiers = other.Modifiers;
         }
 
         public object GetInstance(string instanceKey)
@@ -95,6 +97,8 @@ namespace IdleFramework
         public PropertyHolder CustomProperties => customProperties;
         
         public bool Accumulates => accumulates;
+
+        public IList<ModifierDefinition> Modifiers => modifiers;
 
         internal object GetCustomStringProperty(string key)
         {

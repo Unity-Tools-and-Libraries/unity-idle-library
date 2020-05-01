@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace IdleFramework
 {    
-    public interface ModifierDefinition<T> : Updates
+    public interface ModifierDefinition
     {
-        T CalculateEffect(IdleEngine engine);
+        StateMatcher IsActiveMatcher { get; }
     }
 
     public enum EffectType

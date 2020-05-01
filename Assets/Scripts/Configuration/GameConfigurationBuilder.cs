@@ -1,4 +1,5 @@
 ﻿using BreakInfinity;
+using IdleFramework.UI.Components;
 using System;
 using System.Collections.Generic;
 
@@ -22,6 +23,8 @@ namespace IdleFramework
         private ISet<AchievementConfiguration> achievements = new HashSet<AchievementConfiguration>();
         private ISet<TutorialConfiguration> tutorials = new HashSet<TutorialConfiguration>();
         private Dictionary<string, string> externalizedStrings = new Dictionary<string, string>();
+        private IOfflinePolicy offlinePolicy = new OfflineFastForwardPolicy();
+        private UiConfiguration uiConfiguration;
         /**
          * Add a definition for a new entity.
          */
@@ -41,10 +44,26 @@ namespace IdleFramework
             return this;
         }
 
+        public GameConfigurationBuilder WithUi(UiConfiguration uiConfiguration)
+        {
+            this.uiConfiguration = uiConfiguration;
+            return this;
+        }
+
         public GameConfigurationBuilder WithBeforeUpdateHook(Action<IdleEngine, float> hook)
         {
             hooks.AddBeforeUpdateHook(hook);
             return this;
+        }
+
+        internal void WithCustomEventHook(string customEventName, Action<IdleEngine, float> hook)
+        {
+            hooks.AddCustomEventHook(customEventName, hook);
+        }
+
+        public void WithBeforeEntityBuyHook(string entityName, Action<Entity, IdleEngine> hook)
+        {
+            hooks.AddBeforeEntityBuyHook(entityName, hook);
         }
 
         public GameConfigurationBuilder WithAchievement(AchievementConfigurationBuilder achievement)
@@ -57,12 +76,6 @@ namespace IdleFramework
         {
             entity.AsSingleton();
             return WithEntity(entity);
-        }
-
-        public GameConfigurationBuilder WithEventHook(string eventName, Action<IdleEngine, object> hook)
-        {
-            hooks.AddEventHook(eventName, hook);
-            return this;
         }
 
         public GameConfigurationBuilder WithTutorial(TutorialConfigurationBuilder tutorialConfigurationBuilder)
@@ -108,7 +121,9 @@ namespace IdleFramework
                 commonEntityProperties,
                 achievements, 
                 tutorials,
-                externalizedStrings);
+                offlinePolicy,
+                externalizedStrings,
+                uiConfiguration);
         }
     }
 

@@ -1,4 +1,5 @@
 ﻿using BreakInfinity;
+using IdleFramework.UI.Components;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -11,19 +12,20 @@ namespace IdleFramework
     public class GameConfiguration
     {
         private readonly Dictionary<string, EntityDefinition> entities = new Dictionary<string, EntityDefinition>();
-        private readonly HooksContainer hooks;
+        private readonly HooksConfigurationContainer hooks;
 
         private readonly Dictionary<string, AchievementConfiguration> achievements = new Dictionary<string, AchievementConfiguration>();
         private readonly ISet<TutorialConfiguration> tutorials;
         private readonly Dictionary<string, string> strings;
-        private HookConfigurationBuilder hooks1;
         private PropertyHolder globalProperties;
         private PropertyHolder commonEntityProperties;
         private ISet<AchievementConfiguration> achievements1;
         private Dictionary<string, string> externalizedStrings;
+        private IOfflinePolicy offlinePolicy;
+        private UiConfiguration uiConfiguration;
 
         public Dictionary<string, EntityDefinition> Entities => entities;
-        public HooksContainer Hooks => hooks;
+        public HooksConfigurationContainer Hooks => hooks;
         public Dictionary<string, AchievementConfiguration> Achievements => achievements;
 
         public ISet<TutorialConfiguration> Tutorials => tutorials;
@@ -38,8 +40,11 @@ namespace IdleFramework
         public IDictionary<string, NumberContainer> CommonEntityNumberProperties => commonEntityProperties.NumberProperties;
         public IDictionary<string, BooleanContainer> CommonEntityBooleanProperties => commonEntityProperties.BooleanProperties;
 
+        public IOfflinePolicy OfflinePolicy => offlinePolicy;
+        public UiConfiguration UiConfiguration => uiConfiguration;
+
         internal GameConfiguration(Dictionary<string, EntityDefinition> entities, HookConfigurationBuilder hooks, PropertyHolder globalProperties, PropertyHolder commonEntityProperties, 
-            ISet<AchievementConfiguration> achievements, ISet<TutorialConfiguration> tutorials, Dictionary<string, string> externalizedStrings)
+            ISet<AchievementConfiguration> achievements, ISet<TutorialConfiguration> tutorials, IOfflinePolicy offlinePolicy, Dictionary<string, string> externalizedStrings, UiConfiguration uiConfiguration)
         {
             foreach(var entityConfiguration in entities)
             {
@@ -55,6 +60,8 @@ namespace IdleFramework
                 this.achievements.Add(achievement.AchievementKey, achievement);
             }
             this.strings = externalizedStrings;
+            this.offlinePolicy = offlinePolicy;
+            this.uiConfiguration = uiConfiguration;
         }
     }
 }

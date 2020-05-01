@@ -7,9 +7,8 @@ namespace IdleFramework
     /*
      * A modifier which applies to an entity.
      */
-    public abstract class EntityModifierDefinition<T> : ModifierDefinition<T>
+    public abstract class EntityModifierDefinition : ModifierDefinition
     {
-        public abstract T CalculateEffect(IdleEngine engine);
-        public abstract void Update(IdleEngine engine, float deltaTime);
+        public abstract StateMatcher IsActiveMatcher { get; }
     }
 }

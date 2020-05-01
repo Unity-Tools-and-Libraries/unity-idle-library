@@ -5,35 +5,30 @@ using UnityEngine;
 
 namespace IdleFramework
 {
-    public class HooksContainer
+    public class HooksConfigurationContainer
     {
         private readonly List<Action<IdleEngine>> engineStartHooks;
-        private readonly List<EntityProductionHook> entityProductionHooks;
         private readonly List<Action<IdleEngine, float>> updateHooks;
         private readonly List<Action<IdleEngine, float>> beforeUpdateHooks;
-        private readonly Dictionary<string, IList<Action<IdleEngine, object>>> eventHooks;
+        private readonly Dictionary<string, List<Action<Entity, IdleEngine>>> beforeBuyHooks;
 
-        public HooksContainer(List<Action<IdleEngine>> engineStartHooks, 
-            List<EntityProductionHook> entityProductionHooks,
+        public HooksConfigurationContainer(List<Action<IdleEngine>> engineStartHooks, 
             List<Action<IdleEngine, float>> updateHooks,
             List<Action<IdleEngine, float>> beforeUpdateHooks,
-            Dictionary<string, IList<Action<IdleEngine, object>>> eventHooks)
+            Dictionary<string, List<Action<Entity, IdleEngine>>> beforeBuyHooks)
         {
             this.engineStartHooks = engineStartHooks;
-            this.entityProductionHooks = entityProductionHooks;
             this.updateHooks = updateHooks;
-            this.eventHooks = eventHooks;
             this.beforeUpdateHooks = beforeUpdateHooks;
+            this.beforeBuyHooks = beforeBuyHooks;
         }
 
-        public IList<Action<IdleEngine>> EngineStartHooks => engineStartHooks.AsReadOnly();
-
-        public IList<EntityProductionHook> EntityProductionHooks => entityProductionHooks.AsReadOnly();
+        public List<Action<IdleEngine>> EngineStartHooks => engineStartHooks;
 
         public List<Action<IdleEngine, float>> UpdateHooks => updateHooks;
 
         public List<Action<IdleEngine, float>> BeforeUpdateHooks => beforeUpdateHooks;
 
-        public Dictionary<string, IList<Action<IdleEngine, object>>> EventHooks => eventHooks;
+        public Dictionary<string, List<Action<Entity, IdleEngine>>> BeforeBuyHooks => beforeBuyHooks;
     }
 }

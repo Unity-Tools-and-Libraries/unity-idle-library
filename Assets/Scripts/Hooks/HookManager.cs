@@ -6,81 +6,24 @@ namespace IdleFramework
 {
     public class HookManager
     {
-        private readonly IList<Action<IdleEngine>> startHooks;
-        private readonly Dictionary<EngineHookEvent, Dictionary<string, Dictionary<string, ISet<EngineHookDefinition<Entity, BigDouble>>>>> entityHooks = new Dictionary<EngineHookEvent, Dictionary<string, Dictionary<string, ISet<EngineHookDefinition<Entity, BigDouble>>>>>();
-        private readonly IList<Action<IdleEngine, float>> updateHooks;
-        private readonly IList<Action<IdleEngine, float>> beforeUpdateHooks;
-        private readonly Dictionary<string, IList<Action<IdleEngine, object>>> eventHooks;
+        private readonly List<Action<IdleEngine>> startHooks;
+        private readonly List<Action<IdleEngine, float>> updateHooks;
+        private readonly List<Action<IdleEngine, float>> beforeUpdateHooks;
+        private readonly Dictionary<string, List<Action<Entity, IdleEngine>>> beforeBuyHooks;
+        private readonly Dictionary<string, List<Action<IdleEngine, object>>> eventHooks;
         private readonly IdleEngine engine;
-        public HookManager(HooksContainer hooks, IdleEngine engine)
+        public HookManager(HooksConfigurationContainer hooks, IdleEngine engine)
         {
             this.engine = engine;
             startHooks = hooks.EngineStartHooks;
-            entityHooks[EngineHookEvent.WILL_PRODUCE] = new Dictionary<string, Dictionary<string, ISet<EngineHookDefinition<Entity, BigDouble>>>>();
-            foreach (var entityHook in hooks.EntityProductionHooks)
-            {
-                setupEntityProductionHook(entityHook);
-            }
             updateHooks = hooks.UpdateHooks;
-            eventHooks = hooks.EventHooks;
             beforeUpdateHooks = hooks.BeforeUpdateHooks;
-        }
-
-        private void setupEntityProductionHook(EntityProductionHook entityHook)
-        {
-            Dictionary<string, Dictionary<string, ISet<EngineHookDefinition<Entity, BigDouble>>>> productionHooks = entityHooks[EngineHookEvent.WILL_PRODUCE];
-            Dictionary<string, ISet<EngineHookDefinition<Entity, BigDouble>>> hooksForActor;
-            if (!productionHooks.TryGetValue(entityHook.Actor, out hooksForActor))
-            {
-                hooksForActor = new Dictionary<string, ISet<EngineHookDefinition<Entity, BigDouble>>>();
-                productionHooks[entityHook.Actor] = hooksForActor;
-            }
-            ISet<EngineHookDefinition<Entity, BigDouble>> hooksForSubject;
-            if (!hooksForActor.TryGetValue(entityHook.Subject, out hooksForSubject))
-            {
-                hooksForSubject = new HashSet<EngineHookDefinition<Entity, BigDouble>>();
-                hooksForActor[entityHook.Subject] = hooksForSubject;
-            }
-            productionHooks.Add(entityHook.Actor, hooksForActor);
-        }
-
-        public HookManager(IList<Action<IdleEngine>> startHooks, IList<EntityProductionHook> entityHooks)
-        {
-            this.startHooks = startHooks;
-            foreach(var hook in entityHooks)
-            {
-                switch(hook.Action)
-                {
-                    case EngineHookEvent.WILL_PRODUCE:
-                        Dictionary<string, Dictionary<string, ISet<EngineHookDefinition<Entity, BigDouble>>>> hooksForAction;
-                        if(!this.entityHooks.TryGetValue(hook.Selector.Action, out hooksForAction))
-                        {
-                            hooksForAction = new Dictionary<string, Dictionary<string, ISet<EngineHookDefinition<Entity, BigDouble>>>>();
-                            this.entityHooks.Add(hook.Selector.Action, hooksForAction);
-                        }
-                        Dictionary<string, ISet<EngineHookDefinition<Entity, BigDouble>>> hooksForEntity;
-                        if(!hooksForAction.TryGetValue(hook.Selector.Actor, out hooksForEntity))
-                        {
-                            hooksForEntity = new Dictionary<string, ISet<EngineHookDefinition<Entity, BigDouble>>>();
-                            hooksForAction.Add(hook.Selector.Actor, hooksForEntity);
-                        }
-                        ISet<EngineHookDefinition<Entity, BigDouble>> hookSet = null;
-                        if(!hooksForEntity.TryGetValue(hook.Selector.Subject, out hookSet))
-                        {
-                            hookSet = new HashSet<EngineHookDefinition<Entity, BigDouble>>();
-                            hooksForEntity.Add(hook.Selector.Subject, hookSet);
-                        }
-                        hookSet.Add(hook);
-                        break;
-                    default:
-                        throw new InvalidOperationException(String.Format("Action type {0} not supported for entity hooks", hook.Action));
-                }
-            }
+            beforeBuyHooks = hooks.BeforeBuyHooks;
         }
 
         public  void ExecuteEventHook(string eventName, object arg)
         {
-            IList<Action<IdleEngine, object>> hooksForNamedEvent;
+            List<Action<IdleEngine, object>> hooksForNamedEvent;
             if(eventHooks.TryGetValue(eventName, out hooksForNamedEvent))
             {
                 foreach(var hook in hooksForNamedEvent)
@@ -117,6 +60,28 @@ namespace IdleFramework
             {
                 hook.Invoke(engine, deltaTime);
             }
+        }
+
+        internal void ExecuteBeforeBuyHooks(Entity gameEntity)
+        {
+            Logger.GetLogger().Trace(string.Format("Executing beforeBuy hooks for {0}", gameEntity.EntityKey));
+            List<Action<Entity, IdleEngine>> entitySpecificHooks;
+            if(beforeBuyHooks.TryGetValue(gameEntity.EntityKey, out entitySpecificHooks))
+            {
+                foreach(var specificHook in entitySpecificHooks)
+                {
+                    specificHook.Invoke(gameEntity, engine);
+                }
+            }
+            List<Action<Entity, IdleEngine>> generalHooks;
+            if (beforeBuyHooks.TryGetValue("*", out generalHooks))
+            {
+                foreach (var generalHook in generalHooks)
+                {
+                    generalHook.Invoke(gameEntity, engine);
+                }
+            }
+            Logger.GetLogger().Trace(string.Format("Executing beforeBuy hooks for {0}", gameEntity.EntityKey));
         }
     }
 }

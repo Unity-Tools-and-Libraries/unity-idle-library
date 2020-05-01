@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace IdleFramework
+namespace IdleFramework.Hooks
 {
     public interface EngineHookDefinitionProperties<in I, out O>
     {

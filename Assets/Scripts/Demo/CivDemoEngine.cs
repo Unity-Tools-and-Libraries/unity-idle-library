@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using BreakInfinity;
 using System.Linq;
 using IdleFramework.State.Matchers;
+using IdleFramework.Configuration;
 
 public class CivDemoEngine : MonoBehaviour
 {

@@ -1,7 +1,7 @@
 ﻿using BreakInfinity;
 using System.Collections.Generic;
 
-namespace IdleFramework
+namespace IdleFramework.Entities
 {
     /*
      * Interface for a stateful entity instance.

@@ -1,4 +1,4 @@
-﻿namespace IdleFramework
+﻿namespace IdleFramework.Achievements
 {
     public interface AchievementProperties
     {

@@ -1,10 +1,8 @@
 ﻿using NUnit.Framework;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using IdleFramework;
-using BreakInfinity;
 using System;
+using IdleFramework.Hooks;
 
 namespace Tests
 {
@@ -22,7 +20,8 @@ namespace Tests
                 engineStartHookCalled = true;
             });
             var entityHooks = new List<EntityProductionHook>();
-            entityHooks.Add(new EntityProductionHook("*", "*", (Entity entity) => {
+            entityHooks.Add(new EntityProductionHook("*", "*", (Entity entity) =>
+            {
                 return entity.QuantityChangePerSecond * 2;
             }));
             manager = new HookManager(hooksConfig, null);

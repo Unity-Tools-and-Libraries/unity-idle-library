@@ -1,8 +1,7 @@
-﻿using IdleFramework.UI.Layouts;
+﻿using IdleFramework.Configuration.UI;
+using IdleFramework.Configuration.UI.Components;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.UIElements;
-using UnityEngine.UIElements.Experimental;
 
 namespace IdleFramework.UI.Components.Generators
 {

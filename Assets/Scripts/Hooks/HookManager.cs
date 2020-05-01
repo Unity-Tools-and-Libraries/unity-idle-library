@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace IdleFramework
+namespace IdleFramework.Hooks
 {
     public class HookManager
     {

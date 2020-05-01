@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace IdleFramework
+namespace IdleFramework.Configuration
 {
     public class HookConfigurationBuilder
     {

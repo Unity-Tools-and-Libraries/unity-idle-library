@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using IdleFramework.Configuration;
 
 namespace IdleFramework
 {
     public class Modifier : Updates
     {
         private readonly ModifierDefinition definition;
-        private bool isActive;
+        private bool isActive = false;
         public bool IsActive => isActive;
 
         public Modifier(ModifierDefinition definition)

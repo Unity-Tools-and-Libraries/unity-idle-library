@@ -1,9 +1,4 @@
-﻿using IdleFramework.UI.Layouts;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-namespace IdleFramework.UI.Components
+﻿namespace IdleFramework.Configuration.UI
 {
     public interface SupportsChildren<T> where T : UiComponentConfiguration
     {

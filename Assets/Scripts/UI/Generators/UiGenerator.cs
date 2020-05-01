@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using IdleFramework.Configuration.UI;
+using IdleFramework.Configuration.UI.Components;
+using System;
 using UnityEngine;
 
 namespace IdleFramework.UI.Components.Generators

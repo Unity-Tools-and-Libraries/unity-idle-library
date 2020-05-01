@@ -1,7 +1,7 @@
 ﻿using BreakInfinity;
 using System.Collections.Generic;
 
-namespace IdleFramework
+namespace IdleFramework.Configuration
 {    
     public interface ModifierDefinition
     {

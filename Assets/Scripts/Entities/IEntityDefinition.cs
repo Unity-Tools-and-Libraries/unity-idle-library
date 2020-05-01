@@ -1,9 +1,8 @@
 ﻿using BreakInfinity;
-using System.Collections;
+using IdleFramework.Configuration;
 using System.Collections.Generic;
-using UnityEngine;
 
-namespace IdleFramework
+namespace IdleFramework.Entities
 {
 
     /*

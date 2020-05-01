@@ -1,4 +1,4 @@
-﻿using System;
+﻿using IdleFramework.Configuration;
 
 namespace IdleFramework
 {

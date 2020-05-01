@@ -1,4 +1,5 @@
 ﻿using IdleFramework;
+using IdleFramework.Configuration;
 using NUnit.Framework;
 
 namespace Tests

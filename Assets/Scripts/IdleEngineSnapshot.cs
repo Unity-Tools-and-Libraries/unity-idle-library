@@ -1,12 +1,13 @@
-﻿using System;
+﻿using IdleFramework.Achievements;
+using IdleFramework.Entities;
+using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace IdleFramework
 {
     public class IdleEngineSnapshot : Snapshot
     {
-        private readonly ICollection<EntitySnapshot> entities;    
+        private readonly ICollection<EntitySnapshot> entities;
         private readonly ICollection<AchievementSnapshot> achievements;
         private readonly PropertyHolderSnapshot globalProperties;
         private readonly DateTime timeSinceLastUpdate;

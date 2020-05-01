@@ -1,10 +1,7 @@
-﻿using BreakInfinity;
-using IdleFramework.UI.Components;
-using System;
+﻿using IdleFramework.Configuration.UI;
 using System.Collections.Generic;
-using System.Numerics;
 
-namespace IdleFramework
+namespace IdleFramework.Configuration
 {
     /**
      * Provides configuration for an instance of IdleEngine.
@@ -19,7 +16,6 @@ namespace IdleFramework
         private readonly Dictionary<string, string> strings;
         private PropertyHolder globalProperties;
         private PropertyHolder commonEntityProperties;
-        private ISet<AchievementConfiguration> achievements1;
         private Dictionary<string, string> externalizedStrings;
         private IOfflinePolicy offlinePolicy;
         private UiConfiguration uiConfiguration;

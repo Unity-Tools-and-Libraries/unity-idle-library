@@ -1,4 +1,6 @@
 ﻿using IdleFramework;
+using IdleFramework.Configuration;
+using IdleFramework.Exceptions;
 using NUnit.Framework;
 
 public class EntityPropertyReferenceTest

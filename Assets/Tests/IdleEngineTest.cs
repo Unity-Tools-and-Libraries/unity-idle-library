@@ -1,5 +1,7 @@
 ﻿using BreakInfinity;
 using IdleFramework;
+using IdleFramework.Configuration;
+using IdleFramework.Exceptions;
 using NUnit.Framework;
 using System.Collections.Generic;
 

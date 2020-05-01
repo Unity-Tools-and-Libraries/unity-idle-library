@@ -1,9 +1,10 @@
 ﻿using BreakInfinity;
+using IdleFramework.Configuration.UI;
 using IdleFramework.UI.Components;
 using System;
 using System.Collections.Generic;
 
-namespace IdleFramework
+namespace IdleFramework.Configuration
 {
     /**
      * Builder class for creating a GameConfiguration.
@@ -74,7 +75,7 @@ namespace IdleFramework
 
         internal GameConfigurationBuilder WithSingletonEntity(EntityDefinitionBuilder entity)
         {
-            entity.AsSingleton();
+            entity.LimitOne();
             return WithEntity(entity);
         }
 

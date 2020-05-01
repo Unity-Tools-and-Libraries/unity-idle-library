@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace IdleFramework
+namespace IdleFramework.Configuration
 {
     /*
      * A modifier which applies to an entity.

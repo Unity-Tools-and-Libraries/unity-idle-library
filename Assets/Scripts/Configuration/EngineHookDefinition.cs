@@ -1,6 +1,7 @@
-﻿using System;
+﻿using IdleFramework.Hooks;
+using System;
 
-namespace IdleFramework
+namespace IdleFramework.Configuration
 {
     /*
      * Configuration for an engine hook.

@@ -1,6 +1,8 @@
 ﻿
 using NUnit.Framework;
 using IdleFramework;
+using IdleFramework.Configuration;
+
 public class EntityInstanceTest
 {
     Entity entity;

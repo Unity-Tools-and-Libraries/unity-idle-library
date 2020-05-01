@@ -64,20 +64,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Achievements\Achievement.cs" />
-    <Compile Include="Assets\Scripts\Achievements\AchievementConfiguration.cs" />
     <Compile Include="Assets\Scripts\Achievements\AchievementProperties.cs" />
     <Compile Include="Assets\Scripts\Achievements\AchievementSnapshot.cs" />
-    <Compile Include="Assets\Scripts\Achievements\IdleEngineSnapshot.cs" />
-    <Compile Include="Assets\Scripts\Actions\Action.cs" />
-    <Compile Include="Assets\Scripts\Actions\ModifyGlobalPropertyBaseValue.cs" />
     <Compile Include="Assets\Scripts\BreakInfinity\BigDouble.cs" />
     <Compile Include="Assets\Scripts\BreakInfinity\BigDoubleEditor.cs" />
     <Compile Include="Assets\Scripts\CanSnapshot.cs" />
+    <Compile Include="Assets\Scripts\Configuration\AchievementConfiguration.cs" />
     <Compile Include="Assets\Scripts\Configuration\AchievementConfigurationBuilder.cs" />
     <Compile Include="Assets\Scripts\Configuration\Builder.cs" />
     <Compile Include="Assets\Scripts\Configuration\EngineHookDefinition.cs" />
     <Compile Include="Assets\Scripts\Configuration\EngineHookSelector.cs" />
+    <Compile Include="Assets\Scripts\Configuration\Entities\EntityDefinitionBuilder.cs" />
+    <Compile Include="Assets\Scripts\Configuration\Entities\EntityHooksBuilder.cs" />
+    <Compile Include="Assets\Scripts\Configuration\Entities\HooksConfigurationContainer.cs" />
     <Compile Include="Assets\Scripts\Configuration\Entities\IEntityProperties.cs" />
+    <Compile Include="Assets\Scripts\Configuration\Entities\UpdateHookDefinition.cs" />
     <Compile Include="Assets\Scripts\Configuration\EntityDefinition.cs" />
     <Compile Include="Assets\Scripts\Configuration\GameConfiguration.cs" />
     <Compile Include="Assets\Scripts\Configuration\GameConfigurationBuilder.cs" />
@@ -98,13 +99,10 @@
     <Compile Include="Assets\Scripts\Configuration\Ui\SupportsChildren.cs" />
     <Compile Include="Assets\Scripts\Configuration\Ui\UiComponentConfiguration.cs" />
     <Compile Include="Assets\Scripts\Configuration\Ui\UiConfiguration.cs" />
-    <Compile Include="Assets\Scripts\Configuration\Ui\UiGenerator.cs" />
     <Compile Include="Assets\Scripts\Demo\CivDemoEngine.cs" />
     <Compile Include="Assets\Scripts\Demo\GameSelector.cs" />
     <Compile Include="Assets\Scripts\Demo\SimpleClicker\SimpleClicker.cs" />
     <Compile Include="Assets\Scripts\EngineEventSelector.cs" />
-    <Compile Include="Assets\Scripts\Entities\EntityDefinitionBuilder.cs" />
-    <Compile Include="Assets\Scripts\Entities\EntityHooksBuilder.cs" />
     <Compile Include="Assets\Scripts\Entities\EntityProductionResult.cs" />
     <Compile Include="Assets\Scripts\Entities\EntitySnapshot.cs" />
     <Compile Include="Assets\Scripts\Entities\IEntityDefinition.cs" />
@@ -117,17 +115,14 @@
     <Compile Include="Assets\Scripts\Exceptions\Entities\ReservedEntityPropertyName.cs" />
     <Compile Include="Assets\Scripts\Exceptions\MissingGlobalPropertyException.cs" />
     <Compile Include="Assets\Scripts\Exceptions\WrongPropertyTypeException.cs" />
-    <Compile Include="Assets\Scripts\Hooks\Context\HookExecutionContext.cs" />
     <Compile Include="Assets\Scripts\Hooks\EngineHookDefinitionProperties.cs" />
     <Compile Include="Assets\Scripts\Hooks\EngineHookEvent.cs" />
     <Compile Include="Assets\Scripts\Hooks\EngineStartHook.cs" />
     <Compile Include="Assets\Scripts\Hooks\EntityProductionHook.cs" />
-    <Compile Include="Assets\Scripts\Hooks\HookExecutionPayload.cs" />
     <Compile Include="Assets\Scripts\Hooks\HookManager.cs" />
-    <Compile Include="Assets\Scripts\Hooks\HooksConfigurationContainer.cs" />
-    <Compile Include="Assets\Scripts\Hooks\UpdateHookDefinition.cs" />
     <Compile Include="Assets\Scripts\IPropertiesHolder.cs" />
     <Compile Include="Assets\Scripts\IdleEngine.cs" />
+    <Compile Include="Assets\Scripts\IdleEngineSnapshot.cs" />
     <Compile Include="Assets\Scripts\Logging\Logger.cs" />
     <Compile Include="Assets\Scripts\Matchers\All.cs" />
     <Compile Include="Assets\Scripts\Matchers\AlwaysMatcher.cs" />
@@ -139,6 +134,7 @@
     <Compile Include="Assets\Scripts\Matchers\Entities\EntityBooleanPropertyMatcher.cs" />
     <Compile Include="Assets\Scripts\Matchers\Entities\EntityEnabledMatcher.cs" />
     <Compile Include="Assets\Scripts\Matchers\Entities\EntityNumberPropertyMatcher.cs" />
+    <Compile Include="Assets\Scripts\Matchers\Entities\EntityQuantityMatcher.cs" />
     <Compile Include="Assets\Scripts\Matchers\Global\GlobalNumberPropertyMatcher.cs" />
     <Compile Include="Assets\Scripts\Matchers\Global\GlobalPropertyMatcher.cs" />
     <Compile Include="Assets\Scripts\Matchers\Negate.cs" />
@@ -208,6 +204,7 @@
     <Compile Include="Assets\Scripts\UI\Generators\TabComponentGenerator.cs" />
     <Compile Include="Assets\Scripts\UI\Generators\TabsComponentGenerator.cs" />
     <Compile Include="Assets\Scripts\UI\Generators\UiComponentGenerator.cs" />
+    <Compile Include="Assets\Scripts\UI\Generators\UiGenerator.cs" />
     <Compile Include="Assets\Scripts\Updates.cs" />
     <Compile Include="Assets\Scripts\WithProperties.cs" />
     <None Include="Assets\credits.txt" />

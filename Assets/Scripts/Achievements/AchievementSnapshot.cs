@@ -2,18 +2,21 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AchievementSnapshot : Snapshot
+namespace IdleFramework.Achievements
 {
-    private readonly string achievementKey;
-    private readonly bool gained;
-
-    public AchievementSnapshot(string achievementKey, bool gained)
+    public class AchievementSnapshot : Snapshot
     {
-        this.achievementKey = achievementKey;
-        this.gained = gained;
+        private readonly string achievementKey;
+        private readonly bool gained;
+
+        public AchievementSnapshot(string achievementKey, bool gained)
+        {
+            this.achievementKey = achievementKey;
+            this.gained = gained;
+        }
+
+        public string AchievementKey => achievementKey;
+
+        public bool Gained => gained;
     }
-
-    public string AchievementKey => achievementKey;
-
-    public bool Gained => gained;
 }

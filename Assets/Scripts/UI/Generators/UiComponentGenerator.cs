@@ -1,11 +1,10 @@
-﻿using IdleFramework;
-using IdleFramework.UI.Components;
-using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using IdleFramework.Configuration.UI;
 using UnityEngine;
 
-public interface UiComponentGenerator<T> where T : UiComponentConfiguration
+namespace IdleFramework.UI.Components.Generators
 {
-    GameObject Generate(T uiConfiguration, GameObject parent, IdleEngine engine);
+    public interface UiComponentGenerator<T> where T : UiComponentConfiguration
+    {
+        GameObject Generate(T uiConfiguration, GameObject parent, IdleEngine engine);
+    }
 }

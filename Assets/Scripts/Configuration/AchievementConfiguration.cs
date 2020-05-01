@@ -1,4 +1,6 @@
-﻿namespace IdleFramework
+﻿using IdleFramework.Achievements;
+
+namespace IdleFramework.Configuration
 {
     public class AchievementConfiguration : AchievementProperties
     {

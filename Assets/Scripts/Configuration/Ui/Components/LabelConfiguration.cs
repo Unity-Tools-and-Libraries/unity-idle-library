@@ -1,17 +1,16 @@
 ﻿using IdleFramework;
 
-public class LabelConfiguration : AbstractComponentConfiguration
+namespace IdleFramework.Configuration.UI.Components
 {
-    private readonly string componentId;
-    private readonly ValueContainer value;
-
-    public LabelConfiguration(string componentId, ValueContainer value): base(componentId, Always.Instance)
+    public class LabelConfiguration : AbstractComponentConfiguration
     {
-        this.componentId = componentId;
-        this.value = value;
+        private readonly ValueContainer value;
+
+        public LabelConfiguration(string componentId, ValueContainer value) : base(componentId, Always.Instance)
+        {
+            this.value = value;
+        }
+
+        public ValueContainer Value => value;
     }
-
-    public string ComponentId => componentId;
-
-    public ValueContainer Value => value;
 }

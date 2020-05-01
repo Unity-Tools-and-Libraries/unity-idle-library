@@ -1,8 +1,9 @@
 ﻿using BreakInfinity;
+using IdleFramework.State.Matchers;
 using System;
 using System.Collections.Generic;
 
-namespace IdleFramework
+namespace IdleFramework.Configuration
 {
     public class EntityDefinitionBuilder : Builder<EntityDefinition>
     {
@@ -81,6 +82,10 @@ namespace IdleFramework
                 {
                     return false;
                 }
+                if(entity.Quantity >= entity.QuantityCap)
+                {
+                    return false;
+                }
                 bool available = true;
                 foreach(var resource in entity.Costs)
                 {
@@ -105,7 +110,7 @@ namespace IdleFramework
         {
 
         }
-        public EntityDefinitionBuilder AsSingleton()
+        public EntityDefinitionBuilder LimitOne()
         {
             quantityCap = Literal.Of(1);
             return this;
@@ -124,6 +129,11 @@ namespace IdleFramework
         {
             this.name = name;
             return this;
+        }
+
+        public EntityDefinitionBuilder WithName(string name)
+        {
+            return WithName(Literal.Of(name));
         }
 
         public EntityDefinitionBuilder AvailableWhen(StateMatcher matcher)

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace IdleFramework
+namespace IdleFramework.Configuration
 {
     public class TutorialConfigurationBuilder : Builder<TutorialConfiguration>
     {

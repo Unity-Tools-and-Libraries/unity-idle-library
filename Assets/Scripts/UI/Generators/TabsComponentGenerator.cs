@@ -1,7 +1,6 @@
-﻿using Boo.Lang;
-using UnityEngine;
-using UnityEngine.UI;
+﻿using UnityEngine;
 using System.Linq;
+using IdleFramework.Configuration.UI;
 
 namespace IdleFramework.UI.Components.Generators
 {

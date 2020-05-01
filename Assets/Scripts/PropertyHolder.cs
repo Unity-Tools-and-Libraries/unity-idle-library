@@ -1,4 +1,5 @@
 ﻿using BreakInfinity;
+using IdleFramework.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

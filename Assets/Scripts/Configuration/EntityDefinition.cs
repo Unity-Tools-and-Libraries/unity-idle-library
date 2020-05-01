@@ -1,10 +1,9 @@
 ﻿using BreakInfinity;
+using IdleFramework.Entities;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
-namespace IdleFramework
+namespace IdleFramework.Configuration
 {
     public class EntityDefinition: IEntityDefinition { 
         private readonly string entityKey;

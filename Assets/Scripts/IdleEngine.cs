@@ -7,6 +7,10 @@ using IdleFramework.Events;
 using System.Linq;
 using IdleFramework.UI.Components.Generators;
 using IdleFramework.UI.Components;
+using IdleFramework.Configuration;
+using IdleFramework.Hooks;
+using IdleFramework.Achievements;
+using IdleFramework.Exceptions;
 
 namespace IdleFramework
 {

@@ -1,4 +1,4 @@
-﻿namespace IdleFramework
+﻿namespace IdleFramework.Hooks
 {
     public enum EngineHookEvent
     {

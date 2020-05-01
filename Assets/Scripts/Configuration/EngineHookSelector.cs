@@ -1,4 +1,6 @@
-﻿namespace IdleFramework
+﻿using IdleFramework.Hooks;
+
+namespace IdleFramework.Configuration
 {
     /*
      * Selector for determining when a hook should be executed.

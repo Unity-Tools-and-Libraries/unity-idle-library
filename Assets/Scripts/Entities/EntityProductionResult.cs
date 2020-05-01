@@ -1,12 +1,12 @@
 ﻿using BreakInfinity;
 using System.Collections.Generic;
 
-namespace IdleFramework
+namespace IdleFramework.Entities
 {
     /*
      * Information for entity production which is going to occur to be passed into hooks for modification.
      */
-    public struct EntityProductionResult : HookExecutionContext<EntityProductionResult>
+    public struct EntityProductionResult
     {
         private readonly Entity entity;
         private readonly Dictionary<string, BigDouble> inputsToConsume;

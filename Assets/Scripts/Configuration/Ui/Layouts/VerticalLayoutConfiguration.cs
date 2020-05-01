@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-namespace IdleFramework.UI.Layouts
+﻿namespace IdleFramework.Configuration.UI
 {
     public class VerticalLayoutConfiguration : LayoutConfigurationBuilder
     {

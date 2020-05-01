@@ -1,5 +1,6 @@
 ﻿using BreakInfinity;
 using IdleFramework;
+using IdleFramework.Configuration;
 using NUnit.Framework;
 
 public class GameEntityTest 

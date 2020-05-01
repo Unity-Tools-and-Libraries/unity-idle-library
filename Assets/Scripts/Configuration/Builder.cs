@@ -1,4 +1,4 @@
-﻿namespace IdleFramework
+﻿namespace IdleFramework.Configuration
 {
     public interface Builder<T>
     {

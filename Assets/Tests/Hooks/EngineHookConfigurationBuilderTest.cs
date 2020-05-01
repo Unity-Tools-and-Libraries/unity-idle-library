@@ -1,5 +1,6 @@
 ﻿using BreakInfinity;
 using IdleFramework;
+using IdleFramework.Hooks;
 using NUnit.Framework;
 
 public class EngineHookConfigurationBuilderTest {

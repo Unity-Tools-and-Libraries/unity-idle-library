@@ -1,9 +1,6 @@
-﻿using IdleFramework.UI.Layouts;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using System.Collections.Generic;
 
-namespace IdleFramework.UI.Components
+namespace IdleFramework.Configuration.UI.Components
 {
     public class PanelConfiguration : AbstractComponentConfiguration
     {
@@ -27,8 +24,6 @@ namespace IdleFramework.UI.Components
             children.Add(child);
             return this;
         }
-
-        public string ComponentId => componentId;
         public LayoutConfigurationBuilder Layout => layout;
         public List<UiComponentConfiguration> Children => children;
     }

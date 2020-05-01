@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using IdleFramework.Configuration;
+using System;
 
-namespace IdleFramework
+namespace IdleFramework.Hooks
 {
     public class EngineStartHook : EngineHookDefinition<object, object>
     {

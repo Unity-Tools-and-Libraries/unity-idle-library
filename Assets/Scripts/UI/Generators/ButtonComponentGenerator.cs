@@ -1,25 +1,25 @@
-﻿using IdleFramework;
-using IdleFramework.UI.Components;
-using System.Collections;
-using System.Collections.Generic;
+﻿using IdleFramework.Configuration.UI.Components;
 using UnityEngine;
 
-public class ButtonComponentGenerator : UiComponentGenerator<ButtonConfiguration>
+namespace IdleFramework.UI.Components.Generators
 {
-    public GameObject Generate(ButtonConfiguration uiConfiguration, GameObject parent, IdleEngine engine)
+    public class ButtonComponentGenerator : UiComponentGenerator<ButtonConfiguration>
     {
-        var instantiatedButton = GameObject.Instantiate(Resources.Load<GameObject>("UI/Component/Prefabs/Button"), parent.transform, false);
-        instantiatedButton.name = uiConfiguration.ComponentId + "-button";
-        var buttonComponent = instantiatedButton.GetComponent<ButtonComponent>();
-        var buttonField = buttonComponent.GetType().GetField("engine", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        buttonField.SetValue(buttonComponent, engine);
-        var enabledField = buttonComponent.GetType().GetField("enabledWhen", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        enabledField.SetValue(buttonComponent, uiConfiguration.EnabledWhen);
+        public GameObject Generate(ButtonConfiguration uiConfiguration, GameObject parent, IdleEngine engine)
+        {
+            var instantiatedButton = GameObject.Instantiate(Resources.Load<GameObject>("UI/Component/Prefabs/Button"), parent.transform, false);
+            instantiatedButton.name = uiConfiguration.ComponentId + "-button";
+            var buttonComponent = instantiatedButton.GetComponent<ButtonComponent>();
+            var buttonField = buttonComponent.GetType().GetField("engine", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            buttonField.SetValue(buttonComponent, engine);
+            var enabledField = buttonComponent.GetType().GetField("enabledWhen", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            enabledField.SetValue(buttonComponent, uiConfiguration.EnabledWhen);
 
-        buttonComponent.text = uiConfiguration.ButtonText;
+            buttonComponent.text = uiConfiguration.ButtonText;
 
-        buttonComponent.onClickActions = uiConfiguration.OnClickActions;
+            buttonComponent.onClickActions = uiConfiguration.OnClickActions;
 
-        return instantiatedButton;
+            return instantiatedButton;
+        }
     }
 }

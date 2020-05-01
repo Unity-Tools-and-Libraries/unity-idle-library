@@ -1,6 +1,7 @@
-﻿using System;
+﻿using IdleFramework.Configuration;
+using System;
 
-namespace IdleFramework
+namespace IdleFramework.Achievements
 {
     public class Achievement : AchievementProperties, CanSnapshot<AchievementSnapshot>
     {

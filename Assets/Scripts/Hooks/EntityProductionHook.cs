@@ -1,10 +1,8 @@
 ﻿using BreakInfinity;
+using IdleFramework.Configuration;
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 
-namespace IdleFramework
+namespace IdleFramework.Hooks
 {
     public class EntityProductionHook : EngineHookDefinition<Entity, BigDouble>
     {

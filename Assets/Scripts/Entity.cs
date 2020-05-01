@@ -1,5 +1,8 @@
 ﻿using BreakInfinity;
 using IdleFramework;
+using IdleFramework.Configuration;
+using IdleFramework.Entities;
+using IdleFramework.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

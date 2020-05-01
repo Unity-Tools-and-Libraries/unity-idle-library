@@ -19,7 +19,7 @@
         {
             bool left = toCompare.Get(toCheck);
             bool right = toCompareAgainst.Get(toCheck);
-            return left == true;
+            return left == right;
         }
     }
 }

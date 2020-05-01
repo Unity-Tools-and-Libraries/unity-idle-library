@@ -21,14 +21,14 @@ namespace IdleFramework
         protected BigDouble startingQuantity = 0;
         protected StateMatcher visibleMatcher = Always.Instance;
         protected StateMatcher enabledMatcher = Always.Instance;
-        protected StateMatcher availableMatcher = Always.Instance;
+        protected StateMatcher availableMatcher;
 
         private readonly Dictionary<string, EntityDefinition> entityVariants = new Dictionary<string, EntityDefinition>();
-
         protected NumberContainer quantityCap;
         protected bool scaleProduction = true;
         protected readonly PropertyHolder customProperties = new PropertyHolder();
 
+        protected readonly IList<ModifierDefinition> modifiers = new List<ModifierDefinition>();
         protected bool canBeBought = true;
         protected NumberContainer calculatedQuantity;
         protected bool accumulates = true;
@@ -63,6 +63,7 @@ namespace IdleFramework
         public NumberContainer CalculatedQuantity => calculatedQuantity;
         public Dictionary<string, EntityDefinition> Variants => entityVariants;
         public bool Accumulates => accumulates;
+        public IList<ModifierDefinition> Modifiers => modifiers;
 
         /*
          * Create a new EntityDefinitionBuilder, for an entity that will have the given key.
@@ -73,6 +74,32 @@ namespace IdleFramework
             this.variantKey = variantKey;
             name = Literal.Of(entityKey);
             quantityCap = Literal.Of(BigDouble.PositiveInfinity);
+            this.availableMatcher = new DelegateStateMatcher(engine =>
+            {
+                var entity = engine.GetEntity(entityKey);
+                if(!entity.IsEnabled)
+                {
+                    return false;
+                }
+                bool available = true;
+                foreach(var resource in entity.Costs)
+                {
+                    available = engine.GetEntity(resource.Key).Quantity >= resource.Value;
+                    if(!available)
+                    {
+                        return false;
+                    }
+                }
+                foreach (var resource in entity.Requirements)
+                {
+                    available = engine.GetEntity(resource.Key).Quantity >= resource.Value;
+                    if (!available)
+                    {
+                        return false;
+                    }
+                }
+                return available;
+            });
         }
         public EntityDefinitionBuilder(string entityKey) : this(entityKey, entityKey)
         {
@@ -111,6 +138,12 @@ namespace IdleFramework
         public EntityDefinitionBuilder WithCost(string entityRequired, BigDouble quantityRequired)
         {
             baseCosts.Add(entityRequired, Literal.Of(quantityRequired));
+            return this;
+        }
+
+        public EntityDefinitionBuilder WithCost(string entityRequired, NumberContainer quantityRequired)
+        {
+            baseCosts.Add(entityRequired, quantityRequired);
             return this;
         }
 
@@ -245,8 +278,8 @@ namespace IdleFramework
 
         public EntityDefinitionBuilder HiddenAndDisabledWhen(StateMatcher matcher)
         {
-            visibleMatcher = matcher;
-            enabledMatcher = matcher;
+            visibleMatcher = matcher.Negate();
+            enabledMatcher = matcher.Negate();
             return this;
         }
         public EntityDefinitionBuilder WithCustomBooleanProperty(string propertyName, bool value)
@@ -286,6 +319,12 @@ namespace IdleFramework
         public EntityDefinitionBuilder WithCustomMapProperty(string propertyName, Dictionary<string, ValueContainer> value)
         {
             customProperties.Set(propertyName, Literal.Of(value));
+            return this;
+        }
+
+        public EntityDefinitionBuilder WithEffect(EntityModifierDefinition entityPropertyModifier)
+        {
+            modifiers.Add(entityPropertyModifier);
             return this;
         }
     }

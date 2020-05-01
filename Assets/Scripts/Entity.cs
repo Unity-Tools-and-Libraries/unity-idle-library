@@ -8,13 +8,14 @@ using UnityEngine;
 
 namespace IdleFramework
 {
-    public class Entity : Updates, IEntityProperties
+    public class Entity : Updates, IEntityProperties, CanSnapshot<EntitySnapshot>
     {
         public static readonly IDictionary<string, string> PREDEFINED_PROPERTIES = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>()
         {
             { "Name", "string" },
             { "Quantity", "number" },
             { "QuantityCap", "number" },
+            { "QuantityBought", "number" },
             { "Costs", "map" },
             { "ScaledInputs", "map" },
             { "ScaledOutputs", "map" },
@@ -22,7 +23,8 @@ namespace IdleFramework
             { "MinimumProduction", "map" },
             { "QuantityChangePerSecond", "number" },
             { "Progress", "number" },
-            { "Enabled", "boolean" }
+            { "Enabled", "boolean" },
+            { "HighestQuantityAchieved", "number" }
         });
 
         public static readonly IDictionary<string, ISet<string>> PREDEFINED_PROPERTY_TYPES = new ReadOnlyDictionary<string, ISet<string>>(new Dictionary<string, ISet<string>>() {
@@ -30,7 +32,9 @@ namespace IdleFramework
             {
                 "Quantity",
                 "QuantityCap",
+                "QuantityBought",
                 "QuantityChangePerSecond",
+                "HighestQuantityAchieved",
                 "Progress"
             } },
             { "map", new HashSet<string>()
@@ -58,8 +62,11 @@ namespace IdleFramework
         protected BigDouble _progress = 0;
         protected readonly IEntityDefinition definition;
         protected BigDouble quantityChangePerSecond;
+        protected BigDouble quantityBought;
+        protected BigDouble highestQuantityAchieved;
 
         protected readonly Dictionary<string, BigDouble> costs = new Dictionary<string, BigDouble>();
+        protected readonly Dictionary<string, BigDouble> requirements = new Dictionary<string, BigDouble>();
         protected readonly Dictionary<string, BigDouble> scaledInputs = new Dictionary<string, BigDouble>();
         protected readonly Dictionary<string, BigDouble> scaledOutputs = new Dictionary<string, BigDouble>();
         protected readonly Dictionary<string, BigDouble> fixedInputs = new Dictionary<string, BigDouble>();
@@ -67,9 +74,10 @@ namespace IdleFramework
         protected readonly Dictionary<string, BigDouble> upkeep = new Dictionary<string, BigDouble>();
         protected readonly Dictionary<string, Entity> variants = new Dictionary<string, Entity>();
         protected readonly PropertyHolder customProperties = new PropertyHolder();
+        protected readonly IList<Modifier> modifiers = new List<Modifier>();
         public string EntityKey => definition.EntityKey;
         public string VariantKey => definition.VariantKey;
-        public StringContainer Name => definition.Name;
+        public string Name => definition.Name.Get(engine);
         public BigDouble StartingQuantity => definition.StartingQuantity;
         public Dictionary<string, NumberContainer> BaseRequirements => definition.BaseRequirements;
         public Dictionary<string, NumberContainer> BaseCosts => definition.BaseCosts;
@@ -118,16 +126,18 @@ namespace IdleFramework
          * The entities and quantities that this entity produces each tick, and the entities and quantities that are required to produce without being consumed and entities and quantities which are consumed to produce.
          */
         public Dictionary<string, BigDouble> FixedOutputs => fixedOutputs;
+        public Dictionary<string, BigDouble> Requirements => requirements;
         public BigDouble RealQuantity => _quantity;
-
-        public BigDouble QuantityChangePerSecond { get => quantityChangePerSecond; set => quantityChangePerSecond = value; }
+        public BigDouble QuantityChangePerSecond { get => quantityChangePerSecond; 
+            set => quantityChangePerSecond = value; }
+        public BigDouble QuantityBought { get => quantityBought; set => quantityBought = value; }
         public bool IsAvailable => definition.IsAvailableMatcher.Matches(engine);
         public bool IsEnabled => definition.IsEnabledMatcher.Matches(engine);
-        public bool IsVisible => !definition.IsVisibleMatcher.Matches(engine);
+        public bool IsVisible => definition.IsVisibleMatcher.Matches(engine);
 
         public Dictionary<string, Entity> Variants => variants;
 
-        internal Entity(IEntityDefinition definition, IdleEngine engine)
+        public  Entity(IEntityDefinition definition, IdleEngine engine)
         {
             validateCustomProperties(definition.CustomProperties);
             this.definition = definition;
@@ -164,50 +174,9 @@ namespace IdleFramework
                     customProperties.Set(customProperty.Key, customProperty.Value);
                 }
             }
-            foreach (var otherEntity in engine.Configuration.Entities.Values)
+            foreach(var modifierDefinition in definition.Modifiers)
             {
-                NumberContainer baseInput;
-                NumberContainer baseOutput;
-                NumberContainer baseFixedInput;
-                NumberContainer baseFixedOutput;
-                NumberContainer baseUpkeep;
-                NumberContainer baseCost;
-                NumberContainer baseRequirement;
-                if (!BaseScaledInputs.TryGetValue(otherEntity.EntityKey, out baseInput))
-                {
-                    baseInput = Literal.Of(0);
-                }
-                if (!BaseScaledOutputs.TryGetValue(otherEntity.EntityKey, out baseOutput))
-                {
-                    baseOutput = Literal.Of(0);
-                }
-                if (!BaseUpkeep.TryGetValue(otherEntity.EntityKey, out baseUpkeep))
-                {
-                    baseUpkeep = Literal.Of(0);
-                }
-                if (!BaseCosts.TryGetValue(otherEntity.EntityKey, out baseCost))
-                {
-                    baseCost = Literal.Of(0);
-                }
-                if (!BaseRequirements.TryGetValue(otherEntity.EntityKey, out baseRequirement))
-                {
-                    baseRequirement = Literal.Of(0);
-                }
-                if (!BaseFixedInputs.TryGetValue(otherEntity.EntityKey, out baseFixedInput))
-                {
-                    baseFixedInput = Literal.Of(0);
-                }
-
-                if (!BaseFixedOutputs.TryGetValue(otherEntity.EntityKey, out baseFixedOutput))
-                {
-                    baseFixedOutput = Literal.Of(0);
-                }
-                scaledInputs[otherEntity.EntityKey] = baseInput.Get(engine);
-                scaledOutputs[otherEntity.EntityKey] = baseOutput.Get(engine);
-                fixedInputs[otherEntity.EntityKey] = baseFixedInput.Get(engine);
-                fixedOutputs[otherEntity.EntityKey] = baseFixedOutput.Get(engine);
-                upkeep[otherEntity.EntityKey] = baseUpkeep.Get(engine);
-                costs[otherEntity.EntityKey] = baseCost.Get(engine);
+                modifiers.Add(new Modifier(modifierDefinition));
             }
         }
 
@@ -249,7 +218,10 @@ namespace IdleFramework
                 }
             }
         }
-
+        public void Buy()
+        {
+            Buy(1, true);
+        }
         public void Buy(BigDouble quantityToBuy, bool buyAllOrNone)
         {
             engine.BuyEntity(this, quantityToBuy, buyAllOrNone);
@@ -260,6 +232,10 @@ namespace IdleFramework
             {
                 _quantity += changeBy;
                 _quantity = BigDouble.Min(_quantity, definition.QuantityCap.Get(engine));
+                if (_quantity > highestQuantityAchieved)
+                {
+                    highestQuantityAchieved = _quantity;
+                }
             }
         }
 
@@ -269,6 +245,10 @@ namespace IdleFramework
             {
                 _quantity = newQuantity;
                 _quantity = BigDouble.Min(_quantity, definition.QuantityCap.Get(engine));
+                if (_quantity > highestQuantityAchieved)
+                {
+                    highestQuantityAchieved = _quantity;
+                }
             }
         }
 
@@ -298,6 +278,13 @@ namespace IdleFramework
         public void Update(IdleEngine engine, float deltaTime)
         {
             recalculateProperties();
+            foreach(var modifier in modifiers)
+            {
+                if(IsEnabled)
+                {
+                    modifier.Update(engine, deltaTime);
+                }
+            }
         }
 
         private void recalculateProperties()
@@ -311,6 +298,7 @@ namespace IdleFramework
                 scaledInputs[key] = BaseScaledInputs.ContainsKey(key) ? BaseScaledInputs[key].Get(engine) : parent.BaseScaledInputs.ContainsKey(key) ? parent.BaseScaledInputs[key].Get(engine) : 0;
                 scaledOutputs[key] = BaseScaledOutputs.ContainsKey(key) ? BaseScaledOutputs[key].Get(engine) : parent.BaseScaledOutputs.ContainsKey(key) ? parent.BaseScaledOutputs[key].Get(engine) : 0;
                 upkeep[key] = BaseUpkeep.ContainsKey(key) ? BaseUpkeep[key].Get(engine) : parent.BaseUpkeep.ContainsKey(key) ? parent.BaseUpkeep[key].Get(engine) : 0;
+                requirements[key] = BaseRequirements.ContainsKey(key) ? BaseRequirements[key].Get(engine) : parent.BaseRequirements.ContainsKey(key) ? parent.BaseRequirements[key].Get(engine) : 0;
             }
             foreach(var variant in variants.Values)
             {
@@ -323,6 +311,10 @@ namespace IdleFramework
             if(definition.CalculatedQuantity != null)
             {
                 _quantity = definition.CalculatedQuantity.Get(engine);
+                if (_quantity > highestQuantityAchieved)
+                {
+                    highestQuantityAchieved = _quantity;
+                }
             }
         }
 
@@ -331,7 +323,7 @@ namespace IdleFramework
             switch (propertyName)
             {
                 case "Name":
-                    return Name.Get(engine);
+                    return Name;
                 default:
                     throw new InvalidOperationException();
             }
@@ -346,7 +338,12 @@ namespace IdleFramework
                     return QuantityCap;
                 case "QuantityChangePerSecond":
                     return QuantityChangePerSecond;
+                case "QuantityBought":
+                    return QuantityBought;
+                case "HighestQuantityAchieved":
+                    return highestQuantityAchieved;
                 case "Progress":
+                    return Progress;
                 default:
                     throw new InvalidOperationException();
             }
@@ -477,5 +474,23 @@ namespace IdleFramework
             return variants[instanceKey];
         }
 
+        public EntitySnapshot GetSnapshot(IdleEngine engine)
+        {
+            return new EntitySnapshot(EntityKey, _quantity, quantityBought, highestQuantityAchieved);
+        }
+
+        public void LoadFromSnapshot(EntitySnapshot snapshot)
+        {
+            if(snapshot.EntityKey != EntityKey)
+            {
+                throw new InvalidOperationException("Entity keys don't match!");
+            }
+            _quantity = snapshot.Quantity;
+            quantityBought = snapshot.QuantityBought;
+            highestQuantityAchieved = snapshot.HighestQuantityAchieved;
+        }
+
+        public BigDouble HighestEntityQuantity => highestQuantityAchieved;
     }
+
 }

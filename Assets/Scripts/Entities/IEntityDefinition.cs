@@ -31,5 +31,6 @@ namespace IdleFramework
         NumberContainer CalculatedQuantity { get; }
         PropertyHolder CustomProperties { get; }
         bool Accumulates { get; }
+        IList<ModifierDefinition> Modifiers { get; }
     }
 }

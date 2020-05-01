@@ -2,7 +2,7 @@
 
 namespace IdleFramework
 {
-    public class Achievement : AchievementProperties
+    public class Achievement : AchievementProperties, CanSnapshot<AchievementSnapshot>
     {
         private readonly AchievementConfiguration configuration;
         private bool gained;
@@ -24,6 +24,20 @@ namespace IdleFramework
         internal bool ShouldBeActive(IdleEngine idleEngine)
         {
             return configuration.GainedWhenMatcher.Matches(idleEngine);
+        }
+
+        public AchievementSnapshot GetSnapshot(IdleEngine engine)
+        {
+            return new AchievementSnapshot(AchievementKey, gained);
+        }
+
+        public void LoadFromSnapshot(AchievementSnapshot snapshot)
+        {
+            if(AchievementKey != snapshot.AchievementKey)
+            {
+                throw new InvalidOperationException("Tried to load snapshot for wrong achievement");
+            }
+            gained = snapshot.Gained;
         }
     }
 }

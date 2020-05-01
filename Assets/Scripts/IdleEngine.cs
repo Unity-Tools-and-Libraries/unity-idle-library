@@ -4,22 +4,29 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Text.RegularExpressions;
 using IdleFramework.Events;
+using System.Linq;
+using IdleFramework.UI.Components.Generators;
+using IdleFramework.UI.Components;
 
 namespace IdleFramework
 {
-    public class IdleEngine
+    public class IdleEngine : CanSnapshot<IdleEngineSnapshot>
     {
         private static readonly Logger logger = Logger.GetLogger();
         private float accruedTime;
+        private DateTime lastUpdateTime;
         private readonly EventManager events;
         private readonly GameConfiguration configuration;
         private readonly Dictionary<string, Entity> _allEntities = new Dictionary<string, Entity>();
+        private readonly Dictionary<string, List<Entity>> entitiesByType = new Dictionary<string, List<Entity>>();
         private readonly Dictionary<string, Entity> _resources = new Dictionary<string, Entity>();
+        private readonly IOfflinePolicy offlinePolicy;
+        private readonly UiGenerator uiGenerator = new UiGenerator();
 
         private readonly HookManager hooks;
 
         private readonly PropertyHolder globalProperties = new PropertyHolder();
-        
+
         private readonly Dictionary<string, Tutorial> tutorials = new Dictionary<string, Tutorial>();
         private readonly Dictionary<string, Achievement> achievements = new Dictionary<string, Achievement>();
 
@@ -63,14 +70,29 @@ namespace IdleFramework
                 tutorials.Add(tutorial.TutorialKey, new Tutorial(tutorial));
             }
             hooks = new HookManager(configuration.Hooks, this);
+            offlinePolicy = configuration.OfflinePolicy;
             setupAchievements();
             foreach (EntityDefinition entityDefinition in configuration.Entities.Values)
             {
                 Entity instance = new Entity(entityDefinition, this);
 
                 _allEntities.Add(entityDefinition.EntityKey, instance);
+                foreach (var type in entityDefinition.Types)
+                {
+                    List<Entity> entities;
+                    if (!entitiesByType.TryGetValue(type, out entities))
+                    {
+                        entities = new List<Entity>();
+                        entitiesByType.Add(type, entities);
+                    }
+                    entities.Add(instance);
+                }
             }
             setupEntities();
+            if (configuration.UiConfiguration != null)
+            {
+                setupUi(gameObject);
+            }
         }
 
         public void SetGlobalProperty(string propertyName, StringContainer value)
@@ -93,7 +115,7 @@ namespace IdleFramework
         public void SetGlobalProperty(string propertyName, MapContainer value)
         {
             globalProperties.Set(propertyName, value);
-        }        
+        }
         private void setupAchievements()
         {
             foreach (var achievementConfig in configuration.Achievements)
@@ -122,7 +144,7 @@ namespace IdleFramework
         private void setupEntity(Entity entityInstance)
         {
             var entityConfiguration = configuration.Entities[entityInstance.EntityKey];
-            foreach(var variant in entityInstance.Variants.Values)
+            foreach (var variant in entityInstance.Variants.Values)
             {
                 setupEntity(variant);
             }
@@ -139,7 +161,7 @@ namespace IdleFramework
 
         public NumberContainer GetGlobalNumberProperty(string property)
         {
-            if(!globalProperties.ContainsProperty(property))
+            if (!globalProperties.ContainsProperty(property))
             {
                 throw new MissingGlobalPropertyException(property);
             }
@@ -148,7 +170,7 @@ namespace IdleFramework
 
         public StringContainer GetGlobalStringProperty(string property)
         {
-            if(!globalProperties.ContainsProperty(property))
+            if (!globalProperties.ContainsProperty(property))
             {
                 throw new MissingGlobalPropertyException(property);
             }
@@ -175,13 +197,17 @@ namespace IdleFramework
             achievements.TryGetValue(achievementKey, out achievement);
             return achievement;
         }
-
+        public void BuyEntity(Entity gameEntity)
+        {
+            BuyEntity(gameEntity, 1, true);
+        }
         public void BuyEntity(Entity gameEntity, BigDouble quantityToBuy, bool buyAllOrNothing)
         {
             if (!gameEntity.IsAvailable)
             {
                 return;
             }
+            hooks.ExecuteBeforeBuyHooks(gameEntity);
             foreach (var resource in gameEntity.Costs)
             {
                 var maxPurchaseable = resource.Value == 0 ? quantityToBuy : BigDouble.Floor(_allEntities[resource.Key].Quantity / resource.Value * quantityToBuy);
@@ -200,6 +226,7 @@ namespace IdleFramework
             }
             if (quantityToBuy > 0)
             {
+                gameEntity.QuantityBought += quantityToBuy;
                 UpdateResourcesFromEntityPurchase(gameEntity, quantityToBuy);
             }
         }
@@ -286,8 +313,9 @@ namespace IdleFramework
          */
         public void Update(float deltaTime)
         {
+            lastUpdateTime = System.DateTime.UtcNow;
             accruedTime += deltaTime;
-            if (accruedTime > .1)
+            if(accruedTime >= .1f)
             {
                 doUpdate(accruedTime);
                 accruedTime = 0;
@@ -308,7 +336,7 @@ namespace IdleFramework
             }
             Dictionary<string, BigDouble> productionResult = DoEntityProduction(deltaTime);
             Dictionary<string, BigDouble> upkeepResult = DoEntityUpkeep(deltaTime, productionResult);
-            foreach(var entity in AllEntities.Values)
+            foreach (var entity in AllEntities.Values)
             {
                 var amountProduced = productionResult.ContainsKey(entity.EntityKey) ? productionResult[entity.EntityKey] : 0;
                 var upkeepAmount = upkeepResult.ContainsKey(entity.EntityKey) ? upkeepResult[entity.EntityKey] : 0;
@@ -354,17 +382,17 @@ namespace IdleFramework
                     quantitiesConsumed.TryGetValue(upkeep.Key, out previousValue);
                     quantitiesConsumed[upkeep.Key] = previousValue + quantityToConsume;
                 }
-                entity.Value.SetQuantity(quantitySupported);
+                entity.Value.SetQuantity(BigDouble.Min(quantitySupported, entity.Value.Quantity));
             }
             return quantitiesConsumed;
         }
 
         private Dictionary<string, BigDouble> DoEntityProduction(float deltaTime)
         {
-            return calculateProductionOutput();
+            return calculateProductionOutput(deltaTime);
         }
 
-        private Dictionary<string, BigDouble> calculateProductionOutput()
+        private Dictionary<string, BigDouble> calculateProductionOutput(float deltaTime)
         {
             Dictionary<string, BigDouble> outputs = new Dictionary<string, BigDouble>();
             foreach (var entityProducing in AllEntities.Values)
@@ -393,21 +421,21 @@ namespace IdleFramework
                 {
                     BigDouble currentValue;
                     outputs.TryGetValue(output.Key, out currentValue);
-                    var outputValue = output.Value;
+                    var outputValue = output.Value * deltaTime;
                     outputs[output.Key] = currentValue + (outputValue);
                 }
                 foreach (var output in entityProducing.ScaledOutputs)
                 {
                     BigDouble currentValue;
                     outputs.TryGetValue(output.Key, out currentValue);
-                    var outputValue = output.Value;
+                    var outputValue = output.Value * deltaTime;
                     outputs[output.Key] = currentValue + (outputValue * quantityAbleToProduce);
                 }
                 foreach (var input in entityProducing.FixedInputs)
                 {
                     BigDouble currentValue;
                     outputs.TryGetValue(input.Key, out currentValue);
-                    var inputValue = input.Value;
+                    var inputValue = input.Value * deltaTime;
 
                     outputs[input.Key] = currentValue - (inputValue);
                 }
@@ -415,7 +443,7 @@ namespace IdleFramework
                 {
                     BigDouble currentValue;
                     outputs.TryGetValue(input.Key, out currentValue);
-                    var inputValue = input.Value;
+                    var inputValue = input.Value * deltaTime;
 
                     outputs[input.Key] = currentValue - (inputValue * quantityAbleToProduce);
                 }
@@ -439,7 +467,7 @@ namespace IdleFramework
         private static Regex accessMatcher = new Regex(".+[(/.+)]");
         private void assertGlobalPropertyExists(string propertyName)
         {
-            if(!globalProperties.ContainsProperty(propertyName))
+            if (!globalProperties.ContainsProperty(propertyName))
             {
                 throw new InvalidOperationException(string.Format("Global property {0} does no exist", propertyName));
             }
@@ -447,11 +475,80 @@ namespace IdleFramework
 
         public Entity GetEntity(string entityKey)
         {
-            if(!AllEntities.ContainsKey(entityKey))
+            if (!AllEntities.ContainsKey(entityKey))
             {
                 throw new MissingEntityException(entityKey);
             }
             return AllEntities[entityKey];
+        }
+
+        public List<Entity> GetEntitiesWithType(string type)
+        {
+            List<Entity> entities;
+            if (!entitiesByType.TryGetValue(type, out entities))
+            {
+                entities = new List<Entity>();
+            }
+            return entities;
+        }
+
+        public IdleEngineSnapshot GetSnapshot(IdleEngine engine)
+        {
+            return new IdleEngineSnapshot(
+                AllEntities.Values.Select(e => e.GetSnapshot(engine)).ToList(),
+                achievements.Values.Select(a => a.GetSnapshot(engine)).ToList(),
+                globalProperties.GetSnapshot(engine),
+                lastUpdateTime
+                );
+        }
+
+        public void LoadFromSnapshot(IdleEngineSnapshot snapshot)
+        {
+            Logger.GetLogger().Trace("Loading engine state from snapshot");
+            if (snapshot == null)
+            {
+                return;
+            }
+            if (snapshot.Entities != null)
+            {
+                foreach (var entity in snapshot.Entities)
+                {
+                    if (AllEntities.ContainsKey(entity.EntityKey))
+                    {
+                        AllEntities[entity.EntityKey].LoadFromSnapshot(entity);
+                    }
+                }
+            }
+            if (snapshot.Achievements != null)
+            {
+                foreach (var achievement in snapshot.Achievements)
+                {
+                    if (achievements.ContainsKey(achievement.AchievementKey))
+                    {
+                        achievements[achievement.AchievementKey].LoadFromSnapshot(achievement);
+                    }
+                }
+            }
+            var now = System.DateTime.UtcNow;
+            var lastUpdate = snapshot.TimeSinceLastUpdate;
+            var timeToUpdate = now.Subtract(lastUpdate).TotalSeconds;
+
+            offlinePolicy.Apply(this, (float)timeToUpdate);
+        }
+
+        private void setupUi(GameObject root)
+        {
+            Canvas canvas;
+            if(!root.TryGetComponent<Canvas>(out canvas))
+            {
+                throw new InvalidOperationException("Tried to generate ui, however the component doesn't have a canvas.");
+            }
+            var rootTabs = uiGenerator.Generate(configuration.UiConfiguration, root, this);
+            rootTabs.transform.SetParent(root.transform);
+            RectTransform rt = (RectTransform)rootTabs.transform;
+            rt.anchoredPosition = Vector3.zero;
+            rt.offsetMin = Vector3.zero;
+            rt.offsetMax = Vector3.zero;
         }
     }
 }

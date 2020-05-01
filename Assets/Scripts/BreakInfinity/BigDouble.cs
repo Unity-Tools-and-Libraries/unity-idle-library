@@ -39,7 +39,7 @@ namespace BreakInfinity
         private double mantissa;
         private long exponent;
 #endif
-
+        [Newtonsoft.Json.JsonConstructor]
         public BigDouble(double mantissa, long exponent)
         {
             this.mantissa = mantissa;

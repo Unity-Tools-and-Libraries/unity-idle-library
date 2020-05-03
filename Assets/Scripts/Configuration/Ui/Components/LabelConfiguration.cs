@@ -6,9 +6,14 @@ namespace IdleFramework.Configuration.UI.Components
     {
         private readonly ValueContainer value;
 
-        public LabelConfiguration(string componentId, ValueContainer value) : base(componentId, Always.Instance)
+        public LabelConfiguration(ValueContainer value) : base("", Always.Instance)
         {
             this.value = value;
+        }
+
+        public LabelConfiguration(string value) : this(Literal.Of(value))
+        {
+            
         }
 
         public ValueContainer Value => value;

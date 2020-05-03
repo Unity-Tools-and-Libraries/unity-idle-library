@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace IdleFramework.Configuration.UI.Components
 {
@@ -8,7 +9,12 @@ namespace IdleFramework.Configuration.UI.Components
         protected LayoutConfigurationBuilder layout;
         protected List<UiComponentConfiguration> children = new List<UiComponentConfiguration>();
 
-        public PanelConfiguration(string componentId): base(componentId, Always.Instance)
+        public PanelConfiguration(string componentId, StateMatcher enabledWhen) : base(componentId, enabledWhen)
+        {
+            this.componentId = componentId;
+        }
+
+        public PanelConfiguration(string componentId): this(componentId, Always.Instance)
         {
             this.componentId = componentId;
         }
@@ -24,6 +30,7 @@ namespace IdleFramework.Configuration.UI.Components
             children.Add(child);
             return this;
         }
+
         public LayoutConfigurationBuilder Layout => layout;
         public List<UiComponentConfiguration> Children => children;
     }

@@ -18,6 +18,8 @@ namespace IdleFramework.UI.Components.Generators
 
             tabsComponentConfiguration.tabTitles = uiConfiguration.Tabs.Select(tc => tc.text).ToArray();
             tabsComponentConfiguration.tabContents = tabComponents.ToArray();
+
+            typeof(TabsComponent).GetField("engine", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).SetValue(tabsComponentConfiguration, engine);
             
             return tabsComponent;
         }

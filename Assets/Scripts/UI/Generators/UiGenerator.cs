@@ -1,4 +1,5 @@
-﻿using IdleFramework.Configuration.UI;
+﻿using Boo.Lang;
+using IdleFramework.Configuration.UI;
 using IdleFramework.Configuration.UI.Components;
 using System;
 using UnityEngine;
@@ -13,6 +14,7 @@ namespace IdleFramework.UI.Components.Generators
         private readonly PanelComponentGenerator panelGenerator = new PanelComponentGenerator();
         private readonly ButtonComponentGenerator buttonGenerator = new ButtonComponentGenerator();
         private readonly LabelComponentGenerator labelGenerator = new LabelComponentGenerator();
+        private readonly ListComponentGenerator listGenerator = new ListComponentGenerator();
 
         public GameObject Generate(UiComponentConfiguration uiConfiguration, GameObject root, IdleEngine engine)
         {
@@ -31,6 +33,10 @@ namespace IdleFramework.UI.Components.Generators
             else if (typeof(LabelConfiguration) == uiConfiguration.GetType())
             {
                 return labelGenerator.Generate((LabelConfiguration)uiConfiguration, root, engine);
+            }
+            else if (typeof(ListConfiguration) == uiConfiguration.GetType())
+            {
+                return listGenerator.Generate(uiConfiguration as ListConfiguration, root, engine);
             }
             else
             {

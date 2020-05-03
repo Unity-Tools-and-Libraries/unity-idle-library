@@ -62,12 +62,12 @@ public class SimpleClicker : MonoBehaviour
 
         gc.WithBeforeEntityBuyHook("*", (entity, engine) => { });
 
-        TabConfiguration mainTab = new TabConfiguration("main");
-        mainTab.WithText("Clicks")
+        TabConfiguration mainTab = new TabConfiguration("main", "Clicks");
+        mainTab
             .WithLayout(new HorizontalLayoutConfiguration())
             .WithChild(new PanelConfiguration("clicks")
                 .WithLayout(new VerticalLayoutConfiguration())
-                .WithChild(new LabelConfiguration("click-text", new FormattedString("{0} clicks", new EntityQuantityReference("clicks").AsFormattedString("G3"))))
+                .WithChild(new LabelConfiguration(new FormattedString("{0} clicks", new EntityQuantityReference("clicks").AsFormattedString("G3"))))
                 .WithChild(new ButtonConfiguration("click", "Click me!").OnClick(engine => engine.GetEntity("clicks").ChangeQuantity(1))))
             .WithChild(producersPanelConfiguration)
             .WithChild(upgradesPanelConfiguration);

@@ -4,11 +4,9 @@ using UnityEngine;
 
 namespace IdleFramework
 {
-    public interface ListContainer : ValueContainer, IEnumerable<ValueContainer>
+    public interface ListContainer : ValueContainer
     {
-        void Add(ValueContainer value);
         IList<ValueContainer> Get(IdleEngine engine);
-        bool Remove(ValueContainer value);
     }
 
     public static class ListContainerExtensions

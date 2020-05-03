@@ -18,25 +18,5 @@ namespace IdleFramework
         {
             return values;
         }
-
-        public void Add(ValueContainer value)
-        {
-            values.Add(value);
-        }
-
-        public bool Remove(ValueContainer value)
-        {
-            return values.Remove(value);
-        }
-
-        public IEnumerator<ValueContainer> GetEnumerator()
-        {
-            return values.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return values.GetEnumerator();
-        }
     }
 }

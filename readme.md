@@ -43,19 +43,19 @@ The following events within the engine exist and can have hooks associated with 
 
 ## I. Future Features
 * Metrics - Track meta information over the course of play
-* Minimum and maximum quantities - Set caps and floors on entity quantities
 * Tracking of property modifiers - For e.g. tooltips
 * Read-only views - So state can be queries without allowing for modification.
 * Actions which occur over a period of time - E.g. clicking to build something where it does not complete instantly.
 * Special entities for common mechanics
 	* Upgrades
 * UI Component generation framework
+	* Repeat List Component
+	* Spinner Component
 * Offline mechanics
 * Support for prestige mechanics
 * Auto-buy for entities.
-* Custom logging - Default Unity logging is barebones.
 * Web saving
 * Scheduled/random events
 * Event system
 * Entity production chains - define chains where entities feed into each other.
-* Random events
+* UI Components

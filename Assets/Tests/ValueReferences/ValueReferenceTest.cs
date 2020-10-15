@@ -24,6 +24,13 @@ namespace IdleFramework.Tests
         }
 
         [Test]
+        public void GettingNullAsBoolReturnsFalse()
+        {
+            Assert.IsFalse(new ValueReferenceDefinitionBuilder().WithStartingValue((string)null)
+                .Build().CreateValueReference(engine).ValueAsBool());
+        }
+
+        [Test]
         public void GettingNumberAsBool()
         {
             Assert.AreEqual(BigDouble.One, new ValueReferenceDefinitionBuilder()
@@ -159,6 +166,23 @@ namespace IdleFramework.Tests
 
             map["foo"].Set(BigDouble.One);
             Assert.AreEqual(3, watchListenerCalled);
+        }
+
+        [Test]
+        public void ValueReferenceEqualsComparesUnderlyingValue()
+        {
+            var ref1 = new ValueReferenceDefinitionBuilder().WithStartingValue(true).Build().CreateValueReference(engine);
+            var ref2 = new ValueReferenceDefinitionBuilder().WithStartingValue(true).Build().CreateValueReference(engine);
+            Assert.AreEqual(ref1, ref2);
+            var ref3 = new ValueReferenceDefinitionBuilder().WithStartingValue("true").Build().CreateValueReference(engine);
+            Assert.AreNotEqual(ref1, ref3);
+        }
+
+        [Test]
+        public void EqualsComparingValueReferenceToAnyOtherTypeAlwaysFalse()
+        {
+            var ref1 = new ValueReferenceDefinitionBuilder().WithStartingValue(true).Build().CreateValueReference(engine);
+            Assert.AreNotEqual(ref1, new Dictionary<string, string>());
         }
     }
 }

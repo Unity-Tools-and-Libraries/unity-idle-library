@@ -68,7 +68,8 @@ namespace IdleFramework
             if (other is ValueReference)
             {
                 ValueReference otherValueReference = other as ValueReference;
-                return otherValueReference.value == this.value;
+                return otherValueReference.value.GetType() == this.value.GetType() &&
+                    otherValueReference.value.Equals(this.value);
             }
             return false;
         }
@@ -77,10 +78,6 @@ namespace IdleFramework
 
         private static bool coerceToBool(object value)
         {
-            if (value == null)
-            {
-                return false;
-            }
             if (value is bool)
             {
                 return (bool)value;
@@ -116,10 +113,6 @@ namespace IdleFramework
 
         private static BigDouble coerceToNumber(object value)
         {
-            if (value == null)
-            {
-                return BigDouble.Zero;
-            }
             if (value is bool)
             {
                 return (bool)value ? BigDouble.One : BigDouble.Zero;
@@ -135,10 +128,6 @@ namespace IdleFramework
         }
         private static string coerceToString(object value)
         {
-            if (value == null)
-            {
-                return "";
-            }
             if (value is string)
             {
                 return (string)value;
@@ -147,7 +136,7 @@ namespace IdleFramework
         }
         private static IDictionary<string, ValueReference> coerceToMap(object value)
         {
-            if (value == null || value is BigDouble || value is string || value is bool)
+            if (value is BigDouble || value is string || value is bool)
             {
                 return null;
             }
@@ -162,7 +151,7 @@ namespace IdleFramework
 
         private void setInternal(object newValue)
         {
-            this.value = newValue;
+            this.value = newValue != null ? newValue : BigDouble.Zero;
             NotifyListeners(newValue);
         }
 
@@ -172,11 +161,6 @@ namespace IdleFramework
             {
                 Set(amountToAdd + (BigDouble)value);
             }
-        }
-
-        public void Set(ValueReference valueReference)
-        {
-            setInternal(valueReference.ValueAsRaw());
         }
 
         public void Set(BigDouble newValue) => setInternal(newValue);

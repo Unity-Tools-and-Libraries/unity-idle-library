@@ -52,6 +52,14 @@ namespace IdleFramework.Tests
                 .ValueAsBool());
         }
 
+        [Test]
+        public void CanImplicitlyConvertToBool()
+        {
+            Assert.IsTrue(new ValueReferenceDefinitionBuilder()
+                .WithStartingValue(true)
+                .Build().CreateValueReference(engine));
+        }
+
         // Number
         [Test]
         public void GettingNumberAsNumberReturnsAsIs()
@@ -77,6 +85,22 @@ namespace IdleFramework.Tests
                 new ValueReferenceDefinitionBuilder().WithStartingValue(new Dictionary<string, ValueReferenceDefinition>())
                 .Build().CreateValueReference(engine)
                 .ValueAsNumber());
+        }
+
+        [Test]
+        public void CanImplicitlyConvertToNumber()
+        {
+            Assert.AreEqual(BigDouble.One, (BigDouble)new ValueReferenceDefinitionBuilder()
+                .WithStartingValue(BigDouble.One)
+                .Build().CreateValueReference(engine));
+        }
+
+        [Test]
+        public void CanImplicitlyConvertToString()
+        {
+            Assert.AreEqual("true", (string)new ValueReferenceDefinitionBuilder()
+                .WithStartingValue("true")
+                .Build().CreateValueReference(engine));
         }
 
         [Test]
@@ -183,6 +207,22 @@ namespace IdleFramework.Tests
         {
             var ref1 = new ValueReferenceDefinitionBuilder().WithStartingValue(true).Build().CreateValueReference(engine);
             Assert.AreNotEqual(ref1, new Dictionary<string, string>());
+        }
+
+        [Test]
+        public void ToStringDescribesContents()
+        {
+            var mapReference = new ValueReferenceDefinitionBuilder().WithStartingValue(new Dictionary<string, ValueReferenceDefinition>()).Build().CreateValueReference(engine);
+            Assert.AreEqual("Reference(containing map)", mapReference.ToString());
+
+            var stringReference = new ValueReferenceDefinitionBuilder().WithStartingValue("string").Build().CreateValueReference(engine);
+            Assert.AreEqual("Reference(containing string)", stringReference.ToString());
+
+            var boolReference = new ValueReferenceDefinitionBuilder().WithStartingValue(true).Build().CreateValueReference(engine);
+            Assert.AreEqual("Reference(containing boolean)", boolReference.ToString());
+
+            var numberReference = new ValueReferenceDefinitionBuilder().WithStartingValue(BigDouble.One).Build().CreateValueReference(engine);
+            Assert.AreEqual("Reference(containing number)", numberReference.ToString());
         }
     }
 }

@@ -5,7 +5,7 @@ using IdleFramework.Exceptions;
 using NUnit.Framework;
 using System.Collections.Generic;
 
-namespace Tests
+namespace IdleFramework.Tests
 {
     public class IdleEngineTest
     {
@@ -14,89 +14,127 @@ namespace Tests
         [SetUp]
         public void setup()
         {
-            var configuration = new GameConfigurationBuilder()
-                .WithCustomGlobalProperty("multiplier", Literal.Of(1))
-                .WithEntity(new EntityDefinitionBuilder("food")
-                    .WithCustomBooleanProperty("is-food", true)
-                    .WithScaledOutput("food", 1)
-                    .WithStartingQuantity(1))
-                .WithEntity(new EntityDefinitionBuilder("bar")
-                    .WithScaledInput("food", 3)
-                    .WithStartingQuantity(1))
-                .WithEntity(new EntityDefinitionBuilder("withVariants")
-                    .WithFixedInput("food", 1)
-                    .WithFixedOutput("food", 1)
-                    .WithScaledInput("food", 1)
-                    .WithScaledOutput("food", 1)
-                    .WithVariant(new EntityDefinitionBuilder("variant-1")
-                        .WithFixedInput("food", 2)
-                        .WithFixedOutput("food", 2)
-                        .WithScaledInput("food", 2)
-                        .WithScaledOutput("food", 2)
-                    )
-                    )
-                .WithAchievement(new AchievementConfigurationBuilder("achievement").GainedWhen(new EntityBooleanPropertyMatcher("food", "Enabled", true)))
-                .Build();
+            var configuration = new EngineConfiguration();
+            configuration.DeclareGlobalProperty("globalBoolean", true);
+            configuration.DeclareGlobalProperty("globalBooleanNoStartingValue");
+
+            configuration.DeclareGlobalProperty("globalNumber", BigDouble.One);
+            configuration.DeclareGlobalProperty("globalNumberNoStartingValue");
+
+            configuration.DeclareGlobalProperty("globalString", "startingValue");
+            configuration.DeclareGlobalProperty("globalStringNoStartingValue");
+
+            configuration.DeclareGlobalProperty("globalMapNoStartingValue");
+            configuration.DeclareGlobalProperty("globalMap", new Dictionary<string, ValueReferenceDefinition>()
+            {
+                { "foo", new ValueReferenceDefinitionBuilder().WithStartingValue("bar").Build() }
+            });
+
+            configuration.DeclareGlobalProperty("incrementingNumberValue",
+                new ValueReferenceDefinitionBuilder().WithUpdater((engine, parent, deltaTime, currentValue) =>
+                {
+                    return (BigDouble)currentValue + BigDouble.One;
+                })
+                .Build());
+
             engine = new IdleEngine(configuration, null);
+        }
+
+        [Test]
+        public void TryingToGetOrCreateAnEntityWithAnUndefinedTypeThrowsAnException()
+        {
+            Assert.Throws<UndefinedEntityException>(() => engine.GetOrCreateEntity("entity"));
+        }
+
+        [Test]
+        public void TryingToGetUndeclaredGlobalPropertyThrowsAnException()
+        {
+            Assert.Throws<UndefinedPropertyException>(() =>
+            {
+                engine.GetGlobalProperty("boolean");
+            });
+        }
+
+        [Test]
+        public void TryingToGetDeclaredGlobalPropertyReturnsReferenceToThatProperty()
+        {
+            var propertyReference = engine.GetGlobalProperty("globalBoolean");
+            Assert.NotNull(propertyReference);
+        }
+
+        // Global properties
+        [Test]
+        public void BooleanGlobalPropertyWithDefaultReturnsThatDefault()
+        {
+            ValueReference propertyReference = engine.GetGlobalProperty("globalBoolean");
+            Assert.IsTrue(propertyReference.ValueAsBool());
+        }
+
+        [Test]
+        public void BooleanGlobalPropertyWithNoDefaultStartsFalse()
+        {
+            ValueReference propertyReference = engine.GetGlobalProperty("globalBooleanNoStartingValue");
+            Assert.IsFalse(propertyReference.ValueAsBool());
+        }
+
+        [Test]
+        public void NumberGlobalPropertyWithDefaultReturnsThatDefault()
+        {
+            ValueReference propertyReference = engine.GetGlobalProperty("globalNumber");
+            Assert.AreEqual(BigDouble.One, propertyReference.ValueAsNumber());
+        }
+
+        [Test]
+        public void NumberGlobalPropertyWithNoDefaultReturnsZero()
+        {
+            ValueReference propertyReference = engine.GetGlobalProperty("globalNumberNoStartingValue");
+            Assert.AreEqual(BigDouble.Zero, propertyReference.ValueAsNumber());
+        }
+
+        [Test]
+        public void StringGlobalPropertyWithNoDefaultReturnsZeroString()
+        {
+            ValueReference propertyReference = engine.GetGlobalProperty("globalStringNoStartingValue");
+            Assert.AreEqual("0", propertyReference.ValueAsString());
+        }
+
+        [Test]
+        public void StringGlobalPropertyWithNoDefaultReturnsDefault()
+        {
+            ValueReference propertyReference = engine.GetGlobalProperty("globalString");
+            Assert.AreEqual("startingValue", propertyReference.ValueAsString());
+        }
+
+        [Test]
+        public void MapGlobalPropertyWithNoDefaultReturnsEmpty()
+        {
+            ValueReference propertyReference = engine.GetGlobalProperty("globalMapNoStartingValue");
+            Assert.AreEqual(null, propertyReference.ValueAsMap());
+        }
+
+        [Test]
+        public void MapGlobalPropertyWithDefaultReturnsDefault()
+        {
+            ValueReference propertyReference = engine.GetGlobalProperty("globalMap");
+            var expected = new Dictionary<string, ValueReference>() {
+                {"foo",
+                    new ValueReferenceDefinitionBuilder().WithStartingValue("bar").Build().CreateValueReference(engine) }
+                };
+            Assert.AreEqual(expected,
+                propertyReference.ValueAsMap());
+        }
+
+        [Test]
+        public void CallingUpdateOnEngineCallsUpdateOnAllValues()
+        {
+            ValueReference propertyReference = engine.GetGlobalProperty("incrementingNumberValue");
+            int listenerCalled = 0;
+            propertyReference.Watch(v =>
+            {
+                listenerCalled++;
+            });
             engine.Update(1f);
+            Assert.AreEqual(2, listenerCalled);
         }
-
-        [Test]
-        public void EngineAddsEntitiesFromConfiguration()
-        {
-            Assert.AreEqual(3, engine.AllEntities.Count);
-        }
-
-        [Test]
-        public void EngineThrowsExceptionWhenReferencingMissingGlobalNumberProperty() {
-            Assert.Throws(typeof(MissingGlobalPropertyException), () =>
-            {
-                engine.GetGlobalNumberProperty("fake");
-            });
-        }
-
-        [Test]
-        public void EngineThrowsExceptionWhenReferencingMissingGlobalStringProperty()
-        {
-            Assert.Throws(typeof(MissingGlobalPropertyException), () =>
-            {
-                engine.GetGlobalStringProperty("fake");
-            });
-        }
-
-        [Test]
-        public void EngineThrowsExceptionWhenReferencingMissingGlobalBooleanProperty()
-        {
-            Assert.Throws(typeof(MissingGlobalPropertyException), () =>
-            {
-                engine.GetGlobalBooleanProperty("fake");
-            });
-        }
-
-        [Test]
-        public void EngineCanTriggerAchievements()
-        {
-            Assert.AreEqual(true, engine.GetAchievement("achievement").IsActive);
-        }
-
-        [Test]
-        public void EngineSetupsEntityVariants()
-        {
-            Entity variant = engine.GetEntity("withVariants").GetVariant("variant-1");
-            var expected = new Dictionary<string, BigDouble>() {
-                { "food",           2 },
-                { "bar",            0 },
-                { "withVariants",   0 }
-            };
-            foreach(var expectedEntry in expected)
-            {
-                Assert.AreEqual(expectedEntry.Value, variant.ScaledInputs[expectedEntry.Key]);
-                Assert.AreEqual(expectedEntry.Value, variant.ScaledOutputs[expectedEntry.Key]);
-                Assert.AreEqual(expectedEntry.Value, variant.FixedInputs[expectedEntry.Key]);
-                Assert.AreEqual(expectedEntry.Value, variant.FixedOutputs[expectedEntry.Key]);
-            }
-        }
-
     }
-
 }

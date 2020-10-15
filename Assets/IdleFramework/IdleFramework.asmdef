@@ -1,0 +1,15 @@
+{
+    "name": "IdleFramework",
+    "references": [
+        "GUID:2de031da923ca924193b49b9fabfe9d5"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

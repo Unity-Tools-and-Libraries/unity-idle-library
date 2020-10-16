@@ -155,14 +155,6 @@ namespace IdleFramework
             NotifyListeners(newValue);
         }
 
-        public void Add(BigDouble amountToAdd)
-        {
-            if (value is BigDouble)
-            {
-                Set(amountToAdd + (BigDouble)value);
-            }
-        }
-
         public void Set(BigDouble newValue) => setInternal(newValue);
 
         public void Set(string newValue) => setInternal(newValue);

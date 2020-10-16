@@ -140,7 +140,7 @@ namespace IdleFramework
             {
                 return null;
             }
-            return value as ParentNotifyingMap;
+            return value as IDictionary<string, ValueReference>;
         }
 
         public void Watch(Action<object> listener)
@@ -209,10 +209,6 @@ namespace IdleFramework
             else if (this.value is IDictionary<string, ValueReference>)
             {
                 valueType = "map";
-            }
-            else if (this.value == null)
-            {
-                valueType = "nothing";
             }
             return string.Format("Reference(containing {0})", valueType);
         }

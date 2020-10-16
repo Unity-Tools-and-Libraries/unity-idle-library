@@ -224,5 +224,39 @@ namespace IdleFramework.Tests
             var numberReference = new ValueReferenceDefinitionBuilder().WithStartingValue(BigDouble.One).Build().CreateValueReference(engine);
             Assert.AreEqual("Reference(containing number)", numberReference.ToString());
         }
+
+        [Test]
+        public void CanSetTheValueContainedByAReferenceToANumber()
+        {
+            var reference = new ValueReferenceDefinitionBuilder().WithStartingValue(BigDouble.One).Build().CreateValueReference(engine);
+            reference.Set(new BigDouble(2));
+            Assert.AreEqual(reference.ValueAsNumber(), new BigDouble(2));
+        }
+
+        [Test]
+        public void CanSetTheValueContainedByAReferenceToAString()
+        {
+            var reference = new ValueReferenceDefinitionBuilder().WithStartingValue("oldString").Build().CreateValueReference(engine);
+            reference.Set("newString");
+            Assert.AreEqual(reference.ValueAsString(), "newString");
+        }
+
+        [Test]
+        public void CanSetTheValueContainedByAReferenceToAMap()
+        {
+            var initialDictionary = new Dictionary<string, ValueReferenceDefinition>();
+            var reference = new ValueReferenceDefinitionBuilder().WithStartingValue(initialDictionary).Build().CreateValueReference(engine);
+            var newDictionary = new Dictionary<string, ValueReference>();
+            reference.Set(newDictionary);
+            Assert.AreEqual(reference.ValueAsMap(), newDictionary);
+        }
+
+        [Test]
+        public void CanSetTheValueContainedByAReferenceToABool()
+        {
+            var reference = new ValueReferenceDefinitionBuilder().WithStartingValue(true).Build().CreateValueReference(engine);
+            reference.Set(false);
+            Assert.IsFalse(reference.ValueAsBool());
+        }
     }
 }

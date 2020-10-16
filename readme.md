@@ -3,6 +3,8 @@ This package provides a framework for the creation of idle/incremental games in 
 
 Currently, it consists of a backend engine which implements the logic and rules; you are responsible for creating the UI and wiring it to the engine.
 
+![Coverage](/CodeCoverage/Report/badge_linecoverage.png?raw=true)
+
 ## 2. Quickstart
 Here are some simple instructions to get you started.
 
@@ -21,17 +23,6 @@ To unconditionally change the amount of a resource, get the entity via `GetEntit
 To unconditionally set the amount of a resource, use `SetQuantity` instead of `ChangeQuantity`.
 
 To buy more of a resource while spending resources, call `Buy` on the entity. Buying differs from Change and Set in that it checks for if the costs and requirements are met.
-
-## 3. Entities
-Entities are the primary "things" that the player will use to achieve their ends in the game.
-
-Normal entities are things which the player will accrue in large numbers. For example, in a "Civilization" type game the resources the player gains, such as food, gold, research, etc. would all be "normal entities".
-
-## 4. Hooks
-Hooks provide a standardized interface for a developer to customize fundamental elements of how the engine works and watch for when things occur within the engine.
-
-The following events within the engine exist and can have hooks associated with them:
-* Entity Production
 
 ## I. Future Features
 * Metrics - Track meta information over the course of play

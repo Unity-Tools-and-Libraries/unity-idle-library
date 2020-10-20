@@ -1,7 +1,9 @@
 ﻿using BreakInfinity;
 using IdleFramework.Configuration;
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
 using System.Collections.Generic;
+using System.Xml.Schema;
 
 namespace IdleFramework.Tests
 {
@@ -257,6 +259,95 @@ namespace IdleFramework.Tests
             var reference = new ValueReferenceDefinitionBuilder().WithStartingValue(true).Build().CreateValueReference(engine);
             reference.Set(false);
             Assert.IsFalse(reference.ValueAsBool());
+        }
+
+        [Test]
+        public void TheStateOfAValueReferenceContainingABoolCanBeSaved()
+        {
+            var reference = new ValueReferenceDefinitionBuilder().WithStartingValue(true).Build().CreateValueReference(engine);
+            var serialized = reference.GetSnapshot();
+            Assert.AreEqual(new ValueReference.Snapshot("1", true), serialized);
+        }
+
+        [Test]
+        public void TheStateOfAValueReferenceContainingANumerCanBeSaved()
+        {
+            var reference = new ValueReferenceDefinitionBuilder().WithStartingValue(new BigDouble(100)).Build().CreateValueReference(engine);
+            var serialized = reference.GetSnapshot();
+            Assert.AreEqual(new ValueReference.Snapshot("1", new BigDouble(100)), serialized);
+        }
+
+        [Test]
+        public void TheStateOfAValueReferenceContainingAStringCanBeSaved()
+        {
+            var reference = new ValueReferenceDefinitionBuilder().WithStartingValue("astring").Build().CreateValueReference(engine);
+            var serialized = reference.GetSnapshot();
+            Assert.AreEqual(serialized.value, "astring");
+            Assert.AreEqual(serialized.internalId, reference.Id);
+        }
+
+        [Test]
+        public void TheStateOfAValueReferenceContainingADictionaryCanBeSaved()
+        {
+            var reference = new ValueReferenceDefinitionBuilder().WithStartingValue(new Dictionary<string, ValueReferenceDefinition>()).Build().CreateValueReference(engine);
+            var serialized = reference.GetSnapshot();
+            Assert.AreEqual(serialized, new ValueReference.Snapshot("1", new Dictionary<string, ValueReference.Snapshot>()));
+        }
+
+        [Test]
+        public void TheStateOfAValueReferenceContainingAStringCanBeRecursivelySaved()
+        {
+            var reference = new ValueReferenceDefinitionBuilder().WithStartingValue(new Dictionary<string, ValueReferenceDefinition>()
+            {
+                { "string", "aString" },
+                { "number", new BigDouble(100) },
+                { "bool", true },
+                { "map", new Dictionary<string, ValueReferenceDefinition>() {
+                    { "nestedString", "string" },
+                    { "nestedNumber", new BigDouble(10) },
+                    { "nestedBool", true }
+                }}
+            }).Build().CreateValueReference(engine);
+            var serialized = reference.GetSnapshot();
+            Assert.AreEqual(new Dictionary<string, ValueReference.Snapshot>()
+            {
+                { "string", new ValueReference.Snapshot("1", "aString") },
+                { "number", new ValueReference.Snapshot("2", new BigDouble(100)) },
+                { "bool", new ValueReference.Snapshot("3", true) },
+                {
+                    "map", new ValueReference.Snapshot("7", new Dictionary<string, ValueReference.Snapshot>()
+                    {
+                        { "nestedString", new ValueReference.Snapshot("4", "string") },
+                        { "nestedNumber", new ValueReference.Snapshot("5", new BigDouble(10)) },
+                        { "nestedBool", new ValueReference.Snapshot("6", true) }
+                    })
+                }
+            }, serialized.value);
+            Assert.AreEqual(serialized.internalId, reference.Id);
+        }
+
+        [Test]
+        public void TheStateOfAValueReferenceCanBeRestoredFromABooleanSnapshot()
+        {
+            var reference = new ValueReferenceDefinitionBuilder().Build().CreateValueReference(engine);
+            reference.RestoreFromSnapshot(engine, new ValueReference.Snapshot("1", true));
+            Assert.AreEqual(true, reference.ValueAsBool());
+        }
+
+        [Test]
+        public void TheStateOfAValueReferenceCanBeRestoredFromANumberSnapshot()
+        {
+            var reference = new ValueReferenceDefinitionBuilder().Build().CreateValueReference(engine);
+            reference.RestoreFromSnapshot(engine, new ValueReference.Snapshot("1", new BigDouble(11)));
+            Assert.AreEqual(new BigDouble(11), reference.ValueAsNumber());
+        }
+
+        [Test]
+        public void TheStateOfAValueReferenceCanBeRestoredFromAMapSnapshot()
+        {
+            var reference = new ValueReferenceDefinitionBuilder().Build().CreateValueReference(engine);
+            reference.RestoreFromSnapshot(engine, new ValueReference.Snapshot("1", new Dictionary<string, ValueReference.Snapshot>()));
+            Assert.AreEqual(new Dictionary<string, ValueReference>(), reference.ValueAsMap());
         }
     }
 }

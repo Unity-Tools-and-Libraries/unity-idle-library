@@ -8,15 +8,16 @@ namespace IdleFramework
 {
     public class ParentNotifyingMap : IDictionary<string, ValueReference>, Watchable
     {
+        private IdleEngine engine;
         private Dictionary<string, ValueReference> underlying = new Dictionary<string, ValueReference>();
         private List<Action<object>> listeners = new List<Action<object>>();
 
-        internal ParentNotifyingMap(): this(null)
+        internal ParentNotifyingMap(IdleEngine engine): this(engine, null)
         {
             
         }
 
-        internal ParentNotifyingMap(IDictionary<string, ValueReference> other)
+        internal ParentNotifyingMap(IdleEngine engine, IDictionary<string, ValueReference> other)
         {
             if (other != null)
             {
@@ -25,6 +26,7 @@ namespace IdleFramework
             {
                 underlying = new Dictionary<string, ValueReference>();
             }
+            this.engine = engine;
         }
         public ValueReference this[string key]
         {
@@ -34,6 +36,7 @@ namespace IdleFramework
                 if(!underlying.TryGetValue(key, out existing))
                 {
                     existing = new ValueReference();
+                    engine.RegisterReference(existing);
                     underlying[key] = existing;
                     existing.Watch(x => NotifyListeners());
                 }

@@ -78,7 +78,13 @@ namespace IdleFramework
 
         internal void RegisterReference(ValueReference newReference)
         {
+            newReference.Id = (references.Count() + 1).ToString();
             references.Add(newReference.Id, newReference);
+        }
+
+        internal ValueReference GetReferenceById(string internalId)
+        {
+            return references[internalId];
         }
     }
 }

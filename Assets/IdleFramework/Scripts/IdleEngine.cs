@@ -8,12 +8,16 @@ using UnityEditor.Graphs;
 using UnityEngine;
 namespace IdleFramework
 {
-    public class IdleEngine
+    public class IdleEngine : EventSource
     {
         private Dictionary<string, ValueReference> references = new Dictionary<string, ValueReference>();
         private Dictionary<string, ValueReference> globalProperties = new Dictionary<string, ValueReference>();
+        private Dictionary<string, List<Action<object>>> listeners = new Dictionary<string, List<Action<object>>>();
+        public Dictionary<string, List<Action<object>>> EventListeners => listeners;
+
+
         /*
-         * Attempts to create a new instance
+         * * Attempts to create a new instance
          */
         public void GetOrCreateEntity(string entityType)
         {
@@ -38,11 +42,11 @@ namespace IdleFramework
             }
             return properties;
         }
-        
+
 
         public ValueReference GetGlobalProperty(string property)
         {
-            if(!globalProperties.ContainsKey(property))
+            if (!globalProperties.ContainsKey(property))
             {
                 throw new UndefinedPropertyException(property, "global properties");
             }
@@ -52,7 +56,7 @@ namespace IdleFramework
         public void Update(float deltaTime)
         {
             ClearUpdateFlags();
-            foreach(var reference in references)
+            foreach (var reference in references)
             {
                 reference.Value.Update(this, deltaTime);
             }
@@ -62,7 +66,7 @@ namespace IdleFramework
         private void AssertAllEntitiesUpdated()
         {
             int unupdatedRefsCount = references.Values.Where(x => !x.UpdatedThisTick).Count();
-            if(unupdatedRefsCount > 0)
+            if (unupdatedRefsCount > 0)
             {
                 Debug.LogError(string.Format("{0} ref failed to update this tick.", unupdatedRefsCount));
             }
@@ -70,7 +74,7 @@ namespace IdleFramework
 
         private void ClearUpdateFlags()
         {
-            foreach(var reference in references.ToList())
+            foreach (var reference in references.ToList())
             {
                 reference.Value.ClearUpdatedFlag();
             }
@@ -85,6 +89,16 @@ namespace IdleFramework
         internal ValueReference GetReferenceById(string internalId)
         {
             return references[internalId];
+        }
+
+        public void Subscribe(string eventName, Action<object> listener)
+        {
+            List<Action<object>> eventListeners;
+            if(!listeners.TryGetValue(eventName, out eventListeners)) {
+                eventListeners = new List<Action<object>>();
+                listeners[eventName] = eventListeners;
+            }
+            eventListeners.Add(listener);
         }
     }
 }

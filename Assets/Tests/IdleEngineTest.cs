@@ -136,5 +136,11 @@ namespace IdleFramework.Tests
             engine.Update(1f);
             Assert.AreEqual(2, listenerCalled);
         }
+
+        [Test]
+        public void CanSubscribeToEvents()
+        {
+            engine.Subscribe("customEvent", arg => { });
+        }
     }
 }

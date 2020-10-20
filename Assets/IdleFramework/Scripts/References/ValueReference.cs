@@ -9,13 +9,13 @@ namespace IdleFramework
      * Wraps a value. Allows subscribing to watch for value changes
      */
     // TODO: Implement automatic conversion from this to basic type.
-    public class ValueReference : Watchable, CanSnapshot<ValueReference.Snapshot>
+    public class ValueReference : Watchable, CanSnapshot<ValueReference.Snapshot>, EventSource
     {
         private string internalId;
         private object value;
         private ValueReference containingReference;
         private Func<IdleEngine, ValueReference, float, object, object> updater;
-        private List<Action<object>> listeners = new List<Action<object>>();
+        private Dictionary<string, List<Action<object>>> eventListeners = new Dictionary<string, List<Action<object>>>();
         private bool updatedThisTick = false;
         private Action<IdleEngine, float, object> postUpdateHook;
 
@@ -46,13 +46,15 @@ namespace IdleFramework
             this.value = startingValue != null ? startingValue : BigDouble.Zero;
             if (startingValue is ParentNotifyingMap)
             {
-                ((ParentNotifyingMap)startingValue).Watch(x => NotifyListeners(value));
+                ((ParentNotifyingMap)startingValue).Watch(x => NotifyListeners(Events.VALUE_CHANGED, value));
             }
             this.updater = updater;
             this.postUpdateHook = postUpdateHook;
         }
 
         internal bool UpdatedThisTick => updatedThisTick;
+
+        public Dictionary<string, List<Action<object>>> EventListeners => eventListeners;
 
         public bool ValueAsBool()
         {
@@ -110,7 +112,7 @@ namespace IdleFramework
             if (this.updater != null)
             {
                 value = this.updater.Invoke(engine, containingReference, deltaTime, value);
-                NotifyListeners(value);
+                NotifyListeners(Events.VALUE_CHANGED, value);
             }
             if (this.value is IDictionary<string, ValueReference>)
             {
@@ -162,14 +164,14 @@ namespace IdleFramework
 
         public void Watch(Action<object> listener)
         {
-            listeners.Add(listener);
+            Subscribe(Events.VALUE_CHANGED, listener);
             listener.Invoke(value);
         }
 
         private void setInternal(object newValue)
         {
             this.value = newValue != null ? newValue : BigDouble.Zero;
-            NotifyListeners(newValue);
+            NotifyListeners(Events.VALUE_CHANGED, newValue);
         }
 
         public void Set(BigDouble newValue) => setInternal(newValue);
@@ -180,11 +182,15 @@ namespace IdleFramework
 
         public void Set(Dictionary<string, ValueReference> newValue) => setInternal(newValue);
 
-        private void NotifyListeners(object newValue)
+        private void NotifyListeners(string eventName, object newValue)
         {
-            foreach (var listener in listeners.ToArray())
+            List<Action<Object>> listeners;
+            if(eventListeners.TryGetValue(eventName, out listeners))
             {
-                listener.Invoke(newValue);
+                foreach (var listener in listeners.ToArray())
+                {
+                    listener.Invoke(newValue);
+                }
             }
         }
 
@@ -257,6 +263,17 @@ namespace IdleFramework
             }
         }
 
+        public void Subscribe(string eventName, Action<object> listener)
+        {
+            List<Action<object>> listeners;
+            if(!eventListeners.TryGetValue(eventName, out listeners))
+            {
+                listeners = new List<Action<object>>();
+                eventListeners[eventName] = listeners;
+            }
+            listeners.Add(listener);
+        }
+
         public class Snapshot
         {
             public readonly string internalId;
@@ -299,6 +316,11 @@ namespace IdleFramework
             {
                 return internalId.GetHashCode() ^ value.GetHashCode();
             }
+        }
+
+        public static class Events
+        {
+            public static readonly string VALUE_CHANGED = "valueChanged";
         }
     }
 }

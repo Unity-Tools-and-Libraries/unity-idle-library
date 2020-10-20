@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace IdleFramework
 {
@@ -10,27 +9,39 @@ namespace IdleFramework
      * Wraps a value. Allows subscribing to watch for value changes
      */
     // TODO: Implement automatic conversion from this to basic type.
-    public class ValueReference : Watchable
+    public class ValueReference : Watchable, CanSnapshot<ValueReference.Snapshot>
     {
-        private static int nextId = 1;
         private string internalId;
         private object value;
         private ValueReference containingReference;
         private Func<IdleEngine, ValueReference, float, object, object> updater;
         private List<Action<object>> listeners = new List<Action<object>>();
         private bool updatedThisTick = false;
+        private Action<IdleEngine, float, object> postUpdateHook;
 
-        public string Id => internalId;
-
-        internal ValueReference() : this(null, null) { }
-        internal ValueReference(ValueReference containingReference) : this(containingReference, null, null) { }
-        internal ValueReference(ValueReference containingReference, object startingValue) : this(containingReference, startingValue, null)
+        public string Id
         {
+            get => internalId;
+            set {
+                if(internalId != null)
+                {
+                    throw new InvalidOperationException("Can't reassign internalId");
+                }
+                internalId = value;
+            }
+        }
+        internal ValueReference() : this(null, null, null, null)
+        {
+
         }
 
-        internal ValueReference(ValueReference containingReference, object startingValue, Func<IdleEngine, ValueReference, float, object, object> updater)
+        internal ValueReference(ValueReference containingReference, object startingValue, Action<IdleEngine, float, object> postUpdateHook) : this(containingReference, startingValue, null, postUpdateHook)
         {
-            this.internalId = nextId++.ToString();
+
+        }
+
+        internal ValueReference(ValueReference containingReference, object startingValue, Func<IdleEngine, ValueReference, float, object, object> updater, Action<IdleEngine, float, object> postUpdateHook)
+        {
             this.containingReference = containingReference;
             this.value = startingValue != null ? startingValue : BigDouble.Zero;
             if (startingValue is ParentNotifyingMap)
@@ -38,6 +49,7 @@ namespace IdleFramework
                 ((ParentNotifyingMap)startingValue).Watch(x => NotifyListeners(value));
             }
             this.updater = updater;
+            this.postUpdateHook = postUpdateHook;
         }
 
         internal bool UpdatedThisTick => updatedThisTick;
@@ -107,6 +119,7 @@ namespace IdleFramework
                     child.Value.Update(engine, deltaTime);
                 }
             }
+            postUpdateHook?.Invoke(engine, deltaTime, value);
         }
 
         internal void ClearUpdatedFlag() => updatedThisTick = false;
@@ -139,6 +152,10 @@ namespace IdleFramework
             if (value is BigDouble || value is string || value is bool)
             {
                 return null;
+            }
+            if(!(value is IDictionary<string, ValueReference>))
+            {
+                throw new InvalidOperationException(string.Format("Failed to coerce a value of type {0} to IDictionary<string, ValueReference>.", value.GetType()));
             }
             return value as IDictionary<string, ValueReference>;
         }
@@ -211,6 +228,77 @@ namespace IdleFramework
                 valueType = "map";
             }
             return string.Format("Reference(containing {0})", valueType);
+        }
+
+        public Snapshot GetSnapshot()
+        {
+            return new Snapshot(internalId, value);
+        }
+
+        public void RestoreFromSnapshot(IdleEngine engine, Snapshot snapshot)
+        {
+            if(internalId != snapshot.internalId)
+            {
+                throw new InvalidOperationException("The internalId of the snapshot and this reference don't match");
+            }
+            if (snapshot.value is IDictionary<string, ValueReference.Snapshot>)
+            {
+                setInternal(((IDictionary<string, ValueReference.Snapshot>)snapshot.value)
+                    .ToDictionary(e => e.Key, e =>
+                    {
+                        var existingReference = engine.GetReferenceById(e.Value.internalId);
+                        existingReference.RestoreFromSnapshot(engine, e.Value);
+                        return existingReference;
+                    }));
+            }
+            else
+            {
+                setInternal(snapshot.value);
+            }
+        }
+
+        public class Snapshot
+        {
+            public readonly string internalId;
+            public readonly object value;
+            public Snapshot(string internalId, object value)
+            {
+                this.internalId = internalId;
+                if (value is ParentNotifyingMap)
+                {
+                    this.value = ((IDictionary<string, ValueReference>)value).ToDictionary(e => e.Key,
+                        e => e.Value.GetSnapshot()
+                    );
+                } else {
+                    this.value = value;
+                }
+            }
+
+            public override string ToString()
+            {
+                return string.Format(@"{{{0}, {1}}}", internalId, value.ToString());
+            }
+
+            public override bool Equals(object obj)
+            {
+                if(!(obj is Snapshot))
+                {
+                    return false;
+                }
+                Snapshot other = obj as Snapshot;
+                bool sameId = String.Equals(other.internalId, internalId);
+                bool valueSameType = value.GetType() == other.value.GetType();
+                bool sameValue = value is IDictionary<string, ValueReference.Snapshot> ?
+                    (value as IDictionary<string, ValueReference.Snapshot>).SequenceEqual((other.value as IDictionary<string, ValueReference.Snapshot>)) :
+                    object.Equals(value, other.value);
+
+                return sameId && valueSameType && sameValue;
+            }
+
+            public override int GetHashCode()
+            {
+                return internalId.GetHashCode() ^ value.GetHashCode();
+            }
         }
     }
 }

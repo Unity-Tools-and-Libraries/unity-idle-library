@@ -2,6 +2,7 @@
 using IdleFramework;
 using IdleFramework.Configuration;
 using NUnit.Framework;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -66,6 +67,22 @@ namespace IdleFramework.Tests
         {
             ValueReferenceDefinition def = new Dictionary<string, ValueReferenceDefinition>();
             Assert.IsNotNull(def);
+        }
+
+        [Test]
+        public void CanDefineAPostUpdateHook()
+        {
+            bool hookCalled = false;
+            Action<IdleEngine, float, object> hook = (engine, deltaTime, newValue) =>
+            {
+                hookCalled = true;
+            };
+            ValueReference reference = new ValueReferenceDefinitionBuilder()
+                .WithPostUpdateHook(hook)
+                .Build().CreateValueReference(engine);
+            reference.Update(engine, 0);
+
+            Assert.IsTrue(hookCalled);
         }
     }
 }

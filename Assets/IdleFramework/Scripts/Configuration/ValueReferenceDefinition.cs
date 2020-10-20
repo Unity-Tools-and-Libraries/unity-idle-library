@@ -13,10 +13,15 @@ namespace IdleFramework.Configuration
     {
         private object startingValue;
         private Func<IdleEngine, ValueReference, float, object, object> updater;
-        internal ValueReferenceDefinition(object startingValue, Func<IdleEngine, ValueReference, float, object, object> updater)
+        private Action<IdleEngine, float, object> postUpdateHook;
+
+        internal ValueReferenceDefinition(object startingValue, 
+            Func<IdleEngine, ValueReference, float, object, object> updater,
+            Action<IdleEngine, float, object> postUpdateHook)
         {
             this.startingValue = startingValue;
             this.updater = updater;
+            this.postUpdateHook = postUpdateHook;
         }
         public ValueReference CreateValueReference(IdleEngine engine)
         {
@@ -31,8 +36,8 @@ namespace IdleFramework.Configuration
             }
             if (HasChildValues) // Recursively create child references
             {
-                var mapValues = new ParentNotifyingMap();
-                var mapReference = new ValueReference(containingReference, mapValues);
+                var mapValues = new ParentNotifyingMap(engine);
+                var mapReference = new ValueReference(containingReference, mapValues, postUpdateHook);
                 foreach (var entry in StartingValue as Dictionary<string, ValueReferenceDefinition>)
                 {
                     mapValues[entry.Key] = entry.Value.CreateValueReference(engine, mapReference);
@@ -40,7 +45,7 @@ namespace IdleFramework.Configuration
                 engine.RegisterReference(mapReference);
                 return mapReference;
             }
-            var newReference = new ValueReference(containingReference, startingValue, updater); ;
+            var newReference = new ValueReference(containingReference, startingValue, updater, postUpdateHook); ;
             engine.RegisterReference(newReference);
             return newReference;
         }
@@ -77,18 +82,24 @@ namespace IdleFramework.Configuration
             return new ValueReferenceDefinitionBuilder().WithStartingValue(value).Build();
         }
     }
-    // TODO: Add conversion from literals
     // TODO: Support for immutable values.
     public class ValueReferenceDefinitionBuilder
     {
         private object startingValue;
         private Func<IdleEngine, ValueReference, float, object, object> updater;
+        private Action<IdleEngine, float, object> postUpdateHook;
 
         public static ValueReferenceDefinition NONE => new ValueReferenceDefinitionBuilder().Build();
 
         public ValueReferenceDefinition Build()
         {
-            return new ValueReferenceDefinition(startingValue, updater);
+            return new ValueReferenceDefinition(startingValue, updater, postUpdateHook);
+        }
+
+        public ValueReferenceDefinitionBuilder WithPostUpdateHook(Action<IdleEngine, float, object> hook)
+        {
+            this.postUpdateHook = hook;
+            return this;
         }
 
         public ValueReferenceDefinitionBuilder WithStartingValue(string startingValue)

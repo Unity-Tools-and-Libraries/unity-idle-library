@@ -2,43 +2,43 @@
 using IdleFramework.Configuration;
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
+using System;
 using System.Collections.Generic;
 using System.Xml.Schema;
 
 namespace IdleFramework.Tests
 {
-    public class ValueReferenceTest
+    public class ValueReferenceTest : RequiresEngineTests
     {
-        private IdleEngine engine;
         [SetUp]
         public void Setup()
         {
-            engine = new IdleEngine(null, null);
+            InitializeEngine();
         }
         // Boolean
         [Test]
         public void GettingBoolAsBoolReturnsAsIs()
         {
-            Assert.IsTrue(new ValueReferenceDefinitionBuilder().WithStartingValue(true)
+            Assert.IsTrue(new ValueContainerDefinitionBuilder().WithStartingValue(true)
                 .Build().CreateValueReference(engine).ValueAsBool());
-            Assert.IsFalse(new ValueReferenceDefinitionBuilder().WithStartingValue(false)
+            Assert.IsFalse(new ValueContainerDefinitionBuilder().WithStartingValue(false)
                 .Build().CreateValueReference(engine).ValueAsBool());
         }
 
         [Test]
         public void GettingNullAsBoolReturnsFalse()
         {
-            Assert.IsFalse(new ValueReferenceDefinitionBuilder().WithStartingValue((string)null)
+            Assert.IsFalse(new ValueContainerDefinitionBuilder().WithStartingValue((string)null)
                 .Build().CreateValueReference(engine).ValueAsBool());
         }
 
         [Test]
         public void GettingNumberAsBool()
         {
-            Assert.AreEqual(BigDouble.One, new ValueReferenceDefinitionBuilder()
+            Assert.AreEqual(BigDouble.One, new ValueContainerDefinitionBuilder()
                 .WithStartingValue(true)
                 .Build().CreateValueReference(engine).ValueAsNumber());
-            Assert.AreEqual(BigDouble.Zero, new ValueReferenceDefinitionBuilder()
+            Assert.AreEqual(BigDouble.Zero, new ValueContainerDefinitionBuilder()
                 .WithStartingValue(false)
                 .Build().CreateValueReference(engine)
                 .ValueAsNumber());
@@ -47,9 +47,9 @@ namespace IdleFramework.Tests
         [Test]
         public void GettingMapAsBoolReturnsTrueIfNotNull()
         {
-            Assert.IsFalse(new ValueReferenceDefinitionBuilder().Build().CreateValueReference(engine).ValueAsBool());
-            Assert.IsTrue(new ValueReferenceDefinitionBuilder()
-                .WithStartingValue(new Dictionary<string, ValueReferenceDefinition>())
+            Assert.IsFalse(new ValueContainerDefinitionBuilder().Build().CreateValueReference(engine).ValueAsBool());
+            Assert.IsTrue(new ValueContainerDefinitionBuilder()
+                .WithStartingValue(new Dictionary<string, ValueContainerDefinition>())
                 .Build().CreateValueReference(engine)
                 .ValueAsBool());
         }
@@ -57,7 +57,7 @@ namespace IdleFramework.Tests
         [Test]
         public void CanImplicitlyConvertToBool()
         {
-            Assert.IsTrue(new ValueReferenceDefinitionBuilder()
+            Assert.IsTrue(new ValueContainerDefinitionBuilder()
                 .WithStartingValue(true)
                 .Build().CreateValueReference(engine));
         }
@@ -66,7 +66,7 @@ namespace IdleFramework.Tests
         [Test]
         public void GettingNumberAsNumberReturnsAsIs()
         {
-            Assert.AreEqual(new BigDouble(100), new ValueReferenceDefinitionBuilder()
+            Assert.AreEqual(new BigDouble(100), new ValueContainerDefinitionBuilder()
                 .WithStartingValue(new BigDouble(100))
                 .Build().CreateValueReference(engine)
                 .ValueAsNumber());
@@ -75,16 +75,16 @@ namespace IdleFramework.Tests
         [Test]
         public void GettingNumberAsBoolReturnsTrueForNonZero()
         {
-            Assert.IsTrue(new ValueReferenceDefinitionBuilder().WithStartingValue(new BigDouble(1)).Build().CreateValueReference(engine).ValueAsBool());
-            Assert.IsTrue(new ValueReferenceDefinitionBuilder().WithStartingValue(new BigDouble(-1)).Build().CreateValueReference(engine).ValueAsBool());
-            Assert.IsFalse(new ValueReferenceDefinitionBuilder().WithStartingValue(BigDouble.Zero).Build().CreateValueReference(engine).ValueAsBool());
+            Assert.IsTrue(new ValueContainerDefinitionBuilder().WithStartingValue(new BigDouble(1)).Build().CreateValueReference(engine).ValueAsBool());
+            Assert.IsTrue(new ValueContainerDefinitionBuilder().WithStartingValue(new BigDouble(-1)).Build().CreateValueReference(engine).ValueAsBool());
+            Assert.IsFalse(new ValueContainerDefinitionBuilder().WithStartingValue(BigDouble.Zero).Build().CreateValueReference(engine).ValueAsBool());
         }
 
         [Test]
         public void GettingMapAsNumberReturnsZero()
         {
             Assert.AreEqual(BigDouble.Zero,
-                new ValueReferenceDefinitionBuilder().WithStartingValue(new Dictionary<string, ValueReferenceDefinition>())
+                new ValueContainerDefinitionBuilder().WithStartingValue(new Dictionary<string, ValueContainerDefinition>())
                 .Build().CreateValueReference(engine)
                 .ValueAsNumber());
         }
@@ -92,7 +92,7 @@ namespace IdleFramework.Tests
         [Test]
         public void CanImplicitlyConvertToNumber()
         {
-            Assert.AreEqual(BigDouble.One, (BigDouble)new ValueReferenceDefinitionBuilder()
+            Assert.AreEqual(BigDouble.One, (BigDouble)new ValueContainerDefinitionBuilder()
                 .WithStartingValue(BigDouble.One)
                 .Build().CreateValueReference(engine));
         }
@@ -100,7 +100,7 @@ namespace IdleFramework.Tests
         [Test]
         public void CanImplicitlyConvertToString()
         {
-            Assert.AreEqual("true", (string)new ValueReferenceDefinitionBuilder()
+            Assert.AreEqual("true", (string)new ValueContainerDefinitionBuilder()
                 .WithStartingValue("true")
                 .Build().CreateValueReference(engine));
         }
@@ -108,14 +108,14 @@ namespace IdleFramework.Tests
         [Test]
         public void WatchingForChangesReceivesCurrentValueImmediately()
         {
-            var valueReference = new ValueReferenceDefinitionBuilder().Build().CreateValueReference(engine);
+            var valueReference = new ValueContainerDefinitionBuilder().Build().CreateValueReference(engine);
             valueReference.Watch(newValue => Assert.AreEqual(BigDouble.Zero, newValue));
         }
 
         [Test]
         public void ChangingValueOfWatchedValueNotifiesListeners()
         {
-            var valueReference = new ValueReferenceDefinitionBuilder().Build().CreateValueReference(engine);
+            var valueReference = new ValueContainerDefinitionBuilder().Build().CreateValueReference(engine);
             int calls = 0;
             valueReference.Watch(newValue =>
             {
@@ -136,22 +136,22 @@ namespace IdleFramework.Tests
         [Test]
         public void RawValueReturnsActualValue()
         {
-            var booleanReference = new ValueReferenceDefinitionBuilder().WithStartingValue(true).Build().CreateValueReference(engine);
-            var numberReference = new ValueReferenceDefinitionBuilder().WithStartingValue(BigDouble.One).Build().CreateValueReference(engine);
-            var stringReference = new ValueReferenceDefinitionBuilder().WithStartingValue("string").Build().CreateValueReference(engine);
-            var mapReference = new ValueReferenceDefinitionBuilder().WithStartingValue(new Dictionary<string, ValueReferenceDefinition>()).Build().CreateValueReference(engine);
+            var booleanReference = new ValueContainerDefinitionBuilder().WithStartingValue(true).Build().CreateValueReference(engine);
+            var numberReference = new ValueContainerDefinitionBuilder().WithStartingValue(BigDouble.One).Build().CreateValueReference(engine);
+            var stringReference = new ValueContainerDefinitionBuilder().WithStartingValue("string").Build().CreateValueReference(engine);
+            var mapReference = new ValueContainerDefinitionBuilder().WithStartingValue(new Dictionary<string, ValueContainerDefinition>()).Build().CreateValueReference(engine);
 
             Assert.AreEqual(true, booleanReference.ValueAsRaw());
             Assert.AreEqual(BigDouble.One, numberReference.ValueAsRaw());
             Assert.AreEqual("string", stringReference.ValueAsRaw());
-            Assert.AreEqual(new Dictionary<string, ValueReference>(), mapReference.ValueAsRaw());
+            Assert.AreEqual(new Dictionary<string, ValueContainer>(), mapReference.ValueAsRaw());
         }
 
         [Test]
         public void CanWatchANonExistantKeyInAMap()
         {
-            var mapReference = new ValueReferenceDefinitionBuilder()
-                .WithStartingValue(new Dictionary<string, ValueReferenceDefinition>()).Build().CreateValueReference(engine);
+            var mapReference = new ValueContainerDefinitionBuilder()
+                .WithStartingValue(new Dictionary<string, ValueContainerDefinition>()).Build().CreateValueReference(engine);
             var fooReference = mapReference.ValueAsMap()["foo"];
             var watchListenerCalled = false;
             fooReference.Watch(newFoo =>
@@ -164,8 +164,8 @@ namespace IdleFramework.Tests
         [Test]
         public void AssigningAValueInAMapUpdatesTheParent()
         {
-            var mapReference = new ValueReferenceDefinitionBuilder()
-                .WithStartingValue(new Dictionary<string, ValueReferenceDefinition>()).Build().CreateValueReference(engine);
+            var mapReference = new ValueContainerDefinitionBuilder()
+                .WithStartingValue(new Dictionary<string, ValueContainerDefinition>()).Build().CreateValueReference(engine);
             var map = mapReference.ValueAsMap();
             int watchListenerCalled = 0;
             mapReference.Watch(updatedMap =>
@@ -180,13 +180,13 @@ namespace IdleFramework.Tests
         [Test]
         public void WatchListenerReceivesMapValueWhenChildUpdates()
         {
-            var mapReference = new ValueReferenceDefinitionBuilder()
-                .WithStartingValue(new Dictionary<string, ValueReferenceDefinition>()).Build().CreateValueReference(engine);
+            var mapReference = new ValueContainerDefinitionBuilder()
+                .WithStartingValue(new Dictionary<string, ValueContainerDefinition>()).Build().CreateValueReference(engine);
             var map = mapReference.ValueAsMap();
             int watchListenerCalled = 0;
             mapReference.Watch(updatedMap =>
             {
-                Assert.IsNotNull(updatedMap as IDictionary<string, ValueReference>);
+                Assert.IsNotNull(updatedMap as IDictionary<string, ValueContainer>);
                 watchListenerCalled++;
             });
 
@@ -197,40 +197,40 @@ namespace IdleFramework.Tests
         [Test]
         public void ValueReferenceEqualsComparesUnderlyingValue()
         {
-            var ref1 = new ValueReferenceDefinitionBuilder().WithStartingValue(true).Build().CreateValueReference(engine);
-            var ref2 = new ValueReferenceDefinitionBuilder().WithStartingValue(true).Build().CreateValueReference(engine);
+            var ref1 = new ValueContainerDefinitionBuilder().WithStartingValue(true).Build().CreateValueReference(engine);
+            var ref2 = new ValueContainerDefinitionBuilder().WithStartingValue(true).Build().CreateValueReference(engine);
             Assert.AreEqual(ref1, ref2);
-            var ref3 = new ValueReferenceDefinitionBuilder().WithStartingValue("true").Build().CreateValueReference(engine);
+            var ref3 = new ValueContainerDefinitionBuilder().WithStartingValue("true").Build().CreateValueReference(engine);
             Assert.AreNotEqual(ref1, ref3);
         }
 
         [Test]
         public void EqualsComparingValueReferenceToAnyOtherTypeAlwaysFalse()
         {
-            var ref1 = new ValueReferenceDefinitionBuilder().WithStartingValue(true).Build().CreateValueReference(engine);
+            var ref1 = new ValueContainerDefinitionBuilder().WithStartingValue(true).Build().CreateValueReference(engine);
             Assert.AreNotEqual(ref1, new Dictionary<string, string>());
         }
 
         [Test]
         public void ToStringDescribesContents()
         {
-            var mapReference = new ValueReferenceDefinitionBuilder().WithStartingValue(new Dictionary<string, ValueReferenceDefinition>()).Build().CreateValueReference(engine);
-            Assert.AreEqual("Reference(containing map)", mapReference.ToString());
+            var mapReference = new ValueContainerDefinitionBuilder().WithStartingValue(new Dictionary<string, ValueContainerDefinition>()).Build().CreateValueReference(engine);
+            Assert.AreEqual("Reference #1(containing map)", mapReference.ToString());
 
-            var stringReference = new ValueReferenceDefinitionBuilder().WithStartingValue("string").Build().CreateValueReference(engine);
-            Assert.AreEqual("Reference(containing string)", stringReference.ToString());
+            var stringReference = new ValueContainerDefinitionBuilder().WithStartingValue("string").Build().CreateValueReference(engine);
+            Assert.AreEqual("Reference #2(containing string)", stringReference.ToString());
 
-            var boolReference = new ValueReferenceDefinitionBuilder().WithStartingValue(true).Build().CreateValueReference(engine);
-            Assert.AreEqual("Reference(containing boolean)", boolReference.ToString());
+            var boolReference = new ValueContainerDefinitionBuilder().WithStartingValue(true).Build().CreateValueReference(engine);
+            Assert.AreEqual("Reference #3(containing boolean)", boolReference.ToString());
 
-            var numberReference = new ValueReferenceDefinitionBuilder().WithStartingValue(BigDouble.One).Build().CreateValueReference(engine);
-            Assert.AreEqual("Reference(containing number)", numberReference.ToString());
+            var numberReference = new ValueContainerDefinitionBuilder().WithStartingValue(BigDouble.One).Build().CreateValueReference(engine);
+            Assert.AreEqual("Reference #4(containing number)", numberReference.ToString());
         }
 
         [Test]
         public void CanSetTheValueContainedByAReferenceToANumber()
         {
-            var reference = new ValueReferenceDefinitionBuilder().WithStartingValue(BigDouble.One).Build().CreateValueReference(engine);
+            var reference = new ValueContainerDefinitionBuilder().WithStartingValue(BigDouble.One).Build().CreateValueReference(engine);
             reference.Set(new BigDouble(2));
             Assert.AreEqual(reference.ValueAsNumber(), new BigDouble(2));
         }
@@ -238,7 +238,7 @@ namespace IdleFramework.Tests
         [Test]
         public void CanSetTheValueContainedByAReferenceToAString()
         {
-            var reference = new ValueReferenceDefinitionBuilder().WithStartingValue("oldString").Build().CreateValueReference(engine);
+            var reference = new ValueContainerDefinitionBuilder().WithStartingValue("oldString").Build().CreateValueReference(engine);
             reference.Set("newString");
             Assert.AreEqual(reference.ValueAsString(), "newString");
         }
@@ -246,9 +246,9 @@ namespace IdleFramework.Tests
         [Test]
         public void CanSetTheValueContainedByAReferenceToAMap()
         {
-            var initialDictionary = new Dictionary<string, ValueReferenceDefinition>();
-            var reference = new ValueReferenceDefinitionBuilder().WithStartingValue(initialDictionary).Build().CreateValueReference(engine);
-            var newDictionary = new Dictionary<string, ValueReference>();
+            var initialDictionary = new Dictionary<string, ValueContainerDefinition>();
+            var reference = new ValueContainerDefinitionBuilder().WithStartingValue(initialDictionary).Build().CreateValueReference(engine);
+            var newDictionary = new Dictionary<string, ValueContainer>();
             reference.Set(newDictionary);
             Assert.AreEqual(reference.ValueAsMap(), newDictionary);
         }
@@ -256,7 +256,7 @@ namespace IdleFramework.Tests
         [Test]
         public void CanSetTheValueContainedByAReferenceToABool()
         {
-            var reference = new ValueReferenceDefinitionBuilder().WithStartingValue(true).Build().CreateValueReference(engine);
+            var reference = new ValueContainerDefinitionBuilder().WithStartingValue(true).Build().CreateValueReference(engine);
             reference.Set(false);
             Assert.IsFalse(reference.ValueAsBool());
         }
@@ -264,23 +264,23 @@ namespace IdleFramework.Tests
         [Test]
         public void TheStateOfAValueReferenceContainingABoolCanBeSaved()
         {
-            var reference = new ValueReferenceDefinitionBuilder().WithStartingValue(true).Build().CreateValueReference(engine);
+            var reference = new ValueContainerDefinitionBuilder().WithStartingValue(true).Build().CreateValueReference(engine);
             var serialized = reference.GetSnapshot();
-            Assert.AreEqual(new ValueReference.Snapshot("1", true), serialized);
+            Assert.AreEqual(new ValueContainer.Snapshot("1", true), serialized);
         }
 
         [Test]
         public void TheStateOfAValueReferenceContainingANumerCanBeSaved()
         {
-            var reference = new ValueReferenceDefinitionBuilder().WithStartingValue(new BigDouble(100)).Build().CreateValueReference(engine);
+            var reference = new ValueContainerDefinitionBuilder().WithStartingValue(new BigDouble(100)).Build().CreateValueReference(engine);
             var serialized = reference.GetSnapshot();
-            Assert.AreEqual(new ValueReference.Snapshot("1", new BigDouble(100)), serialized);
+            Assert.AreEqual(new ValueContainer.Snapshot("1", new BigDouble(100)), serialized);
         }
 
         [Test]
         public void TheStateOfAValueReferenceContainingAStringCanBeSaved()
         {
-            var reference = new ValueReferenceDefinitionBuilder().WithStartingValue("astring").Build().CreateValueReference(engine);
+            var reference = new ValueContainerDefinitionBuilder().WithStartingValue("astring").Build().CreateValueReference(engine);
             var serialized = reference.GetSnapshot();
             Assert.AreEqual(serialized.value, "astring");
             Assert.AreEqual(serialized.internalId, reference.Id);
@@ -289,37 +289,37 @@ namespace IdleFramework.Tests
         [Test]
         public void TheStateOfAValueReferenceContainingADictionaryCanBeSaved()
         {
-            var reference = new ValueReferenceDefinitionBuilder().WithStartingValue(new Dictionary<string, ValueReferenceDefinition>()).Build().CreateValueReference(engine);
+            var reference = new ValueContainerDefinitionBuilder().WithStartingValue(new Dictionary<string, ValueContainerDefinition>()).Build().CreateValueReference(engine);
             var serialized = reference.GetSnapshot();
-            Assert.AreEqual(serialized, new ValueReference.Snapshot("1", new Dictionary<string, ValueReference.Snapshot>()));
+            Assert.AreEqual(serialized, new ValueContainer.Snapshot("1", new Dictionary<string, ValueContainer.Snapshot>()));
         }
 
         [Test]
         public void TheStateOfAValueReferenceContainingAStringCanBeRecursivelySaved()
         {
-            var reference = new ValueReferenceDefinitionBuilder().WithStartingValue(new Dictionary<string, ValueReferenceDefinition>()
+            var reference = new ValueContainerDefinitionBuilder().WithStartingValue(new Dictionary<string, ValueContainerDefinition>()
             {
                 { "string", "aString" },
                 { "number", new BigDouble(100) },
                 { "bool", true },
-                { "map", new Dictionary<string, ValueReferenceDefinition>() {
+                { "map", new Dictionary<string, ValueContainerDefinition>() {
                     { "nestedString", "string" },
                     { "nestedNumber", new BigDouble(10) },
                     { "nestedBool", true }
                 }}
             }).Build().CreateValueReference(engine);
             var serialized = reference.GetSnapshot();
-            Assert.AreEqual(new Dictionary<string, ValueReference.Snapshot>()
+            Assert.AreEqual(new Dictionary<string, ValueContainer.Snapshot>()
             {
-                { "string", new ValueReference.Snapshot("1", "aString") },
-                { "number", new ValueReference.Snapshot("2", new BigDouble(100)) },
-                { "bool", new ValueReference.Snapshot("3", true) },
+                { "string", new ValueContainer.Snapshot("1", "aString") },
+                { "number", new ValueContainer.Snapshot("2", new BigDouble(100)) },
+                { "bool", new ValueContainer.Snapshot("3", true) },
                 {
-                    "map", new ValueReference.Snapshot("7", new Dictionary<string, ValueReference.Snapshot>()
+                    "map", new ValueContainer.Snapshot("7", new Dictionary<string, ValueContainer.Snapshot>()
                     {
-                        { "nestedString", new ValueReference.Snapshot("4", "string") },
-                        { "nestedNumber", new ValueReference.Snapshot("5", new BigDouble(10)) },
-                        { "nestedBool", new ValueReference.Snapshot("6", true) }
+                        { "nestedString", new ValueContainer.Snapshot("4", "string") },
+                        { "nestedNumber", new ValueContainer.Snapshot("5", new BigDouble(10)) },
+                        { "nestedBool", new ValueContainer.Snapshot("6", true) }
                     })
                 }
             }, serialized.value);
@@ -329,25 +329,162 @@ namespace IdleFramework.Tests
         [Test]
         public void TheStateOfAValueReferenceCanBeRestoredFromABooleanSnapshot()
         {
-            var reference = new ValueReferenceDefinitionBuilder().Build().CreateValueReference(engine);
-            reference.RestoreFromSnapshot(engine, new ValueReference.Snapshot("1", true));
+            var reference = new ValueContainerDefinitionBuilder().Build().CreateValueReference(engine);
+            reference.RestoreFromSnapshot(engine, new ValueContainer.Snapshot("1", true));
             Assert.AreEqual(true, reference.ValueAsBool());
         }
 
         [Test]
         public void TheStateOfAValueReferenceCanBeRestoredFromANumberSnapshot()
         {
-            var reference = new ValueReferenceDefinitionBuilder().Build().CreateValueReference(engine);
-            reference.RestoreFromSnapshot(engine, new ValueReference.Snapshot("1", new BigDouble(11)));
+            var reference = new ValueContainerDefinitionBuilder().Build().CreateValueReference(engine);
+            reference.RestoreFromSnapshot(engine, new ValueContainer.Snapshot("1", new BigDouble(11)));
             Assert.AreEqual(new BigDouble(11), reference.ValueAsNumber());
         }
 
         [Test]
         public void TheStateOfAValueReferenceCanBeRestoredFromAMapSnapshot()
         {
-            var reference = new ValueReferenceDefinitionBuilder().Build().CreateValueReference(engine);
-            reference.RestoreFromSnapshot(engine, new ValueReference.Snapshot("1", new Dictionary<string, ValueReference.Snapshot>()));
-            Assert.AreEqual(new Dictionary<string, ValueReference>(), reference.ValueAsMap());
+            var reference = new ValueContainerDefinitionBuilder().Build().CreateValueReference(engine);
+            reference.RestoreFromSnapshot(engine, new ValueContainer.Snapshot("1", new Dictionary<string, ValueContainer.Snapshot>()));
+            Assert.AreEqual(new Dictionary<string, ValueContainer>(), reference.ValueAsMap());
+        }
+
+        [Test]
+        public void SettingIdMultipleTimesThrowsError()
+        {
+            var reference = new ValueContainerDefinitionBuilder().Build().CreateValueReference(engine);
+            Assert.Throws(typeof(InvalidOperationException), () =>
+            {
+                reference.Id = "123";
+            });
+        }
+
+        [Test]
+        public void HashcodeSameAsValue()
+        {
+            var reference = new ValueContainerDefinitionBuilder()
+                .WithStartingValue("string")
+                .Build().CreateValueReference(engine);
+
+            Assert.AreEqual("string".GetHashCode(), reference.GetHashCode());
+            reference = new ValueContainerDefinitionBuilder()
+                .WithStartingValue(BigDouble.One)
+                .Build().CreateValueReference(engine);
+            Assert.AreEqual(BigDouble.One.GetHashCode(), reference.GetHashCode());
+        }
+
+        [Test]
+        public void RestorFromSnapshotFailsWithDifferentIds()
+        {
+            var reference = new ValueContainerDefinitionBuilder()
+                .WithStartingValue("string")
+                .Build().CreateValueReference(engine);
+            var snapshot = reference.GetSnapshot();
+            reference = new ValueContainerDefinitionBuilder()
+                .WithStartingValue("string")
+                .Build().CreateValueReference(engine);
+            Assert.Throws(typeof(InvalidOperationException), () =>
+            {
+                reference.RestoreFromSnapshot(engine, snapshot);
+            });
+        }
+
+        [Test]
+        public void CanSpecifyACalculatingFunction()
+        {
+            var reference = new ValueContainerDefinitionBuilder()
+                .WithStartingValue(0)
+                .WithUpdater((eng, deltaTime, val, parent) => (BigDouble)val + 1)
+                .Build().CreateValueReference(engine);
+            for (int i = 1; i <= 5; i++)
+            {
+                engine.Update(1f);
+                Assert.AreEqual(new BigDouble(i), reference.ValueAsNumber());
+            }
+        }
+
+        [Test]
+        public void SettingValueOfCalculatedValueThrowsError()
+        {
+            var reference = new ValueContainerDefinitionBuilder()
+                .WithStartingValue(0)
+                .WithUpdater((eng, val, deltaTime, parent) => val + 1)
+                .Build().CreateValueReference(engine);
+            Assert.Throws(typeof(InvalidOperationException), () =>
+            {
+                reference.Set(1);
+            });
+        }
+
+        [Test]
+        public void ReturningNullFromUpdaterThrowsError()
+        {
+            var reference = new ValueContainerDefinitionBuilder()
+                .WithStartingValue(0)
+                .WithUpdater((eng, val, deltaTime, parent) => null)
+                .Build().CreateValueReference(engine);
+            Assert.Throws(typeof(InvalidOperationException), () =>
+            {
+                engine.Update(1f);
+            });
+        }
+
+        [Test]
+        public void ReturningIntFromUpdaterBecomesBigDouble()
+        {
+            var reference = new ValueContainerDefinitionBuilder()
+                .WithStartingValue(0)
+                .WithUpdater((eng, val, deltaTime, parent) => 1)
+                .Build().CreateValueReference(engine);
+            engine.Update(1f);
+            Assert.AreEqual(BigDouble.One, reference.ValueAsNumber());
+        }
+
+        [Test]
+        public void ReturningFloatFromUpdaterBecomesBigDouble()
+        {
+            var reference = new ValueContainerDefinitionBuilder()
+                .WithStartingValue(0)
+                .WithUpdater((eng, val, deltaTime, parent) => 1f)
+                .Build().CreateValueReference(engine);
+            engine.Update(1f);
+            Assert.AreEqual(BigDouble.One, reference.ValueAsNumber());
+        }
+
+        [Test]
+        public void ReturningLongFromUpdaterBecomesBigDouble()
+        {
+            var reference = new ValueContainerDefinitionBuilder()
+                .WithStartingValue(0)
+                .WithUpdater((eng, val, deltaTime, parent) => 1L)
+                .Build().CreateValueReference(engine);
+            engine.Update(1f);
+            Assert.AreEqual(BigDouble.One, reference.ValueAsNumber());
+        }
+
+        [Test]
+        public void ReturningDoubleFromUpdaterBecomesBigDouble()
+        {
+            var reference = new ValueContainerDefinitionBuilder()
+                .WithStartingValue(0)
+                .WithUpdater((eng, val, deltaTime, parent) => 1.0)
+                .Build().CreateValueReference(engine);
+            engine.Update(1f);
+            Assert.AreEqual(BigDouble.One, reference.ValueAsNumber());
+        }
+
+        [Test]
+        public void ReturningInvalidValueFromUpdaterThrowsException()
+        {
+            var reference = new ValueContainerDefinitionBuilder()
+                .WithStartingValue(0)
+                .WithUpdater((eng, val, deltaTime, parent) => new string[] { })
+                .Build().CreateValueReference(engine);
+            Assert.Throws(typeof(InvalidOperationException), () =>
+            {
+                engine.Update(1f);
+            });
         }
     }
 }

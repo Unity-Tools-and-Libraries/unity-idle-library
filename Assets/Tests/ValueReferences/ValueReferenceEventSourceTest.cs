@@ -6,13 +6,13 @@ namespace IdleFramework.Tests
     public class ValueReferenceEventSourceTest
     {
         private IdleEngine engine;
-        private ValueReference valueReference;
+        private ValueContainer valueReference;
 
         [SetUp]
         public void Setup()
         {
             engine = new IdleEngine(new EngineConfiguration() , null);
-            valueReference = new ValueReferenceDefinitionBuilder().Build().CreateValueReference(engine);
+            valueReference = new ValueContainerDefinitionBuilder().Build().CreateValueReference(engine);
         }
         [Test]
         public void CanSubscribeToEvent()

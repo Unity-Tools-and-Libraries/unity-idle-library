@@ -1,4 +1,5 @@
-﻿using IdleFramework.Configuration;
+﻿using BreakInfinity;
+using IdleFramework.Configuration;
 using NUnit.Framework;
 using System;
 
@@ -34,6 +35,22 @@ namespace IdleFramework.Tests
             Assert.Throws<NotSupportedException>(() => {
                 configuration.GlobalProperties["booleanProperty"] = null;
             });
+        }
+
+        [Test]
+        public void CanDeclareAResourceDefinition()
+        {
+            EngineConfiguration configuration = new EngineConfiguration();
+            configuration.DeclareResource("food");
+            Assert.IsNotNull(configuration.Resources["food"]);
+        }
+
+        [Test]
+        public void CanDeclareAResourceWithABaseIncome()
+        {
+            EngineConfiguration configuration = new EngineConfiguration();
+            configuration.DeclareResource(new ResourceDefinitionBuilder("food").WithBaseIncome(1));
+            Assert.AreEqual(BigDouble.One, configuration.Resources["food"].BaseIncome);
         }
     }
 }

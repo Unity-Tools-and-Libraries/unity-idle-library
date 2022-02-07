@@ -19,7 +19,7 @@ namespace IdleFramework.Tests
         [Test]
         public void InstatiatesWithDefaultValueIfNonDefined()
         {
-            var definition = new ValueReferenceDefinitionBuilder().Build();
+            var definition = new ValueContainerDefinitionBuilder().Build();
             var instantiated = definition.CreateValueReference(engine);
             Assert.AreEqual(BigDouble.Zero, instantiated.ValueAsNumber());
             Assert.AreEqual(false, instantiated.ValueAsBool());
@@ -30,8 +30,8 @@ namespace IdleFramework.Tests
         [Test]
         public void CanDefineAnUpdaterAction()
         {
-            var definition = new ValueReferenceDefinitionBuilder()
-                .WithUpdater((engine, parent, deltaTime, previousValue) => {
+            var definition = new ValueContainerDefinitionBuilder()
+                .WithUpdater((engine, deltaTime, previousValue, parent) => {
                     return (BigDouble)previousValue + BigDouble.One;
                 })
                 .Build();
@@ -44,28 +44,28 @@ namespace IdleFramework.Tests
         [Test]
         public void CanImplicitlyConvertFromStringToDefinition()
         {
-            ValueReferenceDefinition def = "foobar";
+            ValueContainerDefinition def = "foobar";
             Assert.IsNotNull(def);
         }
 
         [Test]
         public void CanImplicitlyConvertFromBigDoubleToDefinition()
         {
-            ValueReferenceDefinition def = BigDouble.One;
+            ValueContainerDefinition def = BigDouble.One;
             Assert.IsNotNull(def);
         }
 
         [Test]
         public void CanImplicitlyConvertFromBooleanToDefinition()
         {
-            ValueReferenceDefinition def = true;
+            ValueContainerDefinition def = true;
             Assert.IsNotNull(def);
         }
 
         [Test]
         public void CanImplicitlyConvertFromDictionaryToDefinition()
         {
-            ValueReferenceDefinition def = new Dictionary<string, ValueReferenceDefinition>();
+            ValueContainerDefinition def = new Dictionary<string, ValueContainerDefinition>();
             Assert.IsNotNull(def);
         }
 
@@ -77,7 +77,7 @@ namespace IdleFramework.Tests
             {
                 hookCalled = true;
             };
-            ValueReference reference = new ValueReferenceDefinitionBuilder()
+            ValueContainer reference = new ValueContainerDefinitionBuilder()
                 .WithPostUpdateHook(hook)
                 .Build().CreateValueReference(engine);
             reference.Update(engine, 0);

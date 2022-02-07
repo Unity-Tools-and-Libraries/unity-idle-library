@@ -6,36 +6,39 @@ using UnityEngine;
 
 namespace IdleFramework
 {
-    public class ParentNotifyingMap : IDictionary<string, ValueReference>, Watchable
+    /*
+     * A Dictionary where updates in contained values
+     */
+    public class ParentNotifyingDictionary : IDictionary<string, ValueContainer>, Watchable
     {
         private IdleEngine engine;
-        private Dictionary<string, ValueReference> underlying = new Dictionary<string, ValueReference>();
+        private Dictionary<string, ValueContainer> underlying = new Dictionary<string, ValueContainer>();
         private List<Action<object>> listeners = new List<Action<object>>();
 
-        internal ParentNotifyingMap(IdleEngine engine): this(engine, null)
+        public ParentNotifyingDictionary(IdleEngine engine): this(engine, null)
         {
             
         }
 
-        internal ParentNotifyingMap(IdleEngine engine, IDictionary<string, ValueReference> other)
+        public ParentNotifyingDictionary(IdleEngine engine, IDictionary<string, ValueContainer> other)
         {
             if (other != null)
             {
-                underlying = new Dictionary<string, ValueReference>(other);
+                underlying = new Dictionary<string, ValueContainer>(other);
             } else
             {
-                underlying = new Dictionary<string, ValueReference>();
+                underlying = new Dictionary<string, ValueContainer>();
             }
             this.engine = engine;
         }
-        public ValueReference this[string key]
+        public ValueContainer this[string key]
         {
             get
             {
-                ValueReference existing;
+                ValueContainer existing;
                 if(!underlying.TryGetValue(key, out existing))
                 {
-                    existing = new ValueReference();
+                    existing = new ValueContainer();
                     engine.RegisterReference(existing);
                     underlying[key] = existing;
                     existing.Watch(x => NotifyListeners());
@@ -50,18 +53,18 @@ namespace IdleFramework
 
         public ICollection<string> Keys => underlying.Keys;
 
-        public ICollection<ValueReference> Values => underlying.Values;
+        public ICollection<ValueContainer> Values => underlying.Values;
 
         public int Count => underlying.Count;
 
-        public bool IsReadOnly => throw new System.NotImplementedException();
+        public bool IsReadOnly => false;
 
-        public void Add(string key, ValueReference value)
+        public void Add(string key, ValueContainer value)
         {
             throw new System.NotImplementedException();
         }
 
-        public void Add(KeyValuePair<string, ValueReference> item)
+        public void Add(KeyValuePair<string, ValueContainer> item)
         {
             throw new System.NotImplementedException();
         }
@@ -71,7 +74,7 @@ namespace IdleFramework
             throw new System.NotImplementedException();
         }
 
-        public bool Contains(KeyValuePair<string, ValueReference> item)
+        public bool Contains(KeyValuePair<string, ValueContainer> item)
         {
             throw new System.NotImplementedException();
         }
@@ -81,12 +84,12 @@ namespace IdleFramework
             throw new System.NotImplementedException();
         }
 
-        public void CopyTo(KeyValuePair<string, ValueReference>[] array, int arrayIndex)
+        public void CopyTo(KeyValuePair<string, ValueContainer>[] array, int arrayIndex)
         {
             throw new System.NotImplementedException();
         }
 
-        public IEnumerator<KeyValuePair<string, ValueReference>> GetEnumerator()
+        public IEnumerator<KeyValuePair<string, ValueContainer>> GetEnumerator()
         {
             return underlying.GetEnumerator();
         }
@@ -96,12 +99,12 @@ namespace IdleFramework
             throw new System.NotImplementedException();
         }
 
-        public bool Remove(KeyValuePair<string, ValueReference> item)
+        public bool Remove(KeyValuePair<string, ValueContainer> item)
         {
             throw new System.NotImplementedException();
         }
 
-        public bool TryGetValue(string key, out ValueReference value)
+        public bool TryGetValue(string key, out ValueContainer value)
         {
             throw new System.NotImplementedException();
         }

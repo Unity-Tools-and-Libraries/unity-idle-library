@@ -1,14 +1,13 @@
-using IdleFramework.Configuration;
-using System.Collections;
-using System.Collections.Generic;
+using io.github.thisisnozaku.idle.framework;
+using io.github.thisisnozaku.idle.framework.Configuration;
 using UnityEngine;
 
 public abstract class RequiresEngineTests
 {
-    protected IdleFramework.IdleEngine engine;
+    protected IdleEngine engine;
 
     public void InitializeEngine(EngineConfiguration configuration = null, GameObject go = null)
     {
-        engine = new IdleFramework.IdleEngine(configuration, go);
+        engine = new IdleEngine(configuration, go);
     }
 }

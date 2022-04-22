@@ -1,11 +1,10 @@
 ﻿using BreakInfinity;
-using IdleFramework;
-using IdleFramework.Configuration;
-using IdleFramework.Exceptions;
+using io.github.thisisnozaku.idle.framework.Configuration;
+using io.github.thisisnozaku.idle.framework.Exceptions;
 using NUnit.Framework;
 using System.Collections.Generic;
 
-namespace IdleFramework.Tests
+namespace io.github.thisisnozaku.idle.framework.Tests
 {
     public class IdleEngineTest
     {

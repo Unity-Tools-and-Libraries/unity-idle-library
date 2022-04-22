@@ -1,9 +1,9 @@
 ﻿using BreakInfinity;
-using IdleFramework.Configuration;
+using io.github.thisisnozaku.idle.framework.Configuration;
 using NUnit.Framework;
 using System;
 
-namespace IdleFramework.Tests
+namespace io.github.thisisnozaku.idle.framework.Tests
 {
     public class IdleEngineConfigurationTest
     {

@@ -16,16 +16,20 @@ namespace io.github.thisisnozaku.idle.framework
     // TODO: Implement automatic conversion from this to basic type.
     public class ValueContainer : CanSnapshot<ValueContainer.Snapshot>, EventSource
     {
+        public delegate object UpdatingMethod(IdleEngine engine, float timeSinceLastUpdate, object previousValue, List<ValueModifier> modifiersList);
+
         public static BigDouble DEFAULT_VALUE = BigDouble.Zero;
         // The unique id of this container.
         private string internalId;
         // The value held by this container.
         private object value;
-        private ValueContainer parentReference;
         // Method which updates the contained value each tick, if specified.
-        private Func<IdleEngine, float, object, ValueContainer, List<ValueModifier>, object> updater;
+        private UpdatingMethod updater;
         // Listeners for events on this container.
         private Dictionary<string, List<Action<object>>> eventListeners = new Dictionary<string, List<Action<object>>>();
+
+        private IdleEngine engine;
+
         private bool updatedThisTick = false;
         private Action<IdleEngine, float, object> postUpdateHook;
         private List<ValueModifier> modifiers;
@@ -43,37 +47,37 @@ namespace io.github.thisisnozaku.idle.framework
             }
         }
 
-        public ValueContainer() : this(null, null as object, null) { }
+        public ValueContainer(IdleEngine engine) : this(engine, null as object, null) { }
 
-        internal ValueContainer(ValueContainer containingReference, object startingValue, Action<IdleEngine, float, object> postUpdateHook = null) : this(containingReference, startingValue, null, postUpdateHook, new List<ValueModifier>())
+        internal ValueContainer(IdleEngine engine, object startingValue, List<ValueModifier> modifiers = null, UpdatingMethod updater = null, Action<IdleEngine, float, object> postUpdateHook = null) : this(engine, startingValue, updater, postUpdateHook, modifiers)
         {
 
         }
 
-        public ValueContainer(ValueContainer containingReference, string startingValue, Action<IdleEngine, float, object> postUpdateHook = null) : this(containingReference, startingValue, null, postUpdateHook, new List<ValueModifier>())
+        internal ValueContainer(IdleEngine engine, string startingValue, List<ValueModifier> modifiers = null, UpdatingMethod updater = null, Action<IdleEngine, float, object> postUpdateHook = null) : this(engine, startingValue, updater, postUpdateHook, modifiers)
         {
 
         }
 
-        public ValueContainer(ValueContainer containingReference, BigDouble startingValue, Action<IdleEngine, float, object> postUpdateHook = null) : this(containingReference, startingValue, null, postUpdateHook, new List<ValueModifier>())
+        internal ValueContainer(IdleEngine engine, BigDouble startingValue, List<ValueModifier> modifiers = null, UpdatingMethod updater = null, Action<IdleEngine, float, object> postUpdateHook = null) : this(engine, startingValue, updater, postUpdateHook, modifiers)
         {
 
         }
 
-        public ValueContainer(ValueContainer containingReference, bool startingValue, Action<IdleEngine, float, object> postUpdateHook = null) : this(containingReference, startingValue, null, postUpdateHook, new List<ValueModifier>())
+        internal ValueContainer(IdleEngine engine, bool startingValue, List<ValueModifier> modifiers = null, UpdatingMethod updater = null, Action<IdleEngine, float, object> postUpdateHook = null) : this(engine, startingValue, updater, postUpdateHook, modifiers)
         {
 
         }
 
-        public ValueContainer(ValueContainer containingReference, IDictionary<string, ValueContainer> startingValue, Action<IdleEngine, float, object> postUpdateHook = null) : this(containingReference, startingValue, null, postUpdateHook, new List<ValueModifier>())
+        internal ValueContainer(IdleEngine engine, IDictionary<string, ValueContainer> startingValue, List<ValueModifier> modifiers = null, UpdatingMethod updater = null, Action<IdleEngine, float, object> postUpdateHook = null) : this(engine, startingValue, updater, postUpdateHook, modifiers)
         {
-            
+
         }
 
-        internal ValueContainer(ValueContainer containingReference, object startingValue, Func<IdleEngine, float, object, ValueContainer, List<ValueModifier>, object> updater, Action<IdleEngine, float, object> postUpdateHook, List<ValueModifier> startingModifiers)
+        internal ValueContainer(IdleEngine engine, object startingValue, UpdatingMethod updater, Action<IdleEngine, float, object> postUpdateHook, List<ValueModifier> startingModifiers)
         {
-            this.modifiers = startingModifiers;
-            this.parentReference = containingReference;
+            this.engine = engine;
+            this.modifiers = startingModifiers != null ? startingModifiers : new List<ValueModifier>();
             if (startingValue is IDictionary<string, ValueContainer>)
             {
                 Debug.Log("Wrapping dictionary in parent notifying dictionary");
@@ -82,14 +86,14 @@ namespace io.github.thisisnozaku.idle.framework
                 startingValue = notifyingDictionary;
             }
             this.value = applyModifiers(startingValue != null ? startingValue : BigDouble.Zero);
-            
+
             this.updater = updater;
             this.postUpdateHook = postUpdateHook;
         }
 
         private object applyModifiers(object v)
         {
-            if(v is BigDouble)
+            if (v is BigDouble)
             {
                 return applyModifiersToBigDouble((BigDouble)v);
             }
@@ -107,21 +111,33 @@ namespace io.github.thisisnozaku.idle.framework
 
         public bool ValueAsBool()
         {
+            AssertIsRegistered();
             return CoerceToBool(value);
+        }
+
+        private void AssertIsRegistered()
+        {
+            if (Id == null)
+            {
+                throw new InvalidOperationException("ValueContainer must be registered via Register");
+            }
         }
 
         public BigDouble ValueAsNumber()
         {
+            AssertIsRegistered();
             return CoerceToNumber(value);
         }
 
         public string ValueAsString()
         {
+            AssertIsRegistered();
             return CoerceToString(value);
         }
 
         public IDictionary<string, ValueContainer> ValueAsMap()
         {
+            AssertIsRegistered();
             return CoerceToMap(value);
         }
 
@@ -136,18 +152,23 @@ namespace io.github.thisisnozaku.idle.framework
             return false;
         }
 
-        public override int GetHashCode() => internalId.GetHashCode() ^ (value != null ? value.GetHashCode() : 0);
+        public override int GetHashCode()
+        {
+            AssertIsRegistered();
+            return internalId.GetHashCode() ^ (value != null ? value.GetHashCode() : 0);
+        }
 
         public void Update(IdleEngine engine, float deltaTime)
         {
-            if(updatedThisTick)
+            AssertIsRegistered();
+            if (updatedThisTick)
             {
                 return;
             }
             updatedThisTick = true;
             if (this.updater != null)
             {
-                var updateOut = this.updater.Invoke(engine, deltaTime, value, this.parentReference, this.modifiers);
+                var updateOut = this.updater.Invoke(engine, deltaTime, value, this.modifiers);
                 bool outputIsValid = false;
                 if (updateOut == null)
                 {
@@ -179,9 +200,10 @@ namespace io.github.thisisnozaku.idle.framework
                 }
                 if (outputIsValid)
                 {
-                    this.value= applyModifiers(updateOut);
+                    this.value = applyModifiers(updateOut);
                     Notify(Events.VALUE_CHANGED, this.value);
-                } else
+                }
+                else
                 {
                     throw new InvalidOperationException(string.Format("Type returned from updating function was {0}, which is not valid.", updateOut.GetType().ToString()));
                 }
@@ -204,7 +226,8 @@ namespace io.github.thisisnozaku.idle.framework
             Notify(Events.VALUE_CHANGED, newValue);
         }
 
-        public void Set(BigDouble newValue) {
+        public void Set(BigDouble newValue)
+        {
             AssertCanSet();
             setInternal(newValue);
         }
@@ -227,9 +250,10 @@ namespace io.github.thisisnozaku.idle.framework
             {
                 Debug.Log("Wrapping dictionary in parent notifying dictionary");
                 newValue = new ParentNotifyingDictionary(newValue as IDictionary<string, ValueContainer>, this);
-            } else
+            }
+            foreach(var child in newValue.Values)
             {
-                Debug.Log(newValue.GetType());
+
             }
             AssertCanSet();
             setInternal(newValue);
@@ -250,6 +274,11 @@ namespace io.github.thisisnozaku.idle.framework
                     listener.Invoke(newValue);
                 }
             }
+        }
+
+        public void SetUpdater(UpdatingMethod p)
+        {
+            updater = p;
         }
 
         public object ValueAsRaw()
@@ -301,7 +330,6 @@ namespace io.github.thisisnozaku.idle.framework
 
         public void RestoreFromSnapshot(IdleEngine engine, Snapshot snapshot, ValueContainer parent = null)
         {
-            Debug.Log(snapshot.value.GetType());
             if (internalId != snapshot.internalId)
             {
                 throw new InvalidOperationException("The internalId of the snapshot and this reference don't match");
@@ -322,7 +350,7 @@ namespace io.github.thisisnozaku.idle.framework
                 setInternal(snapshot.value);
             }
         }
-            
+
         public void Subscribe(string eventName, Action<object> listener)
         {
             Debug.Log("Subscribing to " + eventName + " event");
@@ -333,6 +361,10 @@ namespace io.github.thisisnozaku.idle.framework
                 eventListeners[eventName] = listeners;
             }
             listeners.Add(listener);
+            if(eventName == Events.VALUE_CHANGED)
+            {
+                listener.Invoke(value);
+            }
         }
 
         public void Unsubscribe(string eventName, Action<object> listener)
@@ -347,7 +379,7 @@ namespace io.github.thisisnozaku.idle.framework
 
         private void AssertCanSet()
         {
-            if(updater != null)
+            if (updater != null)
             {
                 throw new InvalidOperationException("Cannot call set on a value reference with an update method.");
             }
@@ -408,21 +440,6 @@ namespace io.github.thisisnozaku.idle.framework
         public static class Events
         {
             public static readonly string VALUE_CHANGED = "valueChanged";
-        }
-
-        public static implicit operator ValueContainer(string value)
-        {
-            return new ValueContainer(null, value, null);
-        }
-
-        public static implicit operator ValueContainer(BigDouble value)
-        {
-            return new ValueContainer(null, value, null);
-        }
-
-        public static implicit operator ValueContainer(bool value)
-        {
-            return new ValueContainer(null, value, null);
         }
 
         private static bool CoerceToBool(object value)

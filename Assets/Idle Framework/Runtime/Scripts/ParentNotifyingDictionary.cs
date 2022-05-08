@@ -119,7 +119,6 @@ namespace io.github.thisisnozaku.idle.framework
 
         private void NotifyParent()
         {
-            Debug.Log("Trying to notify parent");
             if(parent != null)
             {
                 Debug.Log("Has parent, notifying");

@@ -1,6 +1,5 @@
 ﻿using BreakInfinity;
-using io.github.thisisnozaku.idle.framework.Configuration;
-using io.github.thisisnozaku.idle.framework.Exceptions;
+using io.github.thisisnozaku.idle.framework.Modifiers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
@@ -10,52 +9,51 @@ namespace io.github.thisisnozaku.idle.framework
 {
     public class IdleEngine : EventSource
     {
-        private Dictionary<string, ValueContainer> references = new Dictionary<string, ValueContainer>();
-        private Dictionary<string, ValueContainer> globalProperties = new Dictionary<string, ValueContainer>();
-        private Dictionary<string, List<Action<object>>> listeners = new Dictionary<string, List<Action<object>>>();
-        public Dictionary<string, List<Action<object>>> EventListeners => listeners;
+        private IDictionary<string, ValueContainer> references = new Dictionary<string, ValueContainer>();
+        private IDictionary<string, ValueContainer> globalProperties = new Dictionary<string, ValueContainer>();
+        private IDictionary<string, List<Action<object>>> listeners = new Dictionary<string, List<Action<object>>>();
+        public IDictionary<string, List<Action<object>>> EventListeners => listeners;
 
-
-        /*
-         * * Attempts to create a new instance
-         */
-        public void GetOrCreateEntity(string entityType)
+        public IdleEngine(GameObject gameObject)
         {
-            throw new UndefinedEntityException(entityType);
+            
         }
-
-
-        public IdleEngine(EngineConfiguration configuration, GameObject gameObject)
-        {
-            if (configuration?.GlobalProperties != null)
-            {
-                globalProperties = recursivelyCreateValueReferences(configuration.GlobalProperties);
-            }
-        }
-
-        private Dictionary<string, ValueContainer> recursivelyCreateValueReferences(IDictionary<string, ValueContainerDefinition> propertyDefinitions)
-        {
-            var properties = new Dictionary<string, ValueContainer>();
-            foreach (var globalPropertyEntry in propertyDefinitions)
-            {
-                properties[globalPropertyEntry.Key] = globalPropertyEntry.Value.CreateValueReference(this);
-            }
-            return properties;
-        }
-
 
         public ValueContainer GetGlobalProperty(string property)
         {
             if (!globalProperties.ContainsKey(property))
             {
-                throw new UndefinedPropertyException(property, "global properties");
+                globalProperties[property] = CreateValueContainer();
             }
             return globalProperties[property];
         }
 
+        public void SetGlobalProperty(string property, bool value)
+        {
+            GetGlobalProperty(property).Set(value);
+        }
+
+        public void SetGlobalProperty(string property, string value = null)
+        {
+            GetGlobalProperty(property).Set(value);
+        }
+
+        public void SetGlobalProperty(string property, IDictionary<string, ValueContainer> value)
+        {
+            GetGlobalProperty(property).Set(value);
+        }
+
+        public void SetGlobalProperty(string property, BigDouble value)
+        {
+            GetGlobalProperty(property).Set(value);
+        }
+
         public void Update(float deltaTime)
         {
-            ClearUpdateFlags();
+            foreach(var reference in references.Values)
+            {
+                reference.ClearUpdatedFlag();
+            }
             var toIterate = new List<ValueContainer>(references.Values);
             foreach (var reference in toIterate)
             {
@@ -81,7 +79,7 @@ namespace io.github.thisisnozaku.idle.framework
             }
         }
 
-        public void RegisterReference(ValueContainer newReference)
+        private void RegisterReference(ValueContainer newReference)
         {
             if (newReference.Id == null)
             {
@@ -111,6 +109,34 @@ namespace io.github.thisisnozaku.idle.framework
                 listeners[eventName] = eventListeners;
             }
             eventListeners.Add(listener);
+        }
+
+        public ValueContainer CreateValueContainer(string value = null, List<ValueModifier> modifiers = null, ValueContainer.UpdatingMethod updater = null)
+        {
+            var vc = new ValueContainer(this, value, modifiers, updater);
+            RegisterReference(vc);
+            return vc;
+        }
+
+        public ValueContainer CreateValueContainer(BigDouble value, List<ValueModifier> modifiers = null, ValueContainer.UpdatingMethod updater = null)
+        {
+            var vc = new ValueContainer(this, value, modifiers, updater);
+            RegisterReference(vc);
+            return vc;
+        }
+
+        public ValueContainer CreateValueContainer(bool value, List<ValueModifier> modifiers = null, ValueContainer.UpdatingMethod updater = null)
+        {
+            var vc = new ValueContainer(this, value, modifiers, updater);
+            RegisterReference(vc);
+            return vc;
+        }
+
+        public ValueContainer CreateValueContainer(IDictionary<string, ValueContainer> value, List<ValueModifier> modifiers = null, ValueContainer.UpdatingMethod updater = null)
+        {
+            var vc = new ValueContainer(this, value, modifiers, updater);
+            RegisterReference(vc);
+            return vc;
         }
     }
 }

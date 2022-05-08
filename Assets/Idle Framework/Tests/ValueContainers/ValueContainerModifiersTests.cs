@@ -1,5 +1,4 @@
 using BreakInfinity;
-using io.github.thisisnozaku.idle.framework.Configuration;
 using io.github.thisisnozaku.idle.framework.Modifiers;
 using NUnit.Framework;
 
@@ -16,18 +15,18 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void CanSpecifyAnAdditiveModifierOnCreationWhichAddsToNumberValue()
         {
-            var reference = new ValueContainerDefinitionBuilder()
-                .WithModifier(new AdditiveValueModifier("1", "1", 1))
-                .Build().CreateValueReference(engine);
+            var reference = engine.CreateValueContainer(modifiers: new System.Collections.Generic.List<ValueModifier>() {
+                new AdditiveValueModifier("1", "1", 1)
+            });
             Assert.AreEqual(new BigDouble(1), reference.ValueAsNumber());
         }
 
         [Test]
         public void AdditiveModifierAddedToSetValue()
         {
-            var reference = new ValueContainerDefinitionBuilder()
-                .WithModifier(new AdditiveValueModifier("1", "1", 1))
-                .Build().CreateValueReference(engine);
+            var reference = engine.CreateValueContainer(modifiers: new System.Collections.Generic.List<ValueModifier>() {
+                new AdditiveValueModifier("1", "1", 1)
+            });
             reference.Set(1);
             Assert.AreEqual(new BigDouble(2), reference.ValueAsNumber());
         }
@@ -35,9 +34,10 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void CanSpecifyAMultiplicativeModifierOnCreationWhichChangesNumberValue()
         {
-            var reference = new ValueContainerDefinitionBuilder()
-                .WithModifier(new MultiplicativeValueModifier("1", "1", 2))
-                .Build().CreateValueReference(engine);
+            var reference = engine.CreateValueContainer(modifiers: new System.Collections.Generic.List<ValueModifier>()
+            {
+                new MultiplicativeValueModifier("1", "1", 2)
+            });
             Assert.AreEqual(BigDouble.Zero, reference.ValueAsNumber());
             reference.Set(1);
             Assert.AreEqual(new BigDouble(2), reference.ValueAsNumber());
@@ -46,14 +46,14 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void ModifiersApplyToUpdateOutputValue()
         {
-            var reference = new ValueContainerDefinitionBuilder()
-                .WithUpdater((e, dt, v, p, mds) =>
-                {
-                    return BigDouble.One;
-                })
-                .WithModifier(new AdditiveValueModifier("add", "", 1))
-                .WithModifier(new MultiplicativeValueModifier("1", "1", 2))
-                .Build().CreateValueReference(engine);
+            var reference = engine.CreateValueContainer(BigDouble.Zero, new System.Collections.Generic.List<ValueModifier>()
+            {
+                new AdditiveValueModifier("add", "", 1),
+                new MultiplicativeValueModifier("1", "1", 2)
+            }, (e, dt, v, mds) =>
+            {
+                return BigDouble.One;
+            });
             Assert.AreEqual(new BigDouble(1), reference.ValueAsNumber());
             engine.Update(1f);
             Assert.AreEqual(new BigDouble(3), reference.ValueAsNumber());

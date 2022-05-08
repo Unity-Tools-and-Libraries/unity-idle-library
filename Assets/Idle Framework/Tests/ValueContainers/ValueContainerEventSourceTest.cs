@@ -1,19 +1,17 @@
-﻿using io.github.thisisnozaku.idle.framework.Configuration;
+﻿using BreakInfinity;
 using NUnit.Framework;
 using System;
 
 namespace io.github.thisisnozaku.idle.framework.Tests
 {
-    public class ValueContainerEventSourceTest
+    public class ValueContainerEventSourceTest : RequiresEngineTests
     {
-        private IdleEngine engine;
         private ValueContainer valueReference;
 
         [SetUp]
         public void Setup()
         {
-            engine = new IdleEngine(new EngineConfiguration() , null);
-            valueReference = new ValueContainerDefinitionBuilder().Build().CreateValueReference(engine);
+            valueReference = engine.CreateValueContainer();
         }
 
         [Test]
@@ -29,7 +27,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         {
             bool listenerCalled = false;
             valueReference.Subscribe("valueChanged", newValue => {
-                Assert.AreEqual(BreakInfinity.BigDouble.One, newValue);
+                Assert.AreEqual(listenerCalled ? BigDouble.One : BigDouble.Zero, newValue);
                 listenerCalled = true;
                 });
             valueReference.Set(BreakInfinity.BigDouble.One);

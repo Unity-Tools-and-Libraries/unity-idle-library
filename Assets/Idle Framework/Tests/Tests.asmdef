@@ -4,7 +4,8 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "IdleFramework"
+        "IdleFramework",
+        "IdleFrameworkLibraries"
     ],
     "includePlatforms": [
         "Editor"

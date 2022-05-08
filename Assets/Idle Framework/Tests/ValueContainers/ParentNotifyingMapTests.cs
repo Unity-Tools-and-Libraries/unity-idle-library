@@ -1,22 +1,15 @@
 using io.github.thisisnozaku.idle.framework;
-using io.github.thisisnozaku.idle.framework.Configuration;
 using NUnit.Framework;
 using System.Collections.Generic;
 
-public class ParentNotifyingMapTests
+public class ParentNotifyingMapTests : RequiresEngineTests
 {
-    private IdleEngine engine;
-    [SetUp]
-    public void Setup()
-    {
-        engine = new IdleEngine(null, null);
-    }
     
     [Test]
     public void CanBeGeneratedFromExistingMap()
     {
         var existingMap = new Dictionary<string, ValueContainer>() {
-            { "stringKey", new ValueContainerDefinitionBuilder().WithStartingValue("stringValue").Build().CreateValueReference(engine)}
+            { "stringKey", engine.CreateValueContainer("stringValue")}
         };
         var copy = new ParentNotifyingDictionary(existingMap);
         Assert.AreEqual("stringValue", copy["stringKey"].ValueAsString());
@@ -28,22 +21,22 @@ public class ParentNotifyingMapTests
     public void CanAddValue()
     {
         var map = new ParentNotifyingDictionary();
-        map.Add("key", "string");
+        map.Add("key", engine.CreateValueContainer("value"));
     }
 
     [Test]
     public void AddNotifiesParent()
     {
         var map = new ParentNotifyingDictionary(new Dictionary<string, ValueContainer>() {
-            { "stringKey", new ValueContainerDefinitionBuilder().WithStartingValue("stringValue").Build().CreateValueReference(engine)}
+            { "stringKey", engine.CreateValueContainer("stringValue")}
         });
-        var container = new ValueContainer(null, map);
+        var container = engine.CreateValueContainer(map);
         
         bool listenerCalled = false;
         container.Subscribe(ValueContainer.Events.VALUE_CHANGED, nv => {
             listenerCalled = true;
         });
-        map["one"] = new ValueContainer();
+        map["one"] = engine.CreateValueContainer();
         Assert.IsTrue(listenerCalled);
     }
 
@@ -51,7 +44,7 @@ public class ParentNotifyingMapTests
     public void AddKeyValuePair()
     {
         var map = new ParentNotifyingDictionary();
-        map.Add(new KeyValuePair<string, ValueContainer>("key", "string"));
+        map.Add(new KeyValuePair<string, ValueContainer>("key", engine.CreateValueContainer("string")));
         Assert.AreEqual("string", map["key"].ValueAsString());
     }
 
@@ -59,7 +52,7 @@ public class ParentNotifyingMapTests
     public void ClearNullsValues()
     {
         var map = new ParentNotifyingDictionary();
-        map.Add(new KeyValuePair<string, ValueContainer>("key", "string"));
+        map.Add(new KeyValuePair<string, ValueContainer>("key", engine.CreateValueContainer("string")));
         map.Clear();
         Assert.AreEqual(ValueContainer.DEFAULT_VALUE, map["key"].ValueAsRaw());
     }
@@ -68,7 +61,7 @@ public class ParentNotifyingMapTests
     public void RemoveValueSetValueToNull()
     {
         var map = new ParentNotifyingDictionary();
-        map.Add("key", "string");
+        map.Add("key", engine.CreateValueContainer("string"));
         Assert.IsTrue(map.ContainsKey("key"));
         Assert.AreEqual("string", map["key"].ValueAsString());
         map.Remove("key");

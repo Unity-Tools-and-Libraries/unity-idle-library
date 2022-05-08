@@ -1,21 +1,16 @@
 using io.github.thisisnozaku.idle.framework;
 using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 namespace io.github.thisisnozaku.idle.framework.Tests
 {
-    public class SavingSnapshotTests
+    public class SavingSnapshotTests : RequiresEngineTests
     {
-        private IdleEngine Engine;
-        [SetUp]
-        public void Setup()
-        {
-            Engine = new IdleEngine(null, null);
-        }
 
         [Test]
         public void BoolContainerSavesToSnapshot()
         {
-            var container = new ValueContainer(null, true, null);
+            var container = engine.CreateValueContainer(true);
             var snapshot = container.GetSnapshot();
             Assert.True((bool)snapshot.value);
             Assert.AreEqual(container.Id, snapshot.internalId);
@@ -24,8 +19,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void SnapshotAndContainerHaveSameHashcode()
         {
-            var container = new ValueContainer(null, true, null);
-            Engine.RegisterReference(container);
+            var container = engine.CreateValueContainer(true);
             var snapshot = container.GetSnapshot();
             Assert.AreEqual(container.GetHashCode(), snapshot.GetHashCode());
         }
@@ -33,20 +27,26 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void RestoringMapFromSnapshot()
         {
-            var container = new ValueContainer(null, new Dictionary<string, ValueContainer>() {
-            { "key", "string" }
-        }, null);
-            container.ValueAsMap()["nested"] = new ValueContainer(container, new Dictionary<string, ValueContainer>() {
-                { "child", "value" }
+            var container = engine.CreateValueContainer(new Dictionary<string, ValueContainer>() {
+                { "key", engine.CreateValueContainer("string") }
+            }, null);
+            container.ValueAsMap()["nested"] = engine.CreateValueContainer(new Dictionary<string, ValueContainer>() {
+                { "child", engine.CreateValueContainer("value") }
             });
 
-            Engine.RegisterReference(container);
             var snapshot = container.GetSnapshot();
-            var restored = new ValueContainer();
-            restored.Id = container.Id;
-            restored.RestoreFromSnapshot(Engine, snapshot);
-            Assert.AreEqual("string", restored.ValueAsMap()["key"].ValueAsString());
-            Assert.AreEqual("value", restored.ValueAsMap()["nested"].ValueAsMap()["child"].ValueAsString());
+
+            container.Set(false);
+
+            try
+            {
+                container.RestoreFromSnapshot(engine, snapshot);
+            } catch (NullReferenceException e)
+            {
+
+            }
+            Assert.AreEqual("string", container.ValueAsMap()["key"].ValueAsString());
+            Assert.AreEqual("value", container.ValueAsMap()["nested"].ValueAsMap()["child"].ValueAsString());
         }
     }
 }

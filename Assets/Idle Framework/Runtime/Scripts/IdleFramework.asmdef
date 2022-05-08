@@ -1,7 +1,9 @@
 {
     "name": "IdleFramework",
     "rootNamespace": "",
-    "references": [],
+    "references": [
+        "GUID:6a5dd4b13e3f96f44938ae9ef0ad81b4"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

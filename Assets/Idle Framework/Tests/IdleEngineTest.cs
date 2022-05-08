@@ -1,6 +1,4 @@
 ﻿using BreakInfinity;
-using io.github.thisisnozaku.idle.framework.Configuration;
-using io.github.thisisnozaku.idle.framework.Exceptions;
 using NUnit.Framework;
 using System.Collections.Generic;
 
@@ -13,45 +11,28 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [SetUp]
         public void setup()
         {
-            var configuration = new EngineConfiguration();
-            configuration.DeclareGlobalProperty("globalBoolean", true);
-            configuration.DeclareGlobalProperty("globalBooleanNoStartingValue");
+            engine = new IdleEngine( null);
+            engine.SetGlobalProperty("globalBoolean", true);
+            engine.SetGlobalProperty("globalBooleanNoStartingValue");
 
-            configuration.DeclareGlobalProperty("globalNumber", BigDouble.One);
-            configuration.DeclareGlobalProperty("globalNumberNoStartingValue");
+            engine.SetGlobalProperty("globalNumber", BigDouble.One);
+            engine.SetGlobalProperty("globalNumberNoStartingValue");
 
-            configuration.DeclareGlobalProperty("globalString", "startingValue");
-            configuration.DeclareGlobalProperty("globalStringNoStartingValue");
+            engine.SetGlobalProperty("globalString", "startingValue");
+            engine.SetGlobalProperty("globalStringNoStartingValue");
 
-            configuration.DeclareGlobalProperty("globalMapNoStartingValue");
-            configuration.DeclareGlobalProperty("globalMap", new Dictionary<string, ValueContainerDefinition>()
+            engine.SetGlobalProperty("globalMapNoStartingValue");
+            engine.SetGlobalProperty("globalMap", new Dictionary<string, ValueContainer>()
             {
-                { "foo", new ValueContainerDefinitionBuilder().WithStartingValue("bar").Build() }
+                { "foo", engine.CreateValueContainer("bar") }
             });
 
-            configuration.DeclareGlobalProperty("incrementingNumberValue",
-                new ValueContainerDefinitionBuilder().WithUpdater((engine, deltaTime, currentValue, parent, modifiers) =>
+            engine.GetGlobalProperty("incrementingNumberValue").SetUpdater((engine, deltaTime, currentValue, modifiers) =>
                 {
                     return (BigDouble)currentValue + BigDouble.One;
-                })
-                .Build());
+                });
 
-            engine = new IdleEngine(configuration, null);
-        }
-
-        [Test]
-        public void TryingToGetOrCreateAnEntityWithAnUndefinedTypeThrowsAnException()
-        {
-            Assert.Throws<UndefinedEntityException>(() => engine.GetOrCreateEntity("entity"));
-        }
-
-        [Test]
-        public void TryingToGetUndeclaredGlobalPropertyThrowsAnException()
-        {
-            Assert.Throws<UndefinedPropertyException>(() =>
-            {
-                engine.GetGlobalProperty("boolean");
-            });
+            
         }
 
         [Test]
@@ -121,7 +102,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests
                 listenerCalled++;
             });
             engine.Update(1f);
-            Assert.AreEqual(1, listenerCalled);
+            Assert.AreEqual(2, listenerCalled);
         }
 
         [Test]

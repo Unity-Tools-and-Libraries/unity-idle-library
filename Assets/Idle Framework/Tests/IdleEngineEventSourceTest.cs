@@ -1,19 +1,10 @@
-﻿using io.github.thisisnozaku.idle.framework.Configuration;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 namespace io.github.thisisnozaku.idle.framework.Tests
 {
-    public class IdleEngineEventSourceTest
+    public class IdleEngineEventSourceTest : RequiresEngineTests
     {
-        private IdleEngine engine;
-
-        [SetUp]
-        public void Setup()
-        {
-            var configuration = new EngineConfiguration();
-            engine = new IdleEngine(configuration, null);
-        }
-
+        
         [Test]
         public void CanSubscribeToEvent()
         {

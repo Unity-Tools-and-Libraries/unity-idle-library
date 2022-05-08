@@ -10,13 +10,13 @@ namespace io.github.thisisnozaku.idle.framework
     public class IdleEngine : EventSource
     {
         private IDictionary<string, ValueContainer> references = new Dictionary<string, ValueContainer>();
-        private IDictionary<string, ValueContainer> globalProperties = new Dictionary<string, ValueContainer>();
+        public readonly IDictionary<string, ValueContainer> globalProperties = new Dictionary<string, ValueContainer>();
         private IDictionary<string, List<Action<object>>> listeners = new Dictionary<string, List<Action<object>>>();
         public IDictionary<string, List<Action<object>>> EventListeners => listeners;
 
         public IdleEngine(GameObject gameObject)
         {
-            
+
         }
 
         public ValueContainer GetGlobalProperty(string property)
@@ -50,7 +50,7 @@ namespace io.github.thisisnozaku.idle.framework
 
         public void Update(float deltaTime)
         {
-            foreach(var reference in references.Values)
+            foreach (var reference in references.Values)
             {
                 reference.ClearUpdatedFlag();
             }
@@ -86,9 +86,9 @@ namespace io.github.thisisnozaku.idle.framework
                 newReference.Id = (references.Count() + 1).ToString();
                 references.Add(newReference.Id, newReference);
             }
-            if(newReference.ValueAsMap() != null)
+            if (newReference.ValueAsMap() != null)
             {
-                foreach(var child in newReference.ValueAsMap().Values)
+                foreach (var child in newReference.ValueAsMap().Values)
                 {
                     RegisterReference(child);
                 }

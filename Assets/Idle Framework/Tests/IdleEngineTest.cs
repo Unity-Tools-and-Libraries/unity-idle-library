@@ -36,6 +36,14 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         }
 
         [Test]
+        public void CanAssignValueContainerToAGlobalProperty()
+        {
+            Assert.False(engine.globalProperties.ContainsKey("new"));
+            engine.globalProperties["new"] = engine.CreateValueContainer();
+            Assert.True(engine.globalProperties.ContainsKey("new"));
+        }
+
+        [Test]
         public void TryingToGetDeclaredGlobalPropertyReturnsReferenceToThatProperty()
         {
             var propertyReference = engine.GetGlobalProperty("globalBoolean");

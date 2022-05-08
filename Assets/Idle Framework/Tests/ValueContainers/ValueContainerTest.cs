@@ -367,7 +367,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void CanSpecifyACalculatingFunction()
         {
-            var reference = engine.CreateValueContainer(0, updater: (eng, deltaTime, val, mds) => (BigDouble)val + 1);
+            var reference = engine.CreateValueContainer(0, updater: (eng, deltaTime, val, cont, mds) => (BigDouble)val + 1);
             for (int i = 1; i <= 5; i++)
             {
                 engine.Update(1f);
@@ -378,7 +378,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void SettingValueOfCalculatedValueThrowsError()
         {
-            var reference = engine.CreateValueContainer(0, updater: (eng, val, deltaTime, mds) => val + 1);
+            var reference = engine.CreateValueContainer(0, updater: (eng, deltaTime, val, cont, mds) => (BigDouble)val + 1);
             Assert.Throws(typeof(InvalidOperationException), () =>
             {
                 reference.Set(1);
@@ -388,7 +388,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void ReturningNullFromUpdaterThrowsError()
         {
-            var reference = engine.CreateValueContainer(0, updater : (eng, val, deltaTime, mds) => null);
+            var reference = engine.CreateValueContainer(0, updater : (eng, deltaTime, val, cont, mds) => null);
             Assert.Throws(typeof(InvalidOperationException), () =>
             {
                 engine.Update(1f);
@@ -398,7 +398,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void ReturningIntFromUpdaterBecomesBigDouble()
         {
-            var reference = engine.CreateValueContainer(0, updater: (eng, val, deltaTime, mds) => 1);
+            var reference = engine.CreateValueContainer(0, updater: (eng, deltaTime, val, cont, mds) => 1);
             engine.Update(1f);
             Assert.AreEqual(BigDouble.One, reference.ValueAsNumber());
         }
@@ -406,7 +406,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void ReturningFloatFromUpdaterBecomesBigDouble()
         {
-            var reference = engine.CreateValueContainer(0, updater: (eng, val, deltaTime, mds) => 1f);
+            var reference = engine.CreateValueContainer(0, updater: (eng, deltaTime, val, cont, mds) => 1f);
             engine.Update(1f);
             Assert.AreEqual(BigDouble.One, reference.ValueAsNumber());
         }
@@ -414,7 +414,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void ReturningLongFromUpdaterBecomesBigDouble()
         {
-            var reference = engine.CreateValueContainer(0, updater: (eng, val, deltaTime, mds) => 1L);
+            var reference = engine.CreateValueContainer(0, updater: (eng, deltaTime, val, cont, mds) => 1L);
             engine.Update(1f);
             Assert.AreEqual(BigDouble.One, reference.ValueAsNumber());
         }
@@ -422,7 +422,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void ReturningDoubleFromUpdaterBecomesBigDouble()
         {
-            var reference = engine.CreateValueContainer(0, updater: (eng, val, deltaTime, mds) => 1.0);
+            var reference = engine.CreateValueContainer(0, updater: (eng, deltaTime, val, cont, mds) => 1.0);
             engine.Update(1f);
             Assert.AreEqual(BigDouble.One, reference.ValueAsNumber());
         }
@@ -430,7 +430,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void ReturningInvalidValueFromUpdaterThrowsException()
         {
-            var reference = engine.CreateValueContainer(0, updater: (eng, val, deltaTime, mds) => new string[] { });
+            var reference = engine.CreateValueContainer(0, updater: (eng, deltaTime, val, cont, mds) => new string[] { });
             Assert.Throws(typeof(InvalidOperationException), () =>
             {
                 engine.Update(1f);

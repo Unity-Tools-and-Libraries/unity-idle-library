@@ -50,7 +50,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests
             {
                 new AdditiveValueModifier("add", "", 1),
                 new MultiplicativeValueModifier("1", "1", 2)
-            }, (e, dt, v, mds) =>
+            }, (e, dt, v, c, mds) =>
             {
                 return BigDouble.One;
             });

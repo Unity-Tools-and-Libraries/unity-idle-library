@@ -27,7 +27,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests
                 { "foo", engine.CreateValueContainer("bar") }
             });
 
-            engine.GetGlobalProperty("incrementingNumberValue").SetUpdater((engine, deltaTime, currentValue, modifiers) =>
+            engine.GetGlobalProperty("incrementingNumberValue").SetUpdater((engine, deltaTime, currentValue, container, modifiers) =>
                 {
                     return (BigDouble)currentValue + BigDouble.One;
                 });

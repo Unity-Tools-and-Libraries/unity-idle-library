@@ -16,7 +16,7 @@ namespace io.github.thisisnozaku.idle.framework
     // TODO: Implement automatic conversion from this to basic type.
     public class ValueContainer : CanSnapshot<ValueContainer.Snapshot>, EventSource
     {
-        public delegate object UpdatingMethod(IdleEngine engine, float timeSinceLastUpdate, object previousValue, List<ValueModifier> modifiersList);
+        public delegate object UpdatingMethod(IdleEngine engine, float timeSinceLastUpdate, object previousValue, ValueContainer thisContainer, List<ValueModifier> modifiersList);
 
         public static BigDouble DEFAULT_VALUE = BigDouble.Zero;
         // The unique id of this container.
@@ -168,7 +168,7 @@ namespace io.github.thisisnozaku.idle.framework
             updatedThisTick = true;
             if (this.updater != null)
             {
-                var updateOut = this.updater.Invoke(engine, deltaTime, value, this.modifiers);
+                var updateOut = this.updater.Invoke(engine, deltaTime, value, this, this.modifiers);
                 bool outputIsValid = false;
                 if (updateOut == null)
                 {

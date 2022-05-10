@@ -233,43 +233,44 @@ namespace io.github.thisisnozaku.idle.framework
             Notify(Events.VALUE_CHANGED, newValue);
         }
 
-        public void Set(BigDouble newValue)
+        public ValueContainer Set(BigDouble newValue)
         {
             AssertCanSet();
             setInternal(newValue);
+            return this;
         }
 
-        public void Set(string newValue)
+        public ValueContainer Set(string newValue)
         {
             AssertCanSet();
             setInternal(newValue);
+            return this;
         }
 
-        public void Set(bool newValue)
+        public ValueContainer Set(bool newValue)
         {
             AssertCanSet();
             setInternal(newValue);
+            return this;
         }
 
-        public void Set(Func<IdleEngine, ValueContainer, object[], object> value)
+        public ValueContainer Set(Func<IdleEngine, ValueContainer, object[], object> value)
         {
             AssertCanSet();
             setInternal(value);
+            return this;
         }
 
-        public void Set(IDictionary<string, ValueContainer> newValue)
+        public ValueContainer Set(IDictionary<string, ValueContainer> newValue)
         {
             if (!(newValue is ParentNotifyingDictionary))
             {
                 Debug.Log("Wrapping dictionary in parent notifying dictionary");
                 newValue = new ParentNotifyingDictionary(newValue as IDictionary<string, ValueContainer>, this);
             }
-            foreach (var child in newValue.Values)
-            {
-
-            }
             AssertCanSet();
             setInternal(newValue);
+            return this;
         }
 
         public IReadOnlyCollection<ValueModifier> GetModifiers()

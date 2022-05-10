@@ -251,6 +251,12 @@ namespace io.github.thisisnozaku.idle.framework
             setInternal(newValue);
         }
 
+        public void Set(Func<IdleEngine, ValueContainer, object[], object> value)
+        {
+            AssertCanSet();
+            setInternal(value);
+        }
+
         public void Set(IDictionary<string, ValueContainer> newValue)
         {
             if (!(newValue is ParentNotifyingDictionary))
@@ -508,7 +514,7 @@ namespace io.github.thisisnozaku.idle.framework
             {
                 return null;
             }
-            return parameters => (value as Func<IdleEngine, ValueContainer, object[], object>).Invoke(engine, this, TransformParameters(parameters));
+            return parameters => (value as Func<IdleEngine, ValueContainer, object[], object>).Invoke(engine, this, parameters != null ? TransformParameters(parameters) : null);
         }
 
         private object[] TransformParameters(params object[] parameters)

@@ -48,6 +48,11 @@ namespace io.github.thisisnozaku.idle.framework
             GetGlobalProperty(property).Set(value);
         }
 
+        public void SetGlobalProperty(string property, Func<IdleEngine, ValueContainer, object[], object> value)
+        {
+            GetGlobalProperty(property).Set(value);
+        }
+
         public void Update(float deltaTime)
         {
             foreach (var reference in references.Values)

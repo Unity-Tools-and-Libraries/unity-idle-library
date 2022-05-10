@@ -59,6 +59,17 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         }
 
         [Test]
+        public void FunctionGlobalProperty()
+        {
+            engine.SetGlobalProperty("function", (ie, c, v) => {
+                Assert.Pass();
+                return null;
+            });
+            engine.GetGlobalProperty("function").ValueAsFunction().Invoke(null);
+            Assert.Fail();
+        }
+
+        [Test]
         public void BooleanGlobalPropertyWithNoDefaultStartsFalse()
         {
             ValueContainer propertyReference = engine.GetGlobalProperty("globalBooleanNoStartingValue");

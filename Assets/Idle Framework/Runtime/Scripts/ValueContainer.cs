@@ -17,6 +17,7 @@ namespace io.github.thisisnozaku.idle.framework
     public class ValueContainer : CanSnapshot<ValueContainer.Snapshot>, EventSource
     {
         public delegate object UpdatingMethod(IdleEngine engine, float timeSinceLastUpdate, object previousValue, ValueContainer thisContainer, List<ValueModifier> modifiersList);
+        public delegate object FunctionSignature(params object[] arguments);
 
         public static BigDouble DEFAULT_VALUE = BigDouble.Zero;
         // The unique id of this container.
@@ -141,6 +142,12 @@ namespace io.github.thisisnozaku.idle.framework
             return CoerceToMap(value);
         }
 
+        public FunctionSignature ValueAsFunction()
+        {
+            AssertIsRegistered();
+            return CoerceToFunction(value);
+        }
+
         public override bool Equals(object other)
         {
             if (other is ValueContainer)
@@ -251,7 +258,7 @@ namespace io.github.thisisnozaku.idle.framework
                 Debug.Log("Wrapping dictionary in parent notifying dictionary");
                 newValue = new ParentNotifyingDictionary(newValue as IDictionary<string, ValueContainer>, this);
             }
-            foreach(var child in newValue.Values)
+            foreach (var child in newValue.Values)
             {
 
             }
@@ -361,7 +368,7 @@ namespace io.github.thisisnozaku.idle.framework
                 eventListeners[eventName] = listeners;
             }
             listeners.Add(listener);
-            if(eventName == Events.VALUE_CHANGED)
+            if (eventName == Events.VALUE_CHANGED)
             {
                 listener.Invoke(value);
             }
@@ -483,7 +490,7 @@ namespace io.github.thisisnozaku.idle.framework
         }
         private static IDictionary<string, ValueContainer> CoerceToMap(object value)
         {
-            if (value is BigDouble || value is string || value is bool)
+            if (value is BigDouble || value is string || value is bool || value is Func<IdleEngine, ValueContainer, object[], object>)
             {
                 return null;
             }
@@ -493,6 +500,47 @@ namespace io.github.thisisnozaku.idle.framework
             }
             //Debug.Log("Coercing to map " + value != null ? value.ToString() : null);
             return (ParentNotifyingDictionary)value;
+        }
+
+        private FunctionSignature CoerceToFunction(object value)
+        {
+            if (value is BigDouble || value is string || value is bool || value is IDictionary<string, ValueContainer>)
+            {
+                return null;
+            }
+            return parameters => (value as Func<IdleEngine, ValueContainer, object[], object>).Invoke(engine, this, TransformParameters(parameters));
+        }
+
+        private object[] TransformParameters(params object[] parameters)
+        {
+            object[] transformed = new object[parameters.Length];
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                if (parameters[i] is BigDouble || parameters[i] is bool || parameters[i] is string || parameters[i] is IDictionary<string, ValueContainer> || parameters[i] is Func<IdleEngine, ValueContainer, object[], object>)
+                {
+                    transformed[i] = parameters[i];
+                }
+                else if (parameters[i] is long)
+                {
+                    transformed[i] = new BigDouble((long)parameters[i]);
+                }
+                else if (parameters[i] is int)
+                {
+                    transformed[i] = new BigDouble((int)parameters[i]);
+                }
+                else if (parameters[i] is float)
+                {
+                    transformed[i] = new BigDouble((float)parameters[i]);
+                } else if (parameters[i] is double)
+                {
+                    transformed[i] = new BigDouble((double)parameters[i]);
+                }
+                else
+                {
+                    throw new ArgumentException("Failed to convert parameter of type " + parameters[i].GetType() + ". Supported types are: bool, string, int, long, float, double, BigDouble, IDictionary<string, ValueContainer> and Func<IdleEngine, ValueContainer, object[], object>");
+                }
+            }
+            return transformed;
         }
     }
 }

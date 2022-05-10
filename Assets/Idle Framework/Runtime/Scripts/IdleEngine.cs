@@ -12,7 +12,7 @@ namespace io.github.thisisnozaku.idle.framework
         private IDictionary<string, ValueContainer> references = new Dictionary<string, ValueContainer>();
         public readonly IDictionary<string, ValueContainer> globalProperties = new Dictionary<string, ValueContainer>();
         private Dictionary<string, List<Action<object>>> listeners = new Dictionary<string, List<Action<object>>>();
-        Dictionary<string, List<Action<object>>> EventSource.EventListeners => listeners;
+        public Dictionary<string, List<Action<object>>> EventListeners => listeners;
 
         public IdleEngine(GameObject gameObject)
         {
@@ -79,7 +79,7 @@ namespace io.github.thisisnozaku.idle.framework
             }
         }
 
-        private void RegisterReference(ValueContainer newReference)
+        private ValueContainer RegisterReference(ValueContainer newReference)
         {
             if (newReference.Id == null)
             {
@@ -93,6 +93,8 @@ namespace io.github.thisisnozaku.idle.framework
                     RegisterReference(child);
                 }
             }
+
+            return newReference;
         }
 
         internal ValueContainer GetReferenceById(string internalId)
@@ -137,6 +139,12 @@ namespace io.github.thisisnozaku.idle.framework
             var vc = new ValueContainer(this, value, modifiers, updater);
             RegisterReference(vc);
             return vc;
+        }
+
+        public ValueContainer CreateValueContainer(Func<IdleEngine, ValueContainer, object[], object> value)
+        {
+            var vc = new ValueContainer(this, value);
+            return RegisterReference(vc);
         }
     }
 }

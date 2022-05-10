@@ -436,5 +436,26 @@ namespace io.github.thisisnozaku.idle.framework.Tests
                 engine.Update(1f);
             });
         }
+
+        [Test]
+        public void GetAsFunctionForBoolReturnsNull()
+        {
+            var reference = engine.CreateValueContainer(true);
+            Assert.Null(reference.ValueAsFunction());
+        }
+
+        [Test]
+        public void GetAsFunctionForStringReturnsNull()
+        {
+            var reference = engine.CreateValueContainer("true");
+            Assert.Null(reference.ValueAsFunction());
+        }
+
+        [Test]
+        public void GetAsFunctionForNumberReturnsNull()
+        {
+            var reference = engine.CreateValueContainer(new BigDouble(2));
+            Assert.Null(reference.ValueAsFunction());
+        }
     }
 }

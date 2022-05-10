@@ -1,8 +1,8 @@
 ﻿using BreakInfinity;
+using io.github.thisisnozaku.idle.framework.Events;
 using io.github.thisisnozaku.idle.framework.Modifiers;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Tracing;
 using System.Linq;
 using UnityEngine;
 namespace io.github.thisisnozaku.idle.framework
@@ -11,8 +11,8 @@ namespace io.github.thisisnozaku.idle.framework
     {
         private IDictionary<string, ValueContainer> references = new Dictionary<string, ValueContainer>();
         public readonly IDictionary<string, ValueContainer> globalProperties = new Dictionary<string, ValueContainer>();
-        private IDictionary<string, List<Action<object>>> listeners = new Dictionary<string, List<Action<object>>>();
-        public IDictionary<string, List<Action<object>>> EventListeners => listeners;
+        private Dictionary<string, List<Action<object>>> listeners = new Dictionary<string, List<Action<object>>>();
+        Dictionary<string, List<Action<object>>> EventSource.EventListeners => listeners;
 
         public IdleEngine(GameObject gameObject)
         {

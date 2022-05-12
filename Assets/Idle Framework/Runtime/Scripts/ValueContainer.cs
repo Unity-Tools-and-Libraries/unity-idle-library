@@ -227,38 +227,35 @@ namespace io.github.thisisnozaku.idle.framework
 
         internal void ClearUpdatedFlag() => updatedThisTick = false;
 
-        private void setInternal(object newValue)
+        private object setInternal(object newValue)
         {
             this.value = applyModifiers(newValue != null ? newValue : BigDouble.Zero);
             Notify(Events.VALUE_CHANGED, newValue);
+            return this.value;
         }
 
-        public ValueContainer Set(BigDouble newValue)
+        public BigDouble Set(BigDouble newValue)
         {
             AssertCanSet();
-            setInternal(newValue);
-            return this;
+            return CoerceToNumber(setInternal(newValue));
         }
 
-        public ValueContainer Set(string newValue)
+        public string Set(string newValue)
         {
             AssertCanSet();
-            setInternal(newValue);
-            return this;
+            return CoerceToString(setInternal(newValue));
         }
 
-        public ValueContainer Set(bool newValue)
+        public bool Set(bool newValue)
         {
             AssertCanSet();
-            setInternal(newValue);
-            return this;
+            return CoerceToBool(setInternal(newValue));
         }
 
-        public ValueContainer Set(Func<IdleEngine, ValueContainer, object[], object> value)
+        public Func<IdleEngine, ValueContainer, object[], object> Set(Func<IdleEngine, ValueContainer, object[], object> value)
         {
             AssertCanSet();
-            setInternal(value);
-            return this;
+            return (Func<IdleEngine, ValueContainer, object[], object>)setInternal(value);
         }
 
         public ValueContainer Set(IDictionary<string, ValueContainer> newValue)

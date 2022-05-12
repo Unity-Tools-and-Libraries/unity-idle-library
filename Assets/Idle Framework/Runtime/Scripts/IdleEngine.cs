@@ -151,5 +151,17 @@ namespace io.github.thisisnozaku.idle.framework
             var vc = new ValueContainer(this, value);
             return RegisterReference(vc);
         }
+
+        public void Notify(string eventName, object argument)
+        {
+            List<Action<object>> listeners;
+            if(this.listeners.TryGetValue(eventName, out listeners))
+            {
+                foreach(var listener in listeners)
+                {
+                    listener.Invoke(argument);
+                }
+            }
+        }
     }
 }

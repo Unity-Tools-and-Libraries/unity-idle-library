@@ -11,5 +11,6 @@ namespace io.github.thisisnozaku.idle.framework.Events
     {
         Dictionary<string, List<Action<object>>> EventListeners { get; }
         void Subscribe(string eventName, Action<object> listener);
+        void Notify(string eventName, object argument);
     }
 }

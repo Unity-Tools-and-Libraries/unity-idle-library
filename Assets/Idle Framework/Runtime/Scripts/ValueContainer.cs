@@ -27,6 +27,7 @@ namespace io.github.thisisnozaku.idle.framework
         private UpdatingMethod updater;
         // Listeners for events on this container.
         private Dictionary<string, List<Action<object>>> eventListeners = new Dictionary<string, List<Action<object>>>();
+        public string Description;
 
         private IdleEngine engine;
 
@@ -46,34 +47,34 @@ namespace io.github.thisisnozaku.idle.framework
             }
         }
 
-        public ValueContainer(IdleEngine engine) : this(engine, null as object, null) { }
+        public ValueContainer(IdleEngine engine, string description = "") : this(engine, null as object, description, null) { }
 
-        internal ValueContainer(IdleEngine engine, object startingValue, List<ValueModifier> modifiers = null, UpdatingMethod updater = null) : this(engine, startingValue, updater, modifiers)
+        internal ValueContainer(IdleEngine engine, object startingValue, string description = "", List<ValueModifier> modifiers = null, UpdatingMethod updater = null) : this(engine, startingValue, description, updater, modifiers)
         {
 
         }
 
-        internal ValueContainer(IdleEngine engine, string startingValue, List<ValueModifier> modifiers = null, UpdatingMethod updater = null) : this(engine, startingValue, updater, modifiers)
+        internal ValueContainer(IdleEngine engine, string startingValue, string description = "", List<ValueModifier> modifiers = null, UpdatingMethod updater = null) : this(engine, startingValue, description, updater, modifiers)
         {
 
         }
 
-        internal ValueContainer(IdleEngine engine, BigDouble startingValue, List<ValueModifier> modifiers = null, UpdatingMethod updater = null) : this(engine, startingValue, updater, modifiers)
+        internal ValueContainer(IdleEngine engine, BigDouble startingValue, string description = "", List<ValueModifier> modifiers = null, UpdatingMethod updater = null) : this(engine, startingValue, description, updater, modifiers)
         {
 
         }
 
-        internal ValueContainer(IdleEngine engine, bool startingValue, List<ValueModifier> modifiers = null, UpdatingMethod updater = null) : this(engine, startingValue, updater, modifiers)
+        internal ValueContainer(IdleEngine engine, bool startingValue, string description = "", List<ValueModifier> modifiers = null, UpdatingMethod updater = null) : this(engine, startingValue, description, updater, modifiers)
         {
 
         }
 
-        internal ValueContainer(IdleEngine engine, IDictionary<string, ValueContainer> startingValue, List<ValueModifier> modifiers = null, UpdatingMethod updater = null) : this(engine, startingValue, updater, modifiers)
+        internal ValueContainer(IdleEngine engine, IDictionary<string, ValueContainer> startingValue, string description = "", List<ValueModifier> modifiers = null, UpdatingMethod updater = null) : this(engine, startingValue, description, updater, modifiers)
         {
 
         }
 
-        internal ValueContainer(IdleEngine engine, object startingValue, UpdatingMethod updater, List<ValueModifier> startingModifiers)
+        internal ValueContainer(IdleEngine engine, object startingValue, string description, UpdatingMethod updater, List<ValueModifier> startingModifiers)
         {
             this.engine = engine;
             this.modifiers = startingModifiers != null ? startingModifiers : new List<ValueModifier>();
@@ -85,7 +86,7 @@ namespace io.github.thisisnozaku.idle.framework
                 startingValue = notifyingDictionary;
             }
             this.value = applyModifiers(startingValue);
-
+            this.Description = description != null ? description : "";
             this.updater = updater;
         }
 
@@ -328,7 +329,7 @@ namespace io.github.thisisnozaku.idle.framework
             {
                 valueType = "map";
             }
-            return string.Format("Reference #{0}(containing {1})", Id, valueType);
+            return string.Format("Reference #{0}: {1} (containing {2} {3})", this.Description, Id, valueType, value.ToString());
         }
 
         public Snapshot GetSnapshot()

@@ -280,7 +280,13 @@ namespace io.github.thisisnozaku.idle.framework
             {
                 foreach (var listener in listeners.ToArray())
                 {
-                    listener.Invoke(newValue);
+                    try
+                    {
+                        listener.Invoke(newValue);
+                    } catch (Exception e)
+                    {
+                        Debug.LogError(string.Format("Exception thrown while invoking listener for event {0}: {1]", eventName, e.ToString()));
+                    }
                 }
             }
         }
@@ -337,6 +343,18 @@ namespace io.github.thisisnozaku.idle.framework
             return new Snapshot(internalId, this);
         }
 
+        public ValueContainer AddModifier(ValueModifier modifier)
+        {
+            this.modifiers.Add(modifier);
+            return this;
+        }
+
+        public ValueContainer RemoveModifier(ValueModifier modifier)
+        {
+            this.modifiers.Remove(modifier);
+            return this;
+        }
+
         public void RestoreFromSnapshot(IdleEngine engine, Snapshot snapshot, ValueContainer parent = null)
         {
             if (internalId != snapshot.internalId)
@@ -372,7 +390,13 @@ namespace io.github.thisisnozaku.idle.framework
             listeners.Add(listener);
             if (eventName == Events.VALUE_CHANGED)
             {
-                listener.Invoke(value);
+                try
+                {
+                    listener.Invoke(value);
+                } catch (Exception e)
+                {
+                    Debug.LogError(string.Format("Exception thrown while invoking listener for event {0}: {1}", eventName, e.ToString()));
+                }
             }
         }
 

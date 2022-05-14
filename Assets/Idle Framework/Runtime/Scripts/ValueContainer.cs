@@ -19,7 +19,6 @@ namespace io.github.thisisnozaku.idle.framework
         public delegate object UpdatingMethod(IdleEngine engine, float timeSinceLastUpdate, object previousValue, ValueContainer thisContainer, List<ValueModifier> modifiersList);
         public delegate object FunctionSignature(params object[] arguments);
 
-        public static BigDouble DEFAULT_VALUE = BigDouble.Zero;
         // The unique id of this container.
         private string internalId;
         // The value held by this container.
@@ -85,7 +84,7 @@ namespace io.github.thisisnozaku.idle.framework
                 notifyingDictionary.SetParent(this);
                 startingValue = notifyingDictionary;
             }
-            this.value = applyModifiers(startingValue != null ? startingValue : BigDouble.Zero);
+            this.value = applyModifiers(startingValue);
 
             this.updater = updater;
         }

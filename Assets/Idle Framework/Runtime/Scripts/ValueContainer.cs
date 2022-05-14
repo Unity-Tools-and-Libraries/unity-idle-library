@@ -285,7 +285,7 @@ namespace io.github.thisisnozaku.idle.framework
                         listener.Invoke(newValue);
                     } catch (Exception e)
                     {
-                        Debug.LogError(string.Format("Exception thrown while invoking listener for event {0}: {1]", eventName, e.ToString()));
+                        Debug.LogError(string.Format("Exception thrown while invoking listener for event {0}: {1}", eventName, e.ToString()));
                     }
                 }
             }

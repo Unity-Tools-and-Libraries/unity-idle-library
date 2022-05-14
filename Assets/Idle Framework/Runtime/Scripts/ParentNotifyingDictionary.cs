@@ -68,7 +68,7 @@ namespace io.github.thisisnozaku.idle.framework
         {
             foreach(var key in underlying.Keys)
             {
-                underlying[key].Set(ValueContainer.DEFAULT_VALUE);
+                underlying[key].Set((string)null);
             }
         }
 

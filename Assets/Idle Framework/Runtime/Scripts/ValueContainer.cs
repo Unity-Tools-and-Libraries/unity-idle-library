@@ -461,6 +461,9 @@ namespace io.github.thisisnozaku.idle.framework
             else if (value is IDictionary<string, ValueContainer>)
             {
                 return true;
+            } else if (value == null)
+            {
+                return false;
             }
             else
             {
@@ -474,7 +477,7 @@ namespace io.github.thisisnozaku.idle.framework
             {
                 return (bool)value ? BigDouble.One : BigDouble.Zero;
             }
-            else if (value is IDictionary<string, ValueContainer>)
+            else if (value is IDictionary<string, ValueContainer> || value == null)
             {
                 return BigDouble.Zero;
             }
@@ -488,12 +491,15 @@ namespace io.github.thisisnozaku.idle.framework
             if (value is string)
             {
                 return (string)value;
+            } else if (value == null)
+            {
+                return null;
             }
             return value.ToString();
         }
         private static IDictionary<string, ValueContainer> CoerceToMap(object value)
         {
-            if (value is BigDouble || value is string || value is bool || value is Func<IdleEngine, ValueContainer, object[], object>)
+            if (value is BigDouble || value is string || value is bool || value is Func<IdleEngine, ValueContainer, object[], object> || value == null)
             {
                 return null;
             }
@@ -507,7 +513,7 @@ namespace io.github.thisisnozaku.idle.framework
 
         private FunctionSignature CoerceToFunction(object value)
         {
-            if (value is BigDouble || value is string || value is bool || value is IDictionary<string, ValueContainer>)
+            if (value is BigDouble || value is string || value is bool || value is IDictionary<string, ValueContainer> || value == null)
             {
                 return null;
             }

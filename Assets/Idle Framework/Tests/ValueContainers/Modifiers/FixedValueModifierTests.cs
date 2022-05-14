@@ -11,7 +11,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers
         [Test]
         public void FixedValueModifierSetsValue()
         {
-            var vc = engine.CreateValueContainer(BigDouble.Zero, new List<ValueModifier>() {
+            var vc = engine.CreateValueContainer(BigDouble.Zero, "", new List<ValueModifier>() {
                 new FixedValueModifier("1", "", BigDouble.One)
             });
             vc.Set(BigDouble.Zero);
@@ -21,7 +21,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers
         [Test]
         public void FixedValueModifierTrumpsAllOtherModifiers()
         {
-            var vc = engine.CreateValueContainer(BigDouble.One, new List<ValueModifier>() {
+            var vc = engine.CreateValueContainer(BigDouble.One, "", new List<ValueModifier>() {
                 new FixedValueModifier("1", "", BigDouble.One)
             });
             vc.Set(BigDouble.Zero);

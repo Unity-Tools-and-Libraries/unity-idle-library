@@ -54,7 +54,7 @@ public class ParentNotifyingMapTests : RequiresEngineTests
         var map = new ParentNotifyingDictionary();
         map.Add(new KeyValuePair<string, ValueContainer>("key", engine.CreateValueContainer("string")));
         map.Clear();
-        Assert.AreEqual(ValueContainer.DEFAULT_VALUE, map["key"].ValueAsRaw());
+        Assert.AreEqual(null, map["key"].ValueAsRaw());
     }
 
     [Test]
@@ -65,7 +65,7 @@ public class ParentNotifyingMapTests : RequiresEngineTests
         Assert.IsTrue(map.ContainsKey("key"));
         Assert.AreEqual("string", map["key"].ValueAsString());
         map.Remove("key");
-        Assert.AreEqual(ValueContainer.DEFAULT_VALUE, map["key"].ValueAsRaw());
+        Assert.AreEqual(null, map["key"].ValueAsRaw());
 
     }
 }

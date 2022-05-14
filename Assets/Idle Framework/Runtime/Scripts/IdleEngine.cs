@@ -118,30 +118,30 @@ namespace io.github.thisisnozaku.idle.framework
             eventListeners.Add(listener);
         }
 
-        public ValueContainer CreateValueContainer(string value = null, List<ValueModifier> modifiers = null, ValueContainer.UpdatingMethod updater = null)
+        public ValueContainer CreateValueContainer(string value = null, string description = "", List<ValueModifier> modifiers = null, ValueContainer.UpdatingMethod updater = null)
         {
-            var vc = new ValueContainer(this, value, modifiers, updater);
+            var vc = new ValueContainer(this, value, description, modifiers, updater);
             RegisterReference(vc);
             return vc;
         }
 
-        public ValueContainer CreateValueContainer(BigDouble value, List<ValueModifier> modifiers = null, ValueContainer.UpdatingMethod updater = null)
+        public ValueContainer CreateValueContainer(BigDouble value, string description = "", List<ValueModifier> modifiers = null, ValueContainer.UpdatingMethod updater = null)
         {
-            var vc = new ValueContainer(this, value, modifiers, updater);
+            var vc = new ValueContainer(this, value, description, modifiers, updater);
             RegisterReference(vc);
             return vc;
         }
 
-        public ValueContainer CreateValueContainer(bool value, List<ValueModifier> modifiers = null, ValueContainer.UpdatingMethod updater = null)
+        public ValueContainer CreateValueContainer(bool value, string description = "", List<ValueModifier> modifiers = null, ValueContainer.UpdatingMethod updater = null)
         {
-            var vc = new ValueContainer(this, value, modifiers, updater);
+            var vc = new ValueContainer(this, value, description, modifiers, updater);
             RegisterReference(vc);
             return vc;
         }
 
-        public ValueContainer CreateValueContainer(IDictionary<string, ValueContainer> value, List<ValueModifier> modifiers = null, ValueContainer.UpdatingMethod updater = null)
+        public ValueContainer CreateValueContainer(IDictionary<string, ValueContainer> value, string description = "", List<ValueModifier> modifiers = null, ValueContainer.UpdatingMethod updater = null)
         {
-            var vc = new ValueContainer(this, value, modifiers, updater);
+            var vc = new ValueContainer(this, value, description, modifiers, updater);
             RegisterReference(vc);
             return vc;
         }

@@ -10,7 +10,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers
         [Test]
         public void AdditiveModifierAddsToSetValue()
         {
-            var vc = engine.CreateValueContainer(null as string, new System.Collections.Generic.List<ValueModifier>()
+            var vc = engine.CreateValueContainer(null as string, "", new System.Collections.Generic.List<ValueModifier>()
             {
                 new AdditiveValueModifier("", "", 1)
             });

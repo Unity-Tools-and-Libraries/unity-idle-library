@@ -46,7 +46,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void ModifiersApplyToUpdateOutputValue()
         {
-            var reference = engine.CreateValueContainer(BigDouble.Zero, new System.Collections.Generic.List<ValueModifier>()
+            var reference = engine.CreateValueContainer(BigDouble.Zero, "", new System.Collections.Generic.List<ValueModifier>()
             {
                 new AdditiveValueModifier("add", "", 1),
                 new MultiplicativeValueModifier("1", "1", 2)

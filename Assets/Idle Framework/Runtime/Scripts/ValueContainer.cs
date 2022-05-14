@@ -32,7 +32,6 @@ namespace io.github.thisisnozaku.idle.framework
         private IdleEngine engine;
 
         private bool updatedThisTick = false;
-        private Action<IdleEngine, float, object> postUpdateHook;
         private List<ValueModifier> modifiers;
 
         public string Id
@@ -50,32 +49,32 @@ namespace io.github.thisisnozaku.idle.framework
 
         public ValueContainer(IdleEngine engine) : this(engine, null as object, null) { }
 
-        internal ValueContainer(IdleEngine engine, object startingValue, List<ValueModifier> modifiers = null, UpdatingMethod updater = null, Action<IdleEngine, float, object> postUpdateHook = null) : this(engine, startingValue, updater, postUpdateHook, modifiers)
+        internal ValueContainer(IdleEngine engine, object startingValue, List<ValueModifier> modifiers = null, UpdatingMethod updater = null) : this(engine, startingValue, updater, modifiers)
         {
 
         }
 
-        internal ValueContainer(IdleEngine engine, string startingValue, List<ValueModifier> modifiers = null, UpdatingMethod updater = null, Action<IdleEngine, float, object> postUpdateHook = null) : this(engine, startingValue, updater, postUpdateHook, modifiers)
+        internal ValueContainer(IdleEngine engine, string startingValue, List<ValueModifier> modifiers = null, UpdatingMethod updater = null) : this(engine, startingValue, updater, modifiers)
         {
 
         }
 
-        internal ValueContainer(IdleEngine engine, BigDouble startingValue, List<ValueModifier> modifiers = null, UpdatingMethod updater = null, Action<IdleEngine, float, object> postUpdateHook = null) : this(engine, startingValue, updater, postUpdateHook, modifiers)
+        internal ValueContainer(IdleEngine engine, BigDouble startingValue, List<ValueModifier> modifiers = null, UpdatingMethod updater = null) : this(engine, startingValue, updater, modifiers)
         {
 
         }
 
-        internal ValueContainer(IdleEngine engine, bool startingValue, List<ValueModifier> modifiers = null, UpdatingMethod updater = null, Action<IdleEngine, float, object> postUpdateHook = null) : this(engine, startingValue, updater, postUpdateHook, modifiers)
+        internal ValueContainer(IdleEngine engine, bool startingValue, List<ValueModifier> modifiers = null, UpdatingMethod updater = null) : this(engine, startingValue, updater, modifiers)
         {
 
         }
 
-        internal ValueContainer(IdleEngine engine, IDictionary<string, ValueContainer> startingValue, List<ValueModifier> modifiers = null, UpdatingMethod updater = null, Action<IdleEngine, float, object> postUpdateHook = null) : this(engine, startingValue, updater, postUpdateHook, modifiers)
+        internal ValueContainer(IdleEngine engine, IDictionary<string, ValueContainer> startingValue, List<ValueModifier> modifiers = null, UpdatingMethod updater = null) : this(engine, startingValue, updater, modifiers)
         {
 
         }
 
-        internal ValueContainer(IdleEngine engine, object startingValue, UpdatingMethod updater, Action<IdleEngine, float, object> postUpdateHook, List<ValueModifier> startingModifiers)
+        internal ValueContainer(IdleEngine engine, object startingValue, UpdatingMethod updater, List<ValueModifier> startingModifiers)
         {
             this.engine = engine;
             this.modifiers = startingModifiers != null ? startingModifiers : new List<ValueModifier>();
@@ -89,7 +88,6 @@ namespace io.github.thisisnozaku.idle.framework
             this.value = applyModifiers(startingValue != null ? startingValue : BigDouble.Zero);
 
             this.updater = updater;
-            this.postUpdateHook = postUpdateHook;
         }
 
         private object applyModifiers(object v)
@@ -222,7 +220,7 @@ namespace io.github.thisisnozaku.idle.framework
                     child.Value.Update(engine, deltaTime);
                 }
             }
-            postUpdateHook?.Invoke(engine, deltaTime, value);
+            Notify(Events.UPDATED, this.value);
         }
 
         internal void ClearUpdatedFlag() => updatedThisTick = false;
@@ -450,7 +448,8 @@ namespace io.github.thisisnozaku.idle.framework
 
         public static class Events
         {
-            public static readonly string VALUE_CHANGED = "valueChanged";
+            public const string VALUE_CHANGED = "valueChanged";
+            public const string UPDATED = "UPDATED";
         }
 
         private static bool CoerceToBool(object value)
@@ -520,7 +519,8 @@ namespace io.github.thisisnozaku.idle.framework
             object[] transformed = new object[parameters.Length];
             for (int i = 0; i < parameters.Length; i++)
             {
-                if (parameters[i] is BigDouble || parameters[i] is bool || parameters[i] is string || parameters[i] is IDictionary<string, ValueContainer> || parameters[i] is Func<IdleEngine, ValueContainer, object[], object>)
+                if (parameters[i] is BigDouble || parameters[i] is bool || parameters[i] is string || parameters[i] is IDictionary<string, ValueContainer> || parameters[i] is Func<IdleEngine, ValueContainer, object[], object> 
+                    || parameters[i] is ValueContainer)
                 {
                     transformed[i] = parameters[i];
                 }

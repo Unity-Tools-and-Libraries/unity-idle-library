@@ -550,7 +550,7 @@ namespace io.github.thisisnozaku.idle.framework
             for (int i = 0; i < parameters.Length; i++)
             {
                 if (parameters[i] is BigDouble || parameters[i] is bool || parameters[i] is string || parameters[i] is IDictionary<string, ValueContainer> || parameters[i] is Func<IdleEngine, ValueContainer, object[], object> 
-                    || parameters[i] is ValueContainer)
+                    || parameters[i] is ValueContainer || parameters[i] == null)
                 {
                     transformed[i] = parameters[i];
                 }

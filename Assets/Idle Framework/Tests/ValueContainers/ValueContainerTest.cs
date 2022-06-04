@@ -1,10 +1,13 @@
 ﻿using BreakInfinity;
+using io.github.thisisnozaku.idle.framework.Events;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.TestTools;
+using static io.github.thisisnozaku.idle.framework.IdleEngine;
 
-namespace io.github.thisisnozaku.idle.framework.Tests
+namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
 {
     public class ValueContainerTest : RequiresEngineTests
     {
@@ -13,134 +16,97 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         {
             InitializeEngine();
         }
-        // Boolean
-        [Test]
-        public void GettingBoolAsBoolReturnsAsIs()
-        {
-            Assert.IsTrue(engine.CreateValueContainer(true).ValueAsBool());
-            Assert.IsFalse(engine.CreateValueContainer(false).ValueAsBool());
-        }
 
-        [Test]
-        public void GettingNullAsBoolReturnsFalse()
-        {
-            Assert.IsFalse(engine.CreateValueContainer((string)null).ValueAsBool());
-        }
-
-        [Test]
-        public void GettingNumberAsBool()
-        {
-            Assert.AreEqual(BigDouble.One, engine.CreateValueContainer(true).ValueAsNumber());
-            Assert.AreEqual(BigDouble.Zero, engine.CreateValueContainer(false).ValueAsNumber());
-        }
-
-        [Test]
-        public void GettingMapAsBoolReturnsTrueIfNotNull()
-        {
-            Assert.IsFalse(engine.CreateValueContainer(null as Dictionary<string, ValueContainer>).ValueAsBool());
-            Assert.IsTrue(engine.CreateValueContainer(new Dictionary<string, ValueContainer>()).ValueAsBool());
-        }
-
-        [Test]
-        public void CanImplicitlyConvertToBool()
-        {
-            Assert.IsTrue(engine.CreateValueContainer(true));
-        }
-
-        // Number
-        [Test]
-        public void GettingNumberAsNumberReturnsAsIs()
-        {
-            Assert.AreEqual(new BigDouble(100), engine.CreateValueContainer(new BigDouble(100)).ValueAsNumber());
-        }
-
-        [Test]
-        public void GettingNumberAsBoolReturnsTrueForNonZero()
-        {
-            Assert.IsTrue(engine.CreateValueContainer(new BigDouble(1)).ValueAsBool());
-            Assert.IsTrue(engine.CreateValueContainer(new BigDouble(-1)).ValueAsBool());
-            Assert.IsFalse(engine.CreateValueContainer(BigDouble.Zero).ValueAsBool());
-        }
-
-        [Test]
-        public void GettingMapAsNumberReturnsZero()
-        {
-            Assert.AreEqual(BigDouble.Zero,
-                engine.CreateValueContainer(new Dictionary<string, ValueContainer>()).ValueAsNumber());
-        }
-
-        [Test]
-        public void CanImplicitlyConvertToNumber()
-        {
-            Assert.AreEqual(BigDouble.One, (BigDouble)engine.CreateValueContainer(BigDouble.One));
-        }
-
-        [Test]
-        public void CanImplicitlyConvertToString()
-        {
-            Assert.AreEqual("true", (string)engine.CreateValueContainer("true"));
-        }
-
-        
-
-        
-
-        [Test]
-        public void RawValueReturnsActualValue()
-        {
-            var booleanReference = engine.CreateValueContainer(true);
-            var numberReference = engine.CreateValueContainer(BigDouble.One);
-            var stringReference = engine.CreateValueContainer("string");
-            var mapReference = engine.CreateValueContainer(new Dictionary<string, ValueContainer>());
-
-            Assert.AreEqual(true, booleanReference.ValueAsRaw());
-            Assert.AreEqual(BigDouble.One, numberReference.ValueAsRaw());
-            Assert.AreEqual("string", stringReference.ValueAsRaw());
-            Assert.AreEqual(new Dictionary<string, ValueContainer>(), mapReference.ValueAsRaw());
-        }
-
-//        [Test]
+        //[Test]
         public void CanWatchANonExistantKeyInAMap()
         {
             var mapReference = engine.CreateValueContainer(new Dictionary<string, ValueContainer>());
             var fooReference = mapReference.ValueAsMap()["foo"];
             var watchListenerCalled = false;
-            fooReference.Subscribe(ValueContainer.Events.VALUE_CHANGED, newFoo =>
+            fooReference.Subscribe("", ValueContainer.Events.CHILD_VALUE_CHANGED, (ie, c, ev) =>
             {
-                watchListenerCalled = true;
+                return watchListenerCalled = true;
             });
             Assert.IsTrue(watchListenerCalled);
         }
 
         [Test]
-        public void AssigningAValueInAMapUpdatesTheParent()
+        public void CanUnsubscribeFromEventsOnContainer()
         {
-            var mapReference = engine.CreateValueContainer(new Dictionary<string, ValueContainer>());
-            var map = mapReference.ValueAsMap();
-            int watchListenerCalled = 0;
-            mapReference.Subscribe(ValueContainer.Events.VALUE_CHANGED, updatedMap =>
-            {
-                watchListenerCalled++;
+            engine.Start();
+            int callCount = 0;
+            engine.RegisterMethod("method", (ie, vc, ev) => {
+                callCount++;
+                return null;
             });
+            var container = engine.CreateValueContainer(new Dictionary<string, ValueContainer>(), path: "path");
+            var subscription = container.Subscribe("event", "event", "method");
+            container.NotifyImmediately("event", new ValueChangedEvent("", null, null, null));
+            container.Unsubscribe(subscription);
+            container.NotifyImmediately("event", new ValueChangedEvent("", null, null, null));
+            Assert.AreEqual(1, callCount);
+        }
 
-            map["foo"] = engine.CreateValueContainer(BigDouble.One);
-            Assert.True(map is ParentNotifyingDictionary);
-            Assert.AreEqual(3, watchListenerCalled);
+        [Test]
+        public void CanSetPropertyIfHoldingDictionary()
+        {
+            var container = engine.CreateValueContainer(new Dictionary<string, ValueContainer>(), path: "path");
+            container["foo"] = engine.CreateValueContainer("bar");
+            Assert.AreEqual("bar", container.ValueAsMap()["foo"].ValueAsString());
+        }
+
+        [Test]
+        public void CanGetPropertyIfHoldingDictionary()
+        {
+            var container = engine.CreateValueContainer(new Dictionary<string, ValueContainer>()
+            {
+                { "foo", engine.CreateValueContainer("bar") }
+            }, path: "path");
+            Assert.AreEqual("bar", container["foo"].ValueAsString());
+        }
+
+        [Test]
+        public void CannotSetPropertyIfNotHoldingDictionary()
+        {
+            var container = engine.CreateValueContainer(true, path: "path");
+
+            Assert.Throws(typeof(InvalidOperationException), () =>
+            {
+                container["foo"] = engine.CreateValueContainer("bar");
+            });
+        }
+
+        [Test]
+        public void GettingPropertyViaIndexReturnsNullIfNotContainingDictionary()
+        {
+            var container = engine.CreateValueContainer(true, path: "path");
+            
+            Assert.IsNull(container["foo"]);
         }
 
         [Test]
         public void WatchListenerReceivesMapValueWhenChildUpdates()
         {
-            var mapReference = engine.CreateValueContainer(new Dictionary<string, ValueContainer>());
+            var mapReference = engine.SetProperty("path", new Dictionary<string, ValueContainer>());
             var map = mapReference.ValueAsMap();
             int watchListenerCalled = 0;
-            mapReference.Subscribe(ValueContainer.Events.VALUE_CHANGED, updatedMap =>
+            engine.RegisterMethod("method", (ie, c, ev) =>
             {
-                Assert.IsNotNull(updatedMap as IDictionary<string, ValueContainer>);
+                var value = (BigDouble)(ev[0] as ValueChangedEvent).NewValue;
+                switch (watchListenerCalled)
+                {
+                    case 0:
+                        Assert.AreEqual(BigDouble.One, value);
+                        break;
+                }
+
                 watchListenerCalled++;
+                return null;
             });
+            engine.Start();
+            mapReference.Subscribe("path", ValueContainer.Events.CHILD_VALUE_CHANGED, "method");
             map["foo"] = engine.CreateValueContainer(BigDouble.One);
-            Assert.AreEqual(3, watchListenerCalled); // 1 time for subscriping to mapReference, 1 time when parent subscribes to child container, 3 when value is changed.
+            Assert.AreEqual(1, watchListenerCalled);
         }
 
         [Test]
@@ -154,6 +120,39 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         }
 
         [Test]
+        public void CanSetUpdateMethodByName()
+        {
+            engine.Start();
+            engine.RegisterMethod("method", (ie, cv, ev) =>
+            {
+                return 1;
+            });
+            var container = engine.SetProperty("path");
+            engine.Update(1f);
+            Assert.IsNull(container.ValueAsRaw());
+            container.SetUpdater("method");
+            engine.Update(1f);
+            Assert.AreEqual(new BigDouble(1), container.ValueAsNumber());
+        }
+
+        [Test]
+        public void CanSetUpdateMethodByMethod()
+        {
+            engine.Start();
+            IdleEngine.UserMethod listener = (ie, cv, ev) =>
+            {
+                return 1;
+            };
+            engine.RegisterMethod(listener);
+            var container = engine.SetProperty("path");
+            engine.Update(1f);
+            Assert.IsNull(container.ValueAsRaw());
+            container.SetUpdater(listener);
+            engine.Update(1f);
+            Assert.AreEqual(new BigDouble(1), container.ValueAsNumber());
+        }
+
+        [Test]
         public void EqualsComparingValueReferenceToAnyOtherTypeAlwaysFalse()
         {
             var ref1 = engine.CreateValueContainer(true);
@@ -163,185 +162,35 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void ToStringDescribesContents()
         {
-            var mapReference = engine.CreateValueContainer(new Dictionary<string, ValueContainer>());
-            Assert.AreEqual("Reference #1(containing map)", mapReference.ToString());
+            var mapReference = engine.SetProperty("1", new Dictionary<string, ValueContainer>());
+            Assert.AreEqual("Reference #1 @1: (containing map)", mapReference.ToString());
 
-            var stringReference = engine.CreateValueContainer("string");
-            Assert.AreEqual("Reference #2(containing string)", stringReference.ToString());
+            var stringReference = engine.SetProperty("2", "aString");
+            Assert.AreEqual("Reference #2 @2: (containing string 'aString')", stringReference.ToString());
 
-            var boolReference = engine.CreateValueContainer(true);
-            Assert.AreEqual("Reference #3(containing boolean)", boolReference.ToString());
+            var boolReference = engine.SetProperty("3", true);
+            Assert.AreEqual("Reference #3 @3: (containing boolean True)", boolReference.ToString());
 
-            var numberReference = engine.CreateValueContainer(BigDouble.One);
-            Assert.AreEqual("Reference #4(containing number)", numberReference.ToString());
-        }
-
-        [Test]
-        public void CanSetTheValueContainedByAReferenceToANumber()
-        {
-            var reference = engine.CreateValueContainer(BigDouble.One);
-            reference.Set(new BigDouble(2));
-            Assert.AreEqual(reference.ValueAsNumber(), new BigDouble(2));
-        }
-
-        [Test]
-        public void CanSetTheValueContainedByAReferenceToAString()
-        {
-            var reference = engine.CreateValueContainer("oldString");
-            reference.Set("newString");
-            Assert.AreEqual(reference.ValueAsString(), "newString");
-        }
-
-        [Test]
-        public void CanSetTheValueContainedByAReferenceToAMap()
-        {
-            var initialDictionary = new Dictionary<string, ValueContainer>();
-            var reference = engine.CreateValueContainer(initialDictionary);
-            var newDictionary = new Dictionary<string, ValueContainer>();
-            reference.Set(newDictionary);
-            Assert.AreEqual(reference.ValueAsMap(), newDictionary);
-        }
-
-        [Test]
-        public void CanSetTheValueContainedByAReferenceToABool()
-        {
-            var reference = engine.CreateValueContainer(true);
-            reference.Set(false);
-            Assert.IsFalse(reference.ValueAsBool());
-        }
-
-        [Test]
-        public void TheStateOfAValueReferenceContainingABoolCanBeSaved()
-        {
-            var reference = engine.CreateValueContainer(true);
-            var serialized = reference.GetSnapshot();
-            Assert.AreEqual(new ValueContainer.Snapshot("1", reference), serialized);
-        }
-
-        [Test]
-        public void TheStateOfAValueReferenceContainingANumerCanBeSaved()
-        {
-            var reference = engine.CreateValueContainer(new BigDouble(100));
-            var serialized = reference.GetSnapshot();
-            Assert.AreEqual(new ValueContainer.Snapshot("1", reference), serialized);
-        }
-
-        [Test]
-        public void TheStateOfAValueReferenceContainingAStringCanBeSaved()
-        {
-            var reference = engine.CreateValueContainer("astring");
-            var serialized = reference.GetSnapshot();
-            Assert.AreEqual(serialized.value, "astring");
-            Assert.AreEqual(serialized.internalId, reference.Id);
-        }
-
-        [Test]
-        public void TheStateOfAValueReferenceContainingADictionaryCanBeSaved()
-        {
-            var reference = engine.CreateValueContainer(new Dictionary<string, ValueContainer>());
-            var serialized = reference.GetSnapshot();
-            Assert.AreEqual(serialized, new ValueContainer.Snapshot("1", engine.CreateValueContainer(new Dictionary<string, ValueContainer>())));
-        }
-
-        [Test]
-        public void TheStateOfAValueReferenceContainingAStringCanBeRecursivelySaved()
-        {
-            var reference = engine.CreateValueContainer(new Dictionary<string, ValueContainer>()
-            {
-                { "string", engine.CreateValueContainer("aString") },
-                { "number", engine.CreateValueContainer(new BigDouble(100)) },
-                { "bool",   engine.CreateValueContainer(true) },
-                { "map", engine.CreateValueContainer(new Dictionary<string, ValueContainer>() {
-                    { "nestedString", engine.CreateValueContainer("string") },
-                    { "nestedNumber", engine.CreateValueContainer(new BigDouble(10)) },
-                    { "nestedBool", engine.CreateValueContainer(true) }
-                })}
-            });
-            var serialized = reference.GetSnapshot();
-            var durr = reference.ValueAsMap();
-            Debug.Log(durr.Count);
-            var nestedMap = new Dictionary<string, ValueContainer.Snapshot>() {
-                { "nestedString" , new ValueContainer.Snapshot(reference.ValueAsMap()["map"].ValueAsMap()["nestedString"].Id, 
-                    engine.CreateValueContainer("string")) },
-                { "nestedNumber", new ValueContainer.Snapshot(reference.ValueAsMap()["map"].ValueAsMap()["nestedNumber"].Id, 
-                    engine.CreateValueContainer(new BigDouble(10))) },
-                { "nestedBool", new ValueContainer.Snapshot(reference.ValueAsMap()["map"].ValueAsMap()["nestedBool"].Id, 
-                    engine.CreateValueContainer(true)) }
-            };
-            var expected = new ValueContainer.Snapshot("8", new Dictionary<string, ValueContainer.Snapshot>()
-            {
-                { "string", new ValueContainer.Snapshot("1", engine.CreateValueContainer("aString")) },
-                { "number", new ValueContainer.Snapshot("2", engine.CreateValueContainer(new BigDouble(100))) },
-                { "bool", new ValueContainer.Snapshot("3", engine.CreateValueContainer(true)) },
-                {
-                    "map", new ValueContainer.Snapshot("7", nestedMap)
-                }
-            });
-
-            Assert.AreEqual(expected, serialized);
-            Assert.AreEqual(serialized.internalId, reference.Id);
-        }
-
-        [Test]
-        public void TheStateOfAValueReferenceCanBeRestoredFromABooleanSnapshot()
-        {
-            var reference = engine.CreateValueContainer();
-            reference.RestoreFromSnapshot(engine, new ValueContainer.Snapshot("1", engine.CreateValueContainer(true)));
-            Assert.AreEqual(true, reference.ValueAsBool());
-        }
-
-        [Test]
-        public void TheStateOfAValueReferenceCanBeRestoredFromANumberSnapshot()
-        {
-            var reference = engine.CreateValueContainer();
-            reference.RestoreFromSnapshot(engine, new ValueContainer.Snapshot("1", engine.CreateValueContainer(new BigDouble(11))));
-            Assert.AreEqual(new BigDouble(11), reference.ValueAsNumber());
-        }
-
-        [Test]
-        public void TheStateOfAValueReferenceCanBeRestoredFromAMapSnapshot()
-        {
-            var reference = engine.CreateValueContainer();
-            reference.RestoreFromSnapshot(engine, new ValueContainer.Snapshot("1", engine.CreateValueContainer(new Dictionary<string, ValueContainer>())));
-            Assert.AreEqual(new Dictionary<string, ValueContainer>(), reference.ValueAsMap());
-        }
-
-        [Test]
-        public void SettingIdMultipleTimesThrowsError()
-        {
-            var reference = engine.CreateValueContainer();
-            Assert.Throws(typeof(InvalidOperationException), () =>
-            {
-                reference.Id = "123";
-            });
+            var numberReference = engine.SetProperty("4", BigDouble.One);
+            Assert.AreEqual("Reference #4 @4: (containing number 1)", numberReference.ToString());
         }
 
         [Test]
         public void HashcodeSameAsValue()
         {
-            var reference = engine.CreateValueContainer("string");
+            var reference = engine.SetProperty("1", "string");
 
             Assert.AreEqual("1".GetHashCode() ^ "string".GetHashCode(), reference.GetHashCode());
-            reference = engine.CreateValueContainer(BigDouble.One);
+            reference = engine.SetProperty("2", BigDouble.One);
             Assert.AreEqual("2".GetHashCode() ^ BigDouble.One.GetHashCode(), reference.GetHashCode());
-        }
-
-        [Test]
-        public void RestorFromSnapshotFailsWithDifferentIds()
-        {
-            var reference = engine.CreateValueContainer("string");
-            var snapshot = reference.GetSnapshot();
-            reference = engine.CreateValueContainer("string");
-            Assert.Throws(typeof(InvalidOperationException), () =>
-            {
-                reference.RestoreFromSnapshot(engine, snapshot);
-            });
         }
 
         [Test]
         public void CanSpecifyACalculatingFunction()
         {
-            var reference = engine.CreateValueContainer(0, updater: (eng, deltaTime, val, cont, mds) => (BigDouble)val + 1);
+            engine.RegisterMethod("method", (eng, cont, ev) => (BigDouble)(ev[0] as ValueContainerWillUpdateEvent).PreviousValue + 1);
+            var reference = engine.SetProperty("path", 0, updater: "method");
+            engine.Start();
             for (int i = 1; i <= 5; i++)
             {
                 engine.Update(1f);
@@ -350,29 +199,17 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         }
 
         [Test]
-        public void SettingValueOfCalculatedValueThrowsError()
+        public void CanGetChildPath()
         {
-            var reference = engine.CreateValueContainer(0, updater: (eng, deltaTime, val, cont, mds) => (BigDouble)val + 1);
-            Assert.Throws(typeof(InvalidOperationException), () =>
-            {
-                reference.Set(1);
-            });
-        }
 
-        [Test]
-        public void ReturningNullFromUpdaterThrowsError()
-        {
-            var reference = engine.CreateValueContainer(0, updater : (eng, deltaTime, val, cont, mds) => null);
-            Assert.Throws(typeof(InvalidOperationException), () =>
-            {
-                engine.Update(1f);
-            });
         }
 
         [Test]
         public void ReturningIntFromUpdaterBecomesBigDouble()
         {
-            var reference = engine.CreateValueContainer(0, updater: (eng, deltaTime, val, cont, mds) => 1);
+            engine.RegisterMethod("method", (eng, cont, ev) => 1);
+            var reference = engine.SetProperty("path", 0, updater: "method");
+            engine.Start();
             engine.Update(1f);
             Assert.AreEqual(BigDouble.One, reference.ValueAsNumber());
         }
@@ -380,7 +217,9 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void ReturningFloatFromUpdaterBecomesBigDouble()
         {
-            var reference = engine.CreateValueContainer(0, updater: (eng, deltaTime, val, cont, mds) => 1f);
+            engine.RegisterMethod("method", (eng, cont, ev) => 1f);
+            var reference = engine.SetProperty("path", 0, updater: "method");
+            engine.Start();
             engine.Update(1f);
             Assert.AreEqual(BigDouble.One, reference.ValueAsNumber());
         }
@@ -388,7 +227,9 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void ReturningLongFromUpdaterBecomesBigDouble()
         {
-            var reference = engine.CreateValueContainer(0, updater: (eng, deltaTime, val, cont, mds) => 1L);
+            engine.RegisterMethod("method", (eng, cont, ev) => 1L);
+            var reference = engine.SetProperty("path", 0, updater: "method");
+            engine.Start();
             engine.Update(1f);
             Assert.AreEqual(BigDouble.One, reference.ValueAsNumber());
         }
@@ -396,7 +237,9 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void ReturningDoubleFromUpdaterBecomesBigDouble()
         {
-            var reference = engine.CreateValueContainer(0, updater: (eng, deltaTime, val, cont, mds) => 1.0);
+            engine.RegisterMethod("method", (eng, cont, ev) => 1.0);
+            var reference = engine.SetProperty("path", 0, updater: "method");
+            engine.Start();
             engine.Update(1f);
             Assert.AreEqual(BigDouble.One, reference.ValueAsNumber());
         }
@@ -404,7 +247,9 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void ReturningInvalidValueFromUpdaterThrowsException()
         {
-            var reference = engine.CreateValueContainer(0, updater: (eng, deltaTime, val, cont, mds) => new string[] { });
+            engine.RegisterMethod("method", (eng, cont, ev) => new string[] { });
+            var reference = engine.SetProperty("path", 0, updater: "method");
+            engine.Start();
             Assert.Throws(typeof(InvalidOperationException), () =>
             {
                 engine.Update(1f);
@@ -412,24 +257,50 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         }
 
         [Test]
-        public void GetAsFunctionForBoolReturnsNull()
+        public void GettingBoolFromUnregisteredContainerLogsError()
         {
-            var reference = engine.CreateValueContainer(true);
-            Assert.Null(reference.ValueAsFunction());
+            LogAssert.Expect(LogType.Error, "ValueContainer is not ready to be used; it must be assigned to a global property in the engine or a descendent of one before use.");
+            var container = engine.CreateValueContainer(path: null);
+            container.ValueAsBool();
         }
 
         [Test]
-        public void GetAsFunctionForStringReturnsNull()
+        public void TryingToNotifyWithANullEventThrowsAnError()
         {
-            var reference = engine.CreateValueContainer("true");
-            Assert.Null(reference.ValueAsFunction());
+            engine.Start();
+            var reference = engine.SetProperty("path", 0);
+            Assert.Throws(typeof(ArgumentNullException), () =>
+            {
+                reference.NotifyImmediately("", null);
+            });
         }
 
         [Test]
-        public void GetAsFunctionForNumberReturnsNull()
+        public void InterceptorMethodCalledBeforeSettingValue()
         {
-            var reference = engine.CreateValueContainer(new BigDouble(2));
-            Assert.Null(reference.ValueAsFunction());
+            int call = 0;
+            engine.RegisterMethod("interceptor", (ie, vc, ev) => {
+                call++;
+                return null;
+            });
+            engine.SetProperty("path", interceptor: "interceptor")
+                .Set(1);
+            Assert.AreEqual(2, call);
+        }
+
+        [Test]
+        public void CanSetInterceptorMethodByName()
+        {
+            engine.SetProperty("path").SetInterceptor("intercept");
+        }
+
+        [Test]
+        public void CanSetInterceptorMethod()
+        {
+            UserMethod listener = (ie, vc, ev) => {
+                return null;
+            };
+            engine.SetProperty("path").SetInterceptor(listener);
         }
     }
 }

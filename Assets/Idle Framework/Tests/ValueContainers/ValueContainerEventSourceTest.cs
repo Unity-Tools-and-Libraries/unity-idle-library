@@ -1,8 +1,10 @@
 ﻿using BreakInfinity;
+using io.github.thisisnozaku.idle.framework.Events;
 using NUnit.Framework;
 using System;
+using static io.github.thisisnozaku.idle.framework.IdleEngine;
 
-namespace io.github.thisisnozaku.idle.framework.Tests
+namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
 {
     public class ValueContainerEventSourceTest : RequiresEngineTests
     {
@@ -11,37 +13,31 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [SetUp]
         public void Setup()
         {
-            valueReference = engine.CreateValueContainer();
-        }
-
-        [Test]
-        public void CanSubscribeToEvent()
-        {
-            Assert.AreEqual(0, valueReference.EventListeners.Count);
-            valueReference.Subscribe("customEvent", arg => { });
-            Assert.AreEqual(1, valueReference.EventListeners.Count);
+            valueReference = engine.SetProperty("path", 0);
         }
 
         [Test]
         public void NotifiesValueChangeEventListenersWhenValueChanges()
         {
             bool listenerCalled = false;
-            valueReference.Subscribe("valueChanged", newValue => {
-                Assert.AreEqual(listenerCalled ? BigDouble.One : BigDouble.Zero, newValue);
+            engine.RegisterMethod("changed", (ie, c, ev) =>
+            {
+                var newValue = (ev[0] as ValueChangedEvent).NewValue;
+                if (listenerCalled)
+                {
+                    Assert.AreEqual(BigDouble.One, newValue);
+                }
+                else
+                {
+                    Assert.AreEqual(BigDouble.Zero, newValue);
+                }
                 listenerCalled = true;
-                });
+                return null;
+            });
+            engine.Start();
+            valueReference.Subscribe("", ValueContainer.Events.VALUE_CHANGED, "changed");
             valueReference.Set(BreakInfinity.BigDouble.One);
             Assert.IsTrue(listenerCalled);
-        }
-
-        [Test]
-        public void CanUnsubscribeFromEvent()
-        {
-            Assert.AreEqual(0, valueReference.EventListeners.Count);
-            Action<object> handler = arg => { };
-            valueReference.Subscribe("customEvent", handler);
-            valueReference.Unsubscribe("customEvent", handler);
-            Assert.AreEqual(0, valueReference.EventListeners["customEvent"].Count);
         }
     }
 }

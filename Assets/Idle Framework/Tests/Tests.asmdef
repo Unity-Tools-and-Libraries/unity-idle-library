@@ -5,7 +5,8 @@
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "IdleFramework",
-        "IdleFrameworkLibraries"
+        "RuntimePlugins",
+        "RuntimeLibraries"
     ],
     "includePlatforms": [
         "Editor"
@@ -14,7 +15,8 @@
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
-        "nunit.framework.dll"
+        "nunit.framework.dll",
+        "Newtonsoft.Json.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [

@@ -15,11 +15,15 @@ namespace io.github.thisisnozaku.idle.framework
     public class ParentNotifyingDictionary : IDictionary<string, ValueContainer>
     {
         private ValueContainer parent;
-        private IDictionary<string, ValueContainer> underlying = new Dictionary<string, ValueContainer>();
+        private Dictionary<string, ValueContainer> underlying = new Dictionary<string, ValueContainer>();
         private List<Action<object>> listeners = new List<Action<object>>();
 
-        public ParentNotifyingDictionary(IDictionary<string, ValueContainer> other = null, ValueContainer parent = null)
+        public ParentNotifyingDictionary(ValueContainer parent, IDictionary<string, ValueContainer> other = null)
         {
+            if(parent == null)
+            {
+                throw new ArgumentNullException("parent");
+            }
             this.parent = parent;
             if (other != null)
             {
@@ -27,6 +31,12 @@ namespace io.github.thisisnozaku.idle.framework
             } else
             {
                 underlying = new Dictionary<string, ValueContainer>();
+            }
+            var children = underlying.GetEnumerator();
+            while(children.MoveNext())
+            {
+                var child = children.Current;
+                child.Value.Path = String.Join(".", parent.Path, child.Key);
             }
         }
         public ValueContainer this[string key]
@@ -40,9 +50,12 @@ namespace io.github.thisisnozaku.idle.framework
             }
             set {
                 Debug.Log("Setter called");
+                ValueContainer previous;
+                underlying.TryGetValue(key, out previous);
                 underlying[key] = value;
-                value.Subscribe(ValueContainer.Events.VALUE_CHANGED, x => NotifyParent());
-                NotifyParent();
+                value.Path = string.Join(".", parent.Path, key);
+                var changeEvent = new ValueChangedEvent(value.Id, previous != null ? previous.ValueAsRaw() : null, value.ValueAsRaw(), parent);
+                parent.NotifyImmediately(ValueContainer.Events.CHILD_VALUE_CHANGED, changeEvent);
             }
         }
 
@@ -56,17 +69,32 @@ namespace io.github.thisisnozaku.idle.framework
 
         public void Add(string key, ValueContainer value)
         {
+            if (parent == null)
+            {
+                throw new InvalidOperationException("Can only be use while contained by a ValueContainer instance.");
+            }
             underlying[key] = value;
+            value.Path = String.Join(".", parent.Path, key);
         }
 
         public void Add(KeyValuePair<string, ValueContainer> item)
         {
+            if(parent == null)
+            {
+                throw new InvalidOperationException("Can only be use while contained by a ValueContainer instance.");
+            }
             underlying[item.Key] = item.Value;
+            item.Value.Path = String.Join(".", parent.Path, item.Key);
+            
         }
 
         public void Clear()
         {
-            foreach(var key in underlying.Keys)
+            if (parent == null)
+            {
+                throw new InvalidOperationException("Can only be use while contained by a ValueContainer instance.");
+            }
+            foreach (var key in underlying.Keys)
             {
                 underlying[key].Set((string)null);
             }
@@ -74,27 +102,36 @@ namespace io.github.thisisnozaku.idle.framework
 
         public bool ContainsKey(string key)
         {
+            if (parent == null)
+            {
+                throw new InvalidOperationException("Can only be use while contained by a ValueContainer instance.");
+            }
             return underlying.ContainsKey(key);
-        }
-
-        public void CopyTo(KeyValuePair<string, ValueContainer>[] array, int arrayIndex)
-        {
-            throw new System.NotImplementedException();
         }
 
         public IEnumerator<KeyValuePair<string, ValueContainer>> GetEnumerator()
         {
+            if (parent == null)
+            {
+                throw new InvalidOperationException("Can only be use while contained by a ValueContainer instance.");
+            }
             return underlying.GetEnumerator();
         }
 
         public bool Remove(string key)
         {
-            if(underlying.ContainsKey(key))
+            if (parent == null)
             {
-                underlying[key].Set((string)null);
-                return true;
+                throw new InvalidOperationException("Can only be use while contained by a ValueContainer instance.");
             }
-            return false;
+            ValueContainer previous;
+            underlying.TryGetValue(key, out previous);
+            var removed = underlying.Remove(key);
+            if(removed)
+            {
+                parent.NotifyImmediately(ValueContainer.Events.CHILD_VALUE_CHANGED, new ValueChangedEvent(string.Join(".", parent.Path, key), previous != null? previous.ValueAsRaw() : null,  null, parent));
+            }
+            return removed;
         }
 
         public bool Remove(KeyValuePair<string, ValueContainer> item)
@@ -104,32 +141,11 @@ namespace io.github.thisisnozaku.idle.framework
 
         public bool TryGetValue(string key, out ValueContainer value)
         {
-            throw new System.NotImplementedException();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return underlying.GetEnumerator();
-        }
-
-        public bool Contains(KeyValuePair<string, ValueContainer> item)
-        {
-            return underlying.Contains(item);
-        }
-
-        private void NotifyParent()
-        {
-            if(parent != null)
+            if (parent == null)
             {
-                Debug.Log("Has parent, notifying");
-                parent.Notify(ValueContainer.Events.VALUE_CHANGED, this);
+                throw new InvalidOperationException("Can only be use while contained by a ValueContainer instance.");
             }
-        }
-
-        public void SetParent(ValueContainer parent)
-        {
-            Debug.Log("Setting parent");
-            this.parent = parent;
+            return underlying.TryGetValue(key, out value);
         }
 
         public override bool Equals(object obj)
@@ -140,9 +156,38 @@ namespace io.github.thisisnozaku.idle.framework
                    EqualityComparer<List<Action<object>>>.Default.Equals(listeners, dictionary.listeners);
         }
 
+        internal void SetParent(ValueContainer valueContainer)
+        {
+            parent = valueContainer;
+            var keys = new List<string>(underlying.Keys);
+            if (valueContainer.Id != null) // If we don't have an ID so there's no point to updating paths now.
+            {
+                foreach (var key in keys)
+                {
+                    underlying[key].Path = string.Join(".", parent.Path, key);
+                }
+            }
+            
+        }
+
         public override int GetHashCode()
         {
             return parent.GetHashCode() ^ underlying.GetHashCode() ^ listeners.GetHashCode();
+        }
+
+        public bool Contains(KeyValuePair<string, ValueContainer> item)
+        {
+            return ((ICollection<KeyValuePair<string, ValueContainer>>)underlying).Contains(item);
+        }
+
+        public void CopyTo(KeyValuePair<string, ValueContainer>[] array, int arrayIndex)
+        {
+            ((ICollection<KeyValuePair<string, ValueContainer>>)underlying).CopyTo(array, arrayIndex);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return ((IEnumerable)underlying).GetEnumerator();
         }
     }
 }

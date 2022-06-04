@@ -2,13 +2,17 @@
     "name": "IdleFramework",
     "rootNamespace": "",
     "references": [
-        "GUID:6a5dd4b13e3f96f44938ae9ef0ad81b4"
+        "RuntimePlugins",
+        "RuntimeLibraries"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
-    "precompiledReferences": [],
+    "precompiledReferences": [
+        "Newtonsoft.Json.dll",
+        "Weighted Randomizer.dll"
+    ],
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],

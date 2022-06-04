@@ -1,5 +1,6 @@
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Modifiers;
+using io.github.thisisnozaku.idle.framework.Modifiers.Values;
 using NUnit.Framework;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,8 +12,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers
         [Test]
         public void FixedValueModifierSetsValue()
         {
-            var vc = engine.CreateValueContainer(BigDouble.Zero, "", new List<ValueModifier>() {
-                new FixedValueModifier("1", "", BigDouble.One)
+            var vc = engine.SetProperty("path", BigDouble.Zero, "", new List<ContainerModifier>() {
+                new SetValueModifier("1", "", BigDouble.One)
             });
             vc.Set(BigDouble.Zero);
             Assert.AreEqual(BigDouble.One, vc.ValueAsNumber());
@@ -21,11 +22,19 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers
         [Test]
         public void FixedValueModifierTrumpsAllOtherModifiers()
         {
-            var vc = engine.CreateValueContainer(BigDouble.One, "", new List<ValueModifier>() {
-                new FixedValueModifier("1", "", BigDouble.One)
+            var vc = engine.SetProperty("path", BigDouble.One, "", new List<ContainerModifier>() {
+                new SetValueModifier("1", "", BigDouble.One)
             });
             vc.Set(BigDouble.Zero);
             Assert.AreEqual(BigDouble.One, vc.ValueAsNumber());
+        }
+
+        [Test]
+        public void FixedValueModifierCanSetABool() {
+            var vc = engine.SetProperty("path", false, "", new List<ContainerModifier>() {
+                new SetValueModifier("1", "", true)
+            });
+            Assert.IsTrue(vc.ValueAsBool());
         }
     }
 }

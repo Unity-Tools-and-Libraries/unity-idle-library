@@ -1,30 +1,111 @@
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework;
 using NUnit.Framework;
+using System.Collections.Generic;
 
-namespace io.github.thisisnozaku.idle.framework.Tests
+namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers.Conversions
 {
     public class ValueContainerConversionTests : RequiresEngineTests
     {
         [Test]
-        public void StringToValueContainer()
+        public void StringToBool()
         {
-            ValueContainer container = engine.CreateValueContainer("string");
-            Assert.AreEqual("string", container.ValueAsString());
+            ValueContainer container = engine.SetProperty("path", "string");
+            Assert.IsTrue(container.ValueAsBool());
+
+            container.Set("");
+            Assert.IsFalse(container.ValueAsBool());
+
         }
 
-        [Test]
+        //[Test]
         public void NumberToValueContainer()
         {
-            ValueContainer container = engine.CreateValueContainer(BigDouble.One);
+            ValueContainer container = engine.SetProperty("path", BigDouble.One);
             Assert.AreEqual(BigDouble.One, container.ValueAsNumber());
         }
 
-        [Test]
+        //[Test]
         public void BoolToValueContainer()
         {
-            ValueContainer container = engine.CreateValueContainer(true);
+            ValueContainer container = engine.SetProperty("path", true);
             Assert.AreEqual(true, container.ValueAsBool());
+        }
+
+        // Boolean
+        [Test]
+        public void GettingBoolAsBoolReturnsAsIs()
+        {
+            Assert.IsTrue(engine.SetProperty("path", true).ValueAsBool());
+            Assert.IsFalse(engine.SetProperty("path", false).ValueAsBool());
+        }
+
+        [Test]
+        public void GettingNullAsBoolReturnsFalse()
+        {
+            Assert.IsFalse(engine.SetProperty("path", (string)null).ValueAsBool());
+        }
+
+        [Test]
+        public void GettingNumberAsBool()
+        {
+            Assert.AreEqual(BigDouble.One, engine.SetProperty("path", true).ValueAsNumber());
+            Assert.AreEqual(BigDouble.Zero, engine.SetProperty("path", false).ValueAsNumber());
+        }
+
+        [Test]
+        public void GettingMapAsBoolReturnsTrueIfNotNull()
+        {
+            Assert.IsFalse(engine.SetProperty("path", null as Dictionary<string, ValueContainer>).ValueAsBool());
+            Assert.IsTrue(engine.SetProperty("path", new Dictionary<string, ValueContainer>()).ValueAsBool());
+        }
+
+        [Test]
+        public void CanImplicitlyConvertToBool()
+        {
+            Assert.IsTrue(engine.SetProperty("path", true));
+        }
+
+        // Number
+        [Test]
+        public void GettingNumberAsNumberReturnsAsIs()
+        {
+            Assert.AreEqual(new BigDouble(100), engine.SetProperty("path", new BigDouble(100)).ValueAsNumber());
+        }
+
+        [Test]
+        public void GettingNumberAsStringReturnsAsIs()
+        {
+            Assert.AreEqual("100", engine.SetProperty("path", new BigDouble(100)).ValueAsString());
+        }
+
+        [Test]
+        public void GettingNumberAsBoolReturnsTrueForNonZero()
+        {
+            Assert.IsTrue(engine.SetProperty("path", new BigDouble(1)).ValueAsBool());
+            Assert.IsTrue(engine.SetProperty("path", new BigDouble(-1)).ValueAsBool());
+            Assert.IsFalse(engine.SetProperty("path", BigDouble.Zero).ValueAsBool());
+        }
+
+        [Test]
+        public void GettingMapAsNumberReturnsZero()
+        {
+            Assert.AreEqual(BigDouble.Zero,
+                engine.SetProperty("path", new Dictionary<string, ValueContainer>()).ValueAsNumber());
+        }
+
+        [Test]
+        public void RawValueReturnsActualValue()
+        {
+            var booleanReference = engine.SetProperty("1", true);
+            var numberReference = engine.SetProperty("2", BigDouble.One);
+            var stringReference = engine.SetProperty("3", "string");
+            var mapReference = engine.SetProperty("4", new Dictionary<string, ValueContainer>());
+
+            Assert.AreEqual(true, booleanReference.ValueAsRaw());
+            Assert.AreEqual(BigDouble.One, numberReference.ValueAsRaw());
+            Assert.AreEqual("string", stringReference.ValueAsRaw());
+            Assert.AreEqual(new Dictionary<string, ValueContainer>(), mapReference.ValueAsRaw());
         }
     }
 }

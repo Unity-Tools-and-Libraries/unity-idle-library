@@ -1,8 +1,9 @@
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Modifiers;
+using io.github.thisisnozaku.idle.framework.Modifiers.Values;
 using NUnit.Framework;
 
-namespace io.github.thisisnozaku.idle.framework.Tests
+namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
 {
     public class ValueContainerModifiersTests : RequiresEngineTests
     {
@@ -15,16 +16,17 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void CanSpecifyAnAdditiveModifierOnCreationWhichAddsToNumberValue()
         {
-            var reference = engine.CreateValueContainer(modifiers: new System.Collections.Generic.List<ValueModifier>() {
+            var reference = engine.SetProperty("path", modifiers: new System.Collections.Generic.List<ContainerModifier>() {
                 new AdditiveValueModifier("1", "1", 1)
             });
+            reference.Set(0);
             Assert.AreEqual(new BigDouble(1), reference.ValueAsNumber());
         }
 
         [Test]
         public void AdditiveModifierAddedToSetValue()
         {
-            var reference = engine.CreateValueContainer(modifiers: new System.Collections.Generic.List<ValueModifier>() {
+            var reference = engine.SetProperty("path", modifiers: new System.Collections.Generic.List<ContainerModifier>() {
                 new AdditiveValueModifier("1", "1", 1)
             });
             reference.Set(1);
@@ -34,7 +36,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void CanSpecifyAMultiplicativeModifierOnCreationWhichChangesNumberValue()
         {
-            var reference = engine.CreateValueContainer(modifiers: new System.Collections.Generic.List<ValueModifier>()
+            var reference = engine.SetProperty("path", modifiers: new System.Collections.Generic.List<ContainerModifier>()
             {
                 new MultiplicativeValueModifier("1", "1", 2)
             });
@@ -46,14 +48,13 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void ModifiersApplyToUpdateOutputValue()
         {
-            var reference = engine.CreateValueContainer(BigDouble.Zero, "", new System.Collections.Generic.List<ValueModifier>()
+            engine.RegisterMethod("update", (e, vc, ev) => BigDouble.One);
+            var reference = engine.SetProperty("path", BigDouble.Zero, "", new System.Collections.Generic.List<ContainerModifier>()
             {
                 new AdditiveValueModifier("add", "", 1),
                 new MultiplicativeValueModifier("1", "1", 2)
-            }, (e, dt, v, c, mds) =>
-            {
-                return BigDouble.One;
-            });
+            }, "update");
+            engine.Start();
             Assert.AreEqual(new BigDouble(1), reference.ValueAsNumber());
             engine.Update(1f);
             Assert.AreEqual(new BigDouble(3), reference.ValueAsNumber());

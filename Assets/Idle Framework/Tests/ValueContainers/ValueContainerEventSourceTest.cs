@@ -2,7 +2,7 @@
 using io.github.thisisnozaku.idle.framework.Events;
 using NUnit.Framework;
 using System;
-using static io.github.thisisnozaku.idle.framework.IdleEngine;
+using static io.github.thisisnozaku.idle.framework.Engine.IdleEngine;
 
 namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
 {
@@ -20,9 +20,9 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         public void NotifiesValueChangeEventListenersWhenValueChanges()
         {
             bool listenerCalled = false;
-            engine.RegisterMethod("changed", (ie, c, ev) =>
+            engine.RegisterMethod("changed", (ie, c, args) =>
             {
-                var newValue = (ev[0] as ValueChangedEvent).NewValue;
+                var newValue = args[2];
                 if (listenerCalled)
                 {
                     Assert.AreEqual(BigDouble.One, newValue);
@@ -35,7 +35,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
                 return null;
             });
             engine.Start();
-            valueReference.Subscribe("", ValueContainer.Events.VALUE_CHANGED, "changed");
+            valueReference.Subscribe("", ValueChangedEvent.EventName, "changed");
             valueReference.Set(BreakInfinity.BigDouble.One);
             Assert.IsTrue(listenerCalled);
         }

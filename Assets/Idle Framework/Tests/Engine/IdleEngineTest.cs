@@ -1,4 +1,5 @@
 ﻿using BreakInfinity;
+using io.github.thisisnozaku.idle.framework.Engine;
 using io.github.thisisnozaku.idle.framework.Events;
 using NUnit.Framework;
 using System.Collections.Generic;
@@ -102,7 +103,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
                 return null;
             });
             engine.Start();
-            propertyReference.Subscribe("", ValueContainer.Events.VALUE_CHANGED, "method");
+            propertyReference.Subscribe("", ValueChangedEvent.EventName, "method");
             engine.Update(1f);
             Assert.AreEqual(2, listenerCalled);
         }

@@ -2,6 +2,7 @@ using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Modifiers;
 using io.github.thisisnozaku.idle.framework.Modifiers.Values;
 using NUnit.Framework;
+using static io.github.thisisnozaku.idle.framework.ValueContainer;
 
 namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers.BasicOperations
 {
@@ -28,7 +29,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers.BasicOperations
             engine.Start();
             var vc = engine.SetProperty("path", null as string, "", new System.Collections.Generic.List<ContainerModifier>()
             {
-                new AdditiveValueModifier("", "", "value")
+                new AdditiveValueModifier("", "", "value", Context.GlobalContextGenerator)
             });
             engine.SetProperty("value", 1);
             vc.Set(BigDouble.One);

@@ -9,8 +9,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using static io.github.thisisnozaku.idle.framework.IdleEngine;
+using io.github.thisisnozaku.idle.framework.Engine;
 using static io.github.thisisnozaku.idle.framework.ValueContainer;
+using static io.github.thisisnozaku.idle.framework.Engine.IdleEngine;
 
 namespace io.github.thisisnozaku.idle.framework
 {
@@ -156,12 +157,12 @@ namespace io.github.thisisnozaku.idle.framework
             this.type = DetermineType(this.value);
             this.listeners = new Dictionary<string, ISet<ListenerSubscription>>();
             engine.RegisterMethod(Id + "OnReady", OnReady);
-            InternalSubscribe("#" + Id, IdleEngine.Events.ENGINE_READY, Id + "OnReady", true);
+            InternalSubscribe("#" + Id, EngineReadyEvent.EventName, Id + "OnReady", true);
         }
 
         private object OnReady(IdleEngine engine, ValueContainer container, object ev)
         {
-            NotifyImmediately(ValueContainer.Events.VALUE_CHANGED, new ValueChangedEvent(Path, null, this.value, this));
+            NotifyImmediately(ValueChangedEvent.EventName, this, null, this.value);
             return null;
         }
         
@@ -324,26 +325,24 @@ namespace io.github.thisisnozaku.idle.framework
                     child.Value.Update(engine, deltaTime);
                 }
             }
-            NotifyImmediately(Events.UPDATED, new ValueContainerUpdatedEvent(this));
+            NotifyImmediately(ValueContainerUpdatedEvent.EventName, this);
         }
 
         private object setInternal(object newValue)
         {
             var old = this.value;
-            this.value = this.interceptorMethod != null ? Engine.InvokeMethod(this.interceptorMethod, this, new ValueContainerValueWillSet(this, this.value, newValue)) : newValue;
+            this.value = this.interceptorMethod != null ? Engine.InvokeMethod(this.interceptorMethod, this, this, this.value, newValue) : newValue;
             NotifyChange(old, this.value);
             return this.value;
         }
 
         private void NotifyChange(object oldValue, object newValue)
         {
-            NotifyImmediately(Events.VALUE_CHANGED, new ValueChangedEvent(Path, oldValue, newValue, this));
+            NotifyImmediately(ValueChangedEvent.EventName, this, oldValue, newValue);
             var splitPath = Path.Split('.');
             if (Parent != null)
             {
-                var childChangeEvent = new ValueChangedEvent(Path, oldValue, newValue, this);
-                childChangeEvent.PreventBubbling = false;
-                Parent.NotifyImmediately(Events.CHILD_VALUE_CHANGED, childChangeEvent);
+                Parent.NotifyImmediately(ChildValueChangedEvent.EventName, this, oldValue, newValue);
             }
         }
 
@@ -387,7 +386,7 @@ namespace io.github.thisisnozaku.idle.framework
             this.modifiers = modifiers != null ? modifiers : new List<ContainerModifier>();
         }
 
-        internal void DoNotification(string eventName, IdleEngineEvent ev)
+        internal void DoNotification(string eventName, params object[] args)
         {
             ISet<ListenerSubscription> listeners;
             if (this.listeners.TryGetValue(eventName, out listeners))
@@ -395,37 +394,36 @@ namespace io.github.thisisnozaku.idle.framework
                 listeners = new HashSet<ListenerSubscription>(listeners); // FIXM: Ew gross yuck.
                 foreach (var listener in listeners)
                 {
-                    DoListenerInvocation(listener, ev, eventName);
+                    DoListenerInvocation(listener, eventName, args);
                 }
             }
         }
 
-        internal void Broadcast(string eventName, IdleEngineEvent ev)
+        internal void Broadcast(string eventName, params object[] args)
         {
             Debug.Log("Broadcasting " + eventName + " from #" + Id + ".");
-            ev.PreventBubbling = true;
-            DoNotification(eventName, ev);
+            DoNotification(eventName, args);
             if (ValueAsMap() != null)
             {
                 foreach (var child in ValueAsMap())
                 {
-                    child.Value.Broadcast(eventName, ev);
+                    child.Value.Broadcast(eventName, args);
                 }
             }
         }
 
-        public void NotifyImmediately(string eventName, IdleEngineEvent ev)
+        public void NotifyImmediately(string eventName, params object[] args)
         {
             if (Engine.IsReady)
             {
                 Debug.Log(string.Format("[event.{0}] Notifying {1}@{2}.", eventName, Id, Path));
                 AssertIsRegistered();
-                DoNotification(eventName, ev);
+                DoNotification(eventName, args);
                 foreach(var mod in modifiers)
                 {
                     mod.Trigger(Engine, eventName);
                 }
-                Engine.BubbleEvent(eventName, ev, this);
+                Engine.BubbleEvent(eventName, this, args);
             } else
             {
                 Debug.LogWarning("Start() has not been called on the engine.");
@@ -520,11 +518,11 @@ namespace io.github.thisisnozaku.idle.framework
         public ListenerSubscription Subscribe(string subscriberDescription, string eventName, string eventHandlerName, bool ephemeral = false)
         {
             var listener = InternalSubscribe(subscriberDescription, eventName, eventHandlerName, ephemeral);
-            if (eventName == ValueContainer.Events.VALUE_CHANGED || eventName == IdleEngine.Events.ENGINE_READY)
+            if (eventName == ValueChangedEvent.EventName || eventName == EngineReadyEvent.EventName)
             {
                 if (Engine.IsReady)
                 {
-                    DoListenerInvocation(listener, new ValueChangedEvent(Path, this.value, this.value, this), eventName);
+                    DoListenerInvocation(listener, eventName, this, this.value, this.value);
                 }
             }
             return listener;
@@ -547,12 +545,12 @@ namespace io.github.thisisnozaku.idle.framework
             return subscription;
         }
 
-        private void DoListenerInvocation(ListenerSubscription listener, IdleEngineEvent ev, string eventName)
+        private void DoListenerInvocation(ListenerSubscription listener, string eventName, params object[] args)
         {
             try
             {
                 Debug.Log("Invoking listener " + listener + " from #" + Id + ".");
-                Engine.InvokeMethod(listener.MethodName, this, ev);
+                Engine.InvokeMethod(listener.MethodName, this, args);
             }
             catch (Exception e)
             {
@@ -586,13 +584,6 @@ namespace io.github.thisisnozaku.idle.framework
         private void AssertCanSet()
         {
 
-        }
-
-        public static class Events
-        {
-            public const string VALUE_CHANGED = "valueChanged";
-            public const string UPDATED = "UPDATED";
-            public const string CHILD_VALUE_CHANGED= "childValueChanged";
         }
 
         public static bool CoerceToBool(object value)
@@ -732,7 +723,7 @@ namespace io.github.thisisnozaku.idle.framework
             {
                 listeners = snapshot.Listeners.ToDictionary(e => e.Key, e => (ISet<ListenerSubscription>)new HashSet<ListenerSubscription>(e.Value));
             }
-            InternalSubscribe("#" + Id, IdleEngine.Events.ENGINE_READY, Id + "OnReady", true);
+            InternalSubscribe("#" + Id, EngineReadyEvent.EventName, Id + "OnReady", true);
         }
 
         // TODO: Move into own file
@@ -813,7 +804,29 @@ namespace io.github.thisisnozaku.idle.framework
                 return hashCode;
             }
         }
-    
-        
+
+        public static class Context
+        {
+            public delegate IDictionary<string, object> ContextGenerator(IdleEngine engine, ValueContainer container);
+
+            public static readonly ContextGenerator DefaultGenerator = (ie, vc) =>
+            {
+                return new Dictionary<string, object>()
+                {
+                    { "this", vc }
+                };
+            };
+            public static readonly ContextGenerator ParentGenerator = (ie, vc) =>
+            {
+                return new Dictionary<string, object>()
+                {
+                    { "this", vc.Parent }
+                };
+            };
+            public static readonly ContextGenerator GlobalContextGenerator = (ie, vc) =>
+            {
+                return ie.GenerateGlobalContext();
+            };
+        }
     }
 }

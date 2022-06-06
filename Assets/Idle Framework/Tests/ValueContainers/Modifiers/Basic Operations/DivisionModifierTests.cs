@@ -5,6 +5,7 @@ using NUnit.Framework;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static io.github.thisisnozaku.idle.framework.ValueContainer;
 
 namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers.BasicOperations
 {
@@ -28,7 +29,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers.BasicOperations
             engine.Start();
             var vc = engine.SetProperty("path", null as string, "", new System.Collections.Generic.List<ContainerModifier>()
             {
-                new DivisionValueModifier("", "", "foo.bar")
+                new DivisionValueModifier("", "", "foo.bar", Context.GlobalContextGenerator)
             });
             engine.SetProperty("foo.bar", 2);
             vc.Set(10);

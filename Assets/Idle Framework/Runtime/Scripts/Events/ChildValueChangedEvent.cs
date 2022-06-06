@@ -1,12 +1,18 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace io.github.thisisnozaku.idle.framework.Events {
-    public class ChildValueChangedEvent : ValueChangedEvent
+    public static class ChildValueChangedEvent
     {
-        public ChildValueChangedEvent(string path, object previousValue, object newValue, ValueContainer source) : base(path, previousValue, newValue, source)
+        public static readonly string EventName = "child_value_changed";
+        public static readonly List<Tuple<Type, String>> Arguments = new List<Tuple<Type, String>>()
         {
-        }
+            Tuple.Create(typeof(ValueContainer), "The container whose value changed."),
+            Tuple.Create(typeof(string), "The path to the changed value."),
+            Tuple.Create(typeof(object), "The previous raw value."),
+            Tuple.Create(typeof(object), "The new raw value")
+        };
     }
 }

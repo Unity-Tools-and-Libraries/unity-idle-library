@@ -1,5 +1,8 @@
 ﻿using BreakInfinity;
+using io.github.thisisnozaku.idle.framework.Engine;
 using System;
+using System.Collections.Generic;
+using static io.github.thisisnozaku.idle.framework.ValueContainer.Context;
 
 namespace io.github.thisisnozaku.idle.framework.Modifiers.Values
 {
@@ -11,7 +14,7 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers.Values
         protected object cachedValue;
         private string expression;
         protected bool IsStaticValue;
-        protected ValueModifier(string id, string source, string expression, bool staticValue = false, int priority = 0) : base(id, source, priority)
+        protected ValueModifier(string id, string source, string expression, bool staticValue = false, ContextGenerator contextGenerator = null, int priority = 0) : base(id, source, contextGenerator: contextGenerator, priority: priority)
         {
             this.expression = expression;
             this.IsStaticValue = staticValue;
@@ -19,18 +22,18 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers.Values
 
         public override abstract object Apply(IdleEngine engine, ValueContainer container, object input);
 
-        protected object EvaluateCalculationExpression(IdleEngine engine)
+        protected T EvaluateCalculationExpression<T>(IdleEngine engine, ValueContainer container)
         {
             if(IsStaticValue && cachedValue != null)
             {
-                return cachedValue;
+                return (T)cachedValue;
             }
-            var evaluatedExpression = engine.EvaluateExpression(expression);
+            var evaluatedExpression = engine.EvaluateExpression(expression, this.GenerateContext(engine, container));
             if(IsStaticValue && cachedValue == null)
             {
                 cachedValue = evaluatedExpression;
             }
-            return ValueContainer.NormalizeValue(evaluatedExpression);
+            return (T)ValueContainer.NormalizeValue(evaluatedExpression);
         }
 
         public static class DefaultPriorities

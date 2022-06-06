@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json;
 using io.github.thisisnozaku.idle.framework.Modifiers.Values;
+using io.github.thisisnozaku.idle.framework.Engine;
 
 namespace io.github.thisisnozaku.idle.framework.Modifiers
 {
@@ -17,7 +18,7 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
         public Dictionary<string, string> Modifications { get; }
         public Dictionary<string, List<string>> Events { get; }
 
-        protected CompositeModifier(string id, string description, Dictionary<string, string> Modifications, Dictionary<string, List<string>> Events = null, int priority = 0) : base(id, description, priority)
+        protected CompositeModifier(string id, string description, Dictionary<string, string> Modifications, Dictionary<string, List<string>> Events = null, int priority = 0) : base(id, description, priority: priority)
         {
             this.Events = Events;
             this.Modifications = Modifications;

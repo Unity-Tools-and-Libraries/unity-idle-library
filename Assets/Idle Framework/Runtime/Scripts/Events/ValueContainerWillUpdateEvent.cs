@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace io.github.thisisnozaku.idle.framework.Events
 {
-    public class ValueContainerWillUpdateEvent : IdleEngineEvent
+    public class ValueContainerWillUpdateEvent
     {
         public readonly ValueContainer UpdatingContainer;
         public readonly object PreviousValue;

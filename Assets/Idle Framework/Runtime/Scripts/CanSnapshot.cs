@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using io.github.thisisnozaku.idle.framework.Engine;
 
 namespace io.github.thisisnozaku.idle.framework
 {

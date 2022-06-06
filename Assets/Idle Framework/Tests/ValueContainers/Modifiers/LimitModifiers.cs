@@ -11,7 +11,7 @@ public class LimitModifiers : RequiresEngineTests
     public void MaximumModifierReturnsValueIfInputIsHigher()
     {
         var modifier = new MaximumValueContainer("", "", 5);
-        var output = modifier.Apply(engine, null, 10);
+        var output = modifier.Apply(engine, null, new BigDouble(10));
         Assert.AreEqual(new BigDouble(5), output);
     }
 
@@ -19,7 +19,7 @@ public class LimitModifiers : RequiresEngineTests
     public void MaximumModifierReturnsEvaluatedValueIfInputIsHigher()
     {
         var modifier = new MaximumValueContainer("", "", "5");
-        var output = modifier.Apply(engine, null, 10);
+        var output = modifier.Apply(engine, null, new BigDouble(10));
         Assert.AreEqual(new BigDouble(5), output);
     }
 
@@ -27,7 +27,7 @@ public class LimitModifiers : RequiresEngineTests
     public void MinimumValueModifierReturnsFloorIfInputIsLess()
     {
         var modifier = new MinimumValueModifier("", "", 5);
-        var output = modifier.Apply(engine, null, 0);
+        var output = modifier.Apply(engine, null, BigDouble.Zero);
         Assert.AreEqual(new BigDouble(5), output);
     }
 
@@ -35,7 +35,7 @@ public class LimitModifiers : RequiresEngineTests
     public void MinimumValueModifierReturnsEvaluatedValueIfInputIsLess()
     {
         var modifier = new MinimumValueModifier("", "", "5");
-        var output = modifier.Apply(engine, null, 0);
+        var output = modifier.Apply(engine, null, BigDouble.Zero);
         Assert.AreEqual(new BigDouble(5), output);
     }
 
@@ -43,7 +43,7 @@ public class LimitModifiers : RequiresEngineTests
     public void ClampModifierReturnsFloorIfInputIsLess()
     {
         var modifier = new ClampValueModifier("", "", 5, 10);
-        var output = modifier.Apply(engine, null, 0);
+        var output = modifier.Apply(engine, null, BigDouble.Zero);
         Assert.AreEqual(new BigDouble(5), output);
     }
 
@@ -51,7 +51,7 @@ public class LimitModifiers : RequiresEngineTests
     public void ClampModifierReturnsCeilingIfInputIsMore()
     {
         var modifier = new ClampValueModifier("", "", 5, 10);
-        var output = modifier.Apply(engine, null, 15);
+        var output = modifier.Apply(engine, null, new BigDouble(15));
         Assert.AreEqual(new BigDouble(10), output);
     }
 }

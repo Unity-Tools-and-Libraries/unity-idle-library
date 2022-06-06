@@ -1,11 +1,12 @@
 ﻿using BreakInfinity;
+using io.github.thisisnozaku.idle.framework.Engine;
 using io.github.thisisnozaku.idle.framework.Events;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.TestTools;
-using static io.github.thisisnozaku.idle.framework.IdleEngine;
+using static io.github.thisisnozaku.idle.framework.Engine.IdleEngine;
 
 namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
 {
@@ -23,7 +24,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
             var mapReference = engine.CreateValueContainer(new Dictionary<string, ValueContainer>());
             var fooReference = mapReference.ValueAsMap()["foo"];
             var watchListenerCalled = false;
-            fooReference.Subscribe("", ValueContainer.Events.CHILD_VALUE_CHANGED, (ie, c, ev) =>
+            fooReference.Subscribe("", ValueChangedEvent.EventName, (ie, c, ev) =>
             {
                 return watchListenerCalled = true;
             });
@@ -41,9 +42,9 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
             });
             var container = engine.CreateValueContainer(new Dictionary<string, ValueContainer>(), path: "path");
             var subscription = container.Subscribe("event", "event", "method");
-            container.NotifyImmediately("event", new ValueChangedEvent("", null, null, null));
+            container.NotifyImmediately("event", null, null, null);
             container.Unsubscribe(subscription);
-            container.NotifyImmediately("event", new ValueChangedEvent("", null, null, null));
+            container.NotifyImmediately("event", null, null, null);
             Assert.AreEqual(1, callCount);
         }
 
@@ -90,21 +91,15 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
             var mapReference = engine.SetProperty("path", new Dictionary<string, ValueContainer>());
             var map = mapReference.ValueAsMap();
             int watchListenerCalled = 0;
-            engine.RegisterMethod("method", (ie, c, ev) =>
+            engine.RegisterMethod("method", (ie, c, args) =>
             {
-                var value = (BigDouble)(ev[0] as ValueChangedEvent).NewValue;
-                switch (watchListenerCalled)
-                {
-                    case 0:
-                        Assert.AreEqual(BigDouble.One, value);
-                        break;
-                }
+                Assert.AreEqual("path.foo", args[1] as string);
 
                 watchListenerCalled++;
                 return null;
             });
             engine.Start();
-            mapReference.Subscribe("path", ValueContainer.Events.CHILD_VALUE_CHANGED, "method");
+            mapReference.Subscribe("path", ChildValueChangedEvent.EventName, "method");
             map["foo"] = engine.CreateValueContainer(BigDouble.One);
             Assert.AreEqual(1, watchListenerCalled);
         }
@@ -262,17 +257,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
             LogAssert.Expect(LogType.Error, "ValueContainer is not ready to be used; it must be assigned to a global property in the engine or a descendent of one before use.");
             var container = engine.CreateValueContainer(path: null);
             container.ValueAsBool();
-        }
-
-        [Test]
-        public void TryingToNotifyWithANullEventThrowsAnError()
-        {
-            engine.Start();
-            var reference = engine.SetProperty("path", 0);
-            Assert.Throws(typeof(ArgumentNullException), () =>
-            {
-                reference.NotifyImmediately("", null);
-            });
         }
 
         [Test]

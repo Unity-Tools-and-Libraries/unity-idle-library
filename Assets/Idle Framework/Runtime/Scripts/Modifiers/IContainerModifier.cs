@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using io.github.thisisnozaku.idle.framework.Engine;
+using System.Collections.Generic;
 
 namespace io.github.thisisnozaku.idle.framework.Modifiers
 {

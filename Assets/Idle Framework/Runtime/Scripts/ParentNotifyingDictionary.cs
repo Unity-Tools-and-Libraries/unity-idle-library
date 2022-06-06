@@ -54,8 +54,7 @@ namespace io.github.thisisnozaku.idle.framework
                 underlying.TryGetValue(key, out previous);
                 underlying[key] = value;
                 value.Path = string.Join(".", parent.Path, key);
-                var changeEvent = new ValueChangedEvent(value.Id, previous != null ? previous.ValueAsRaw() : null, value.ValueAsRaw(), parent);
-                parent.NotifyImmediately(ValueContainer.Events.CHILD_VALUE_CHANGED, changeEvent);
+                parent.NotifyImmediately(ChildValueChangedEvent.EventName, parent, value.Path, previous != null ? previous.ValueAsRaw() : null, value.ValueAsRaw());
             }
         }
 
@@ -129,7 +128,7 @@ namespace io.github.thisisnozaku.idle.framework
             var removed = underlying.Remove(key);
             if(removed)
             {
-                parent.NotifyImmediately(ValueContainer.Events.CHILD_VALUE_CHANGED, new ValueChangedEvent(string.Join(".", parent.Path, key), previous != null? previous.ValueAsRaw() : null,  null, parent));
+                parent.NotifyImmediately(ChildValueChangedEvent.EventName, parent, previous != null? previous.ValueAsRaw() : null);
             }
             return removed;
         }

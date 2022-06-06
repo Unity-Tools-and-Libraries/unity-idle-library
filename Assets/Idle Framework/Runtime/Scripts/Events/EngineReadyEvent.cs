@@ -4,8 +4,8 @@ using UnityEngine;
 
 namespace io.github.thisisnozaku.idle.framework.Events
 {
-    public class EngineReadyEvent : IdleEngineEvent
+    public static class EngineReadyEvent
     {
-        public bool PreventBubbling { get; set; }
+        public static readonly string EventName = "engine_ready";
     }
 }

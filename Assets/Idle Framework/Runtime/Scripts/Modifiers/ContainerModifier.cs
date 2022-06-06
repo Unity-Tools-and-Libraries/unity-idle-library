@@ -1,7 +1,9 @@
 using BreakInfinity;
+using io.github.thisisnozaku.idle.framework.Engine;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using static io.github.thisisnozaku.idle.framework.ValueContainer.Context;
 
 namespace io.github.thisisnozaku.idle.framework.Modifiers
 {
@@ -23,11 +25,14 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
         public readonly int priority;
         [JsonProperty("properties")]
         public Dictionary<string, object> Properties { get; private set; }
-        public ContainerModifier(string id, string source, int priority = 0)
+        private ContextGenerator contextGenerator;
+
+        public ContainerModifier(string id, string source, ContextGenerator contextGenerator = null, int priority = 0)
         {
             this.Id = id;
             this.Source = source;
             this.priority = priority;
+            this.contextGenerator = contextGenerator != null ? contextGenerator : ValueContainer.Context.DefaultGenerator;
             Properties = new Dictionary<string, object>();
         }
         /*
@@ -54,5 +59,10 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
         }
 
         public virtual void Trigger(IdleEngine engine, string eventName) { }
+
+        public virtual IDictionary<string, object> GenerateContext(IdleEngine engine, ValueContainer container)
+        {
+            return contextGenerator(engine, container);
+        }
     }
 }

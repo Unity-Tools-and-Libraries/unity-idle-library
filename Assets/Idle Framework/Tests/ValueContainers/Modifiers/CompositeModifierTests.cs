@@ -54,7 +54,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers
                 callCount++;
                 return null;
             });
-            target.NotifyImmediately("event", new ValueChangedEvent("", "", null, null));
+            target.NotifyImmediately("event", null, "", null);
             Assert.AreEqual(new BigDouble(1), new BigDouble(callCount));
         }
 

@@ -1,28 +1,18 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace io.github.thisisnozaku.idle.framework.Events
 {
-    /*
-     * Event fired when the value in a container changes.
-     */
-    public class ValueChangedEvent : IdleEngineEvent
+    public static class ValueChangedEvent
     {
-        public readonly string Path;
-        public readonly object NewValue;
-        public readonly object OldValue;
-        public readonly ValueContainer Source;
-
-        public ValueChangedEvent(string path, object previousValue, object newValue, ValueContainer source)
+        public const string EventName = "value_changed";
+        public static readonly List<Tuple<Type, String>> Arguments = new List<Tuple<Type, String>>()
         {
-            Path = path;
-            NewValue = newValue;
-            OldValue = previousValue;
-            Source = source;
-            PreventBubbling = true;
-        }
-
-        public bool PreventBubbling { get; set; }
+            Tuple.Create(typeof(ValueContainer), "The container whose value changed."),
+            Tuple.Create(typeof(object), "The previous raw value."),
+            Tuple.Create(typeof(object), "The new raw value")
+        };
     }
 }

@@ -1,8 +1,4 @@
-﻿using Newtonsoft.Json.Serialization;
-using System;
-using System.Collections.Generic;
-using static io.github.thisisnozaku.idle.framework.IdleEngine;
-using static io.github.thisisnozaku.idle.framework.ValueContainer;
+﻿using static io.github.thisisnozaku.idle.framework.ValueContainer;
 
 namespace io.github.thisisnozaku.idle.framework.Events
 {
@@ -28,7 +24,7 @@ namespace io.github.thisisnozaku.idle.framework.Events
          * 
          * Additionally, will notify parents of this source if the event bubbles.
          */
-        void NotifyImmediately(string eventName, IdleEngineEvent argument);
+        void NotifyImmediately(string eventName, params object[] arguments);
         /*
          * Immediately notify all listeners on this source.
          * 

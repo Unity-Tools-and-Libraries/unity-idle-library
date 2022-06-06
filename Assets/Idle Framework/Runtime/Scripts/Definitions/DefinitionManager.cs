@@ -6,7 +6,7 @@ namespace io.github.thisisnozaku.idle.framework.Definitions
 {
     public class DefinitionManager : IDefinitionManager
     {
-        private Dictionary<string, IDictionary<string, IDefinition>> definitions;
+        private Dictionary<string, IDictionary<string, IDefinition>> definitions = new Dictionary<string, IDictionary<string, IDefinition>>();
 
         public T GetDefinition<T>(string typeName, string id) where T : IDefinition
         {

@@ -5,16 +5,8 @@ using UnityEngine;
 
 namespace io.github.thisisnozaku.idle.framework.Events
 {
-    public class ValueContainerUpdatedEvent : IdleEngineEvent
+    public static class ValueContainerUpdatedEvent
     {
-        public readonly ValueContainer Container;
-
-        public ValueContainerUpdatedEvent(ValueContainer container)
-        {
-            Container = container;
-            PreventBubbling = false;
-        }
-
-        public bool PreventBubbling { get; set; }
+        public static readonly string EventName = "value_container_updated";
     }
 }

@@ -1,4 +1,5 @@
 using BreakInfinity;
+using io.github.thisisnozaku.idle.framework.Engine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -23,7 +24,7 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers.Values
         }
         public override object Apply(IdleEngine engine, ValueContainer container, object input)
         {
-            return EvaluateCalculationExpression(engine);
+            return EvaluateCalculationExpression<object>(engine, container);
         }
     }
 }

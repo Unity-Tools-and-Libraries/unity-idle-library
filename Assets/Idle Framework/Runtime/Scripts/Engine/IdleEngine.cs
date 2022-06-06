@@ -1,5 +1,6 @@
 ﻿using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Definitions;
+using io.github.thisisnozaku.idle.framework.Engine.Modules;
 using io.github.thisisnozaku.idle.framework.Events;
 using io.github.thisisnozaku.idle.framework.Modifiers;
 using MoonSharp.Interpreter;
@@ -10,7 +11,7 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using static io.github.thisisnozaku.idle.framework.ValueContainer;
 
-namespace io.github.thisisnozaku.idle.framework
+namespace io.github.thisisnozaku.idle.framework.Engine
 {
     public partial class IdleEngine : RandomNumberSource, EventSource<ListenerSubscription>, IDefinitionManager
 
@@ -40,34 +41,55 @@ namespace io.github.thisisnozaku.idle.framework
         {
             random = new System.Random();
             UserData.RegisterProxyType<ValueContainerScriptProxy, ValueContainer>(c => new ValueContainerScriptProxy(c));
+            UserData.RegisterType<BigDouble>();
+            Script.GlobalOptions.CustomConverters.SetScriptToClrCustomConversion(DataType.Number, typeof(BigDouble), (arg) =>
+            {
+                return BigDouble.Parse(arg.CastToString());
+            });
+            Script.GlobalOptions.CustomConverters.SetScriptToClrCustomConversion(DataType.UserData, typeof(BigDouble), (arg) =>
+            {
+                var obj = arg.ToObject();
+                if (obj is ValueContainer)
+                {
+                    return (obj as ValueContainer).ValueAsNumber();
+                }
+                else if (obj is BigDouble)
+                {
+                    return (BigDouble)obj;
+                }
+                else
+                {
+                    return null;
+                }
+            });
+            Script.GlobalOptions.CustomConverters.SetClrToScriptCustomConversion(typeof(BigDouble), (script, arg) =>
+            {
+                return UserData.Create(arg);
+            });
         }
 
         public void Start()
         {
             Debug.Log("Starting engine");
             IsReady = true;
-            Broadcast(Events.ENGINE_READY, new EngineReadyEvent());
+            Broadcast(EngineReadyEvent.EventName);
         }
 
         // Event Management
-        public void Broadcast(string eventName, IdleEngineEvent ev)
+        public void Broadcast(string eventName, params object[] args)
         {
             Debug.Log("Broadcasting " + eventName);
-            if (ev != null)
-            {
-                ev.PreventBubbling = true;
-            }
-            NotifyImmediately(eventName, ev);
+            NotifyImmediately(eventName, args);
             foreach (var prop in globalProperties)
             {
                 if (prop.Value != null)
                 {
-                    prop.Value.Broadcast(eventName, ev);
+                    prop.Value.Broadcast(eventName, args);
                 }
             }
         }
 
-        public void NotifyImmediately(string eventName, IdleEngineEvent argument)
+        public void NotifyImmediately(string eventName, params object[] arguments)
         {
             List<ListenerSubscription> listeners = null;
             if (this.listeners.TryGetValue(eventName, out listeners))
@@ -75,7 +97,7 @@ namespace io.github.thisisnozaku.idle.framework
                 {
                     foreach (var listener in listeners)
                     {
-                        InvokeMethod(listener.MethodName, null, argument);
+                        InvokeMethod(listener.MethodName, null, arguments);
                     }
                 }
             }
@@ -96,7 +118,7 @@ namespace io.github.thisisnozaku.idle.framework
             if (this.listeners.TryGetValue(eventName, out listeners))
             {
                 ListenerSubscription subscription = listeners.Where(l => l.SubscriberDescription == subscriber && l.Event == eventName)
-                    .FirstOrDefault(null);
+                    .FirstOrDefault();
                 if (subscription != null)
                 {
                     listeners.Remove(subscription);
@@ -122,33 +144,22 @@ namespace io.github.thisisnozaku.idle.framework
             return Subscribe(subscriber, eventName, listener.Method.Name, ephemeral);
         }
 
-        internal void BubbleEvent(string eventName, IdleEngineEvent ev, ValueContainer valueContainer)
+        internal void BubbleEvent(string eventName, ValueContainer valueContainer, params object[] args)
         {
-            if (ev != null)
+            var sourcePath = valueContainer.Path;
+            var sourceTokens = sourcePath.Split('.');
+            for (int i = sourceTokens.Length - 1; i > 0; i--)
             {
-                if (!ev.PreventBubbling)
+                string targetPath = sourceTokens[0];
+                for (int t = 1; t < i; t++)
                 {
-                    var sourcePath = valueContainer.Path;
-                    var sourceTokens = sourcePath.Split('.');
-                    for (int i = sourceTokens.Length - 1; i > 0; i--)
-                    {
-                        string targetPath = sourceTokens[0];
-                        for (int t = 1; t < i; t++)
-                        {
-                            targetPath += "." + sourceTokens[t];
-                        }
-                        var targetContainer = GetProperty(targetPath);
-                        if (targetContainer != null && targetContainer != valueContainer)
-                        {
-                            targetContainer.DoNotification(eventName, ev);
-                        }
-                    }
+                    targetPath += "." + sourceTokens[t];
                 }
-                NotifyImmediately(eventName, ev);
-            }
-            else
-            {
-                throw new ArgumentNullException("ev", "Event must not be null to perform notification.");
+                var targetContainer = GetProperty(targetPath);
+                if (targetContainer != null && targetContainer != valueContainer)
+                {
+                    targetContainer.DoNotification(eventName, args);
+                }
             }
         }
 
@@ -184,13 +195,17 @@ namespace io.github.thisisnozaku.idle.framework
                 if (i == 0)
                 {
                     subpath = token;
-                    if (!globalProperties.TryGetValue(subpath, out container) && operationType == GetOperationType.CREATE_MISSING)
+                    if (!globalProperties.TryGetValue(subpath, out container))
                     {
-                        container = globalProperties[token] = CreateValueContainer(path: subpath);
-                        globalProperties.TryGetValue(token, out container);
-                    } else if(operationType == GetOperationType.ASSERT_CORRECT)
-                    {
-                        throw new InvalidOperationException("While performing a strict traversal operation, a null container was found within the path at " + subpath);
+                        if (operationType == GetOperationType.CREATE_MISSING)
+                        {
+                            container = globalProperties[token] = CreateValueContainer(path: subpath);
+                            globalProperties.TryGetValue(token, out container);
+                        }
+                        else if (operationType == GetOperationType.ASSERT_CORRECT)
+                        {
+                            throw new InvalidOperationException("While performing a strict traversal operation, a null container was found within the path at " + subpath);
+                        }
                     }
                 }
                 else
@@ -206,7 +221,14 @@ namespace io.github.thisisnozaku.idle.framework
                     }
                     else if (container == null)
                     {
-                        return null;
+                        if (operationType == GetOperationType.ASSERT_CORRECT)
+                        {
+                            throw new ArgumentException(String.Format("Found null container at {0}", subpath));
+                        }
+                        else
+                        {
+                            return null;
+                        }
                     }
                     var map = container.ValueAsMap();
                     if (map == null)
@@ -426,7 +448,7 @@ namespace io.github.thisisnozaku.idle.framework
             }
         }
 
-        public object InvokeMethod(string methodName, ValueContainer container, object arg)
+        public object InvokeMethod(string methodName, ValueContainer container, params object[] arg)
         {
             UserMethod method;
             if (methods.TryGetValue(methodName, out method))
@@ -437,6 +459,11 @@ namespace io.github.thisisnozaku.idle.framework
             {
                 throw new InvalidOperationException("Couldn't find method " + methodName + ". Ensure that the method is registered before use.");
             }
+        }
+
+        public object InvokeMethod(UserMethod method, ValueContainer container, params object[] args)
+        {
+            return InvokeMethod(method.Method.Name, container, args);
         }
 
         public void RegisterMethod(UserMethod method)
@@ -462,11 +489,6 @@ namespace io.github.thisisnozaku.idle.framework
         public void SetDefinitions(string typeName, IDictionary<string, IDefinition> definitions)
         {
             ((IDefinitionManager)this.definitions).SetDefinitions(typeName, definitions);
-        }
-
-        public static class Events
-        {
-            public const string ENGINE_READY = "ready";
         }
 
         private IDictionary<string, ValueContainer> ConvertProperties(IDictionary<string, object> properties)
@@ -508,6 +530,33 @@ namespace io.github.thisisnozaku.idle.framework
             var properties = ConvertProperties(definition.Properties);
             return CreateValueContainer(value: properties);
 
+        }
+
+        public void AddModule(IModule newModule)
+        {
+            if (IsReady)
+            {
+                throw new InvalidOperationException("Can only add modules before starting the engine.");
+            }
+            foreach (var definition in newModule.GetDefinitions())
+            {
+                SetDefinitions(definition.Key, definition.Value);
+            }
+            newModule.SetEngineProperties(this);
+        }
+
+        internal IDictionary<string, object> GenerateGlobalContext()
+        {
+            var properties = new Dictionary<string, object>();
+            foreach (var global in globalProperties)
+            {
+                properties[global.Key] = global.Value;
+            }
+            foreach (var method in methods)
+            {
+                properties[method.Key] = WrapMethod(method.Key);
+            }
+            return properties;
         }
     }
 }

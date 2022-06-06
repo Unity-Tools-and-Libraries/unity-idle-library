@@ -5,6 +5,8 @@ using NUnit.Framework;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static io.github.thisisnozaku.idle.framework.ValueContainer;
+
 namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers.BasicOperations
 {
     public class MultiplicativeValueModifierTests : RequiresEngineTests
@@ -29,7 +31,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers.BasicOperations
             engine.Start();
             var vc = engine.SetProperty("path", null as string, "", new System.Collections.Generic.List<ContainerModifier>()
             {
-                new MultiplicativeValueModifier("", "", "foo")
+                new MultiplicativeValueModifier("", "", "foo", Context.GlobalContextGenerator)
             });
             engine.SetProperty("foo", 2);
             vc.Set(BigDouble.One);

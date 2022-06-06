@@ -1,4 +1,5 @@
 using io.github.thisisnozaku.idle.framework;
+using io.github.thisisnozaku.idle.framework.Engine;
 using NUnit.Framework;
 using UnityEngine;
 

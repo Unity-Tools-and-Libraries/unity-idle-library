@@ -254,7 +254,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         [Test]
         public void GettingBoolFromUnregisteredContainerLogsError()
         {
-            LogAssert.Expect(LogType.Error, "ValueContainer is not ready to be used; it must be assigned to a global property in the engine or a descendent of one before use.");
+            LogAssert.Expect(LogType.Error, "[engine.internal.container] ValueContainer is not ready to be used; it must be assigned to a global property in the engine or a descendent of one before use.");
             var container = engine.CreateValueContainer(path: null);
             container.ValueAsBool();
         }

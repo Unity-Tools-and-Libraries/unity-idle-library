@@ -10,7 +10,7 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
     /*
      * Base class for an item which modifies the value output from a container, and/or modifies child values.
      */
-    public abstract class ContainerModifier : IContainerModifier
+    public abstract class ContainerModifier : IContainerModifier, IComparable<ContainerModifier>
     {
         public static readonly List<char> ALL_OPERATORS = new List<char>() { ADD_OPERATOR, SUBTRACT_OPERATOR, MULTIPLY_OPERATOR, DIVIDE_OPERATOR, ASSIGN_OPERATOR };
         public const char ADD_OPERATOR = '+';
@@ -25,6 +25,7 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
         public readonly int priority;
         [JsonProperty("properties")]
         public Dictionary<string, object> Properties { get; private set; }
+        public bool IsStatic { get; protected set; }
         private ContextGenerator contextGenerator;
 
         public ContainerModifier(string id, string source, ContextGenerator contextGenerator = null, int priority = 0)
@@ -63,6 +64,39 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
         public virtual IDictionary<string, object> GenerateContext(IdleEngine engine, ValueContainer container)
         {
             return contextGenerator(engine, container);
+        }
+
+         public int CompareTo(ContainerModifier other)
+        {
+            int priorityDiff = other.priority - this.priority;
+            if(priorityDiff != 0)
+            {
+                return priorityDiff;
+            }
+            return other.GetHashCode() - this.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is ContainerModifier modifier &&
+                   Id == modifier.Id &&
+                   Source == modifier.Source &&
+                   priority == modifier.priority &&
+                   EqualityComparer<Dictionary<string, object>>.Default.Equals(Properties, modifier.Properties) &&
+                   IsStatic == modifier.IsStatic &&
+                   EqualityComparer<ContextGenerator>.Default.Equals(contextGenerator, modifier.contextGenerator);
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 1199913225;
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Id);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Source);
+            hashCode = hashCode * -1521134295 + priority.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<Dictionary<string, object>>.Default.GetHashCode(Properties);
+            hashCode = hashCode * -1521134295 + IsStatic.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<ContextGenerator>.Default.GetHashCode(contextGenerator);
+            return hashCode;
         }
     }
 }

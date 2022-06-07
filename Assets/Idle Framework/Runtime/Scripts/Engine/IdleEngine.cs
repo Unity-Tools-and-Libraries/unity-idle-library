@@ -18,7 +18,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine
     {
         private System.Random random;
         public delegate object UserMethod(IdleEngine engine, ValueContainer container, params object[] args);
-
         private static Regex PathRegex = new Regex("[a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)*");
 
         private IDictionary<string, ValueContainer> references = new Dictionary<string, ValueContainer>();
@@ -70,7 +69,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         public void Start()
         {
-            Debug.Log("Starting engine");
+            Log(LogType.Log, "Starting engine", "engine.internal");
             IsReady = true;
             Broadcast(EngineReadyEvent.EventName);
         }
@@ -78,7 +77,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         // Event Management
         public void Broadcast(string eventName, params object[] args)
         {
-            Debug.Log("Broadcasting " + eventName);
+            Log(LogType.Log, "Broadcasting " + eventName, "engine.internal.events");
             NotifyImmediately(eventName, args);
             foreach (var prop in globalProperties)
             {
@@ -395,10 +394,21 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             return properties;
         }
 
+        private Dictionary<string, Script> scriptCache = new Dictionary<string, Script>();
+
         public object EvaluateExpression(string valueExpression, IDictionary<string, object> context = null)
         {
+            if (valueExpression == null)
+            {
+                throw new ArgumentNullException("valueExpression");
+            }
             context = context != null ? context : GetGlobalContext();
-            var script = new Script();
+            Script script;
+            if (!scriptCache.TryGetValue(valueExpression, out script))
+            {
+                script = new Script();
+                scriptCache[valueExpression] = script;
+            }
             foreach (var property in context)
             {
                 script.Globals[property.Key] = property.Value;
@@ -520,6 +530,61 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                     }
                 }
             });
+        }
+
+        private Dictionary<LogType, Dictionary<string, bool>> LoggingContextLevels = new Dictionary<LogType, Dictionary<string, bool>>()
+        {
+            { LogType.Exception, new Dictionary<string, bool>(){ { "*", true } } },
+            { LogType.Error, new Dictionary<string, bool>(){ { "*", true } } }
+        };
+        /*
+         * 
+         */
+        public void Log(LogType logType, string logMessage, string logContext = null)
+        {
+            bool logEnabled = false;
+            if(LoggingContextLevels.ContainsKey(logType))
+            {
+                string context = logContext != null && LoggingContextLevels[logType].ContainsKey(logContext) ? logContext : "*";
+                logEnabled = LoggingContextLevels[logType].TryGetValue(context, out logEnabled);
+            }
+            if(logEnabled)
+            {
+                string finalMessage = string.Format("[{0}] {1}", logContext, logMessage);
+                switch (logType)
+                {
+                    case LogType.Error:
+                    case LogType.Exception:
+                        Debug.LogError(finalMessage);
+                        break;
+                    case LogType.Log:
+                        Debug.Log(finalMessage);
+                        break;
+                    case LogType.Warning:
+                        Debug.LogWarning(finalMessage);
+                        break;
+                }
+            }
+        }
+
+        public void ConfigureLogging(string logContext, LogType logLevel, bool enabled = true)
+        {
+            Dictionary<string, bool> contextsForLevel;
+            switch(logLevel)
+            {
+                case LogType.Log:
+                    ConfigureLogging(logContext, LogType.Warning, enabled);
+                    break;
+                case LogType.Warning:
+                    ConfigureLogging(logContext, LogType.Error, enabled);
+                    break;
+            }
+            if(!LoggingContextLevels.TryGetValue(logLevel, out contextsForLevel))
+            {
+                contextsForLevel = new Dictionary<string, bool>();
+                LoggingContextLevels[logLevel] = contextsForLevel;
+            }
+            contextsForLevel[logContext] = enabled;
         }
 
         /*

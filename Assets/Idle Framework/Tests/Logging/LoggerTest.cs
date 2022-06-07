@@ -1,91 +1,57 @@
-using io.github.thisisnozaku.idle.framework.Logging;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using static io.github.thisisnozaku.idle.framework.Logging.Logger;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace io.github.thisisnozaku.idle.framework.Tests
 {
-    public class LoggerTest
+    public class LoggerTest : RequiresEngineTests
     {
-        private Logger Logger;
-        private Dictionary<Logger.Level, Action<object>> LoggingMethods;
-        private Dictionary<Logger.Level, bool> Called;
+        
         [SetUp]
         public void setup()
         {
-            Called = new Dictionary<Level, bool>();
-            LoggingMethods = new Dictionary<Level, Action<object>>() {
-            { Level.DEBUG, obj => Called[Level.DEBUG] = true },
-            { Level.ERROR, obj => Called[Level.ERROR] = true },
-            { Level.INFO, obj => Called[Level.INFO] = true },
-            { Level.TRACE, obj => Called[Level.TRACE] = true },
-            { Level.WARN, obj => Called[Level.WARN] = true }
-        };
-            Logger = new Logger(LoggingMethods);
+            
         }
+        
         [Test]
-        public void DoesNotLogIfLevelBelowConfiguredLevel()
+        public void LogsAtErrorLevelByDefault()
         {
+            LogAssert.Expect(UnityEngine.LogType.Error, "[] message");
+            
+            engine.Log(UnityEngine.LogType.Exception, "message");
+            engine.Log(LogType.Log, "message");
 
-            Logger.Error("log");
-            Logger.Trace("log");
-            Logger.Info("log");
-            Logger.Debug("log");
-            Logger.Warning("log");
-            Assert.True(Called.ContainsKey(Level.ERROR));
-            Assert.False(Called.ContainsKey(Level.WARN));
-            Assert.False(Called.ContainsKey(Level.INFO));
-            Assert.False(Called.ContainsKey(Level.DEBUG));
-            Assert.False(Called.ContainsKey(Level.TRACE));
+            LogAssert.NoUnexpectedReceived();
+        }
 
-            this.Logger.LoggingLevel = Level.WARN;
-            Logger.Error("log");
-            Logger.Trace("log");
-            Logger.Info("log");
-            Logger.Debug("log");
-            Logger.Warning("log");
-            Assert.True(Called.ContainsKey(Level.ERROR));
-            Assert.True(Called.ContainsKey(Level.WARN));
-            Assert.False(Called.ContainsKey(Level.INFO));
-            Assert.False(Called.ContainsKey(Level.DEBUG));
-            Assert.False(Called.ContainsKey(Level.TRACE));
+        [Test]
+        public void LogsAtSpecifiedLevelAndAbove()
+        {
+            engine.ConfigureLogging("*", LogType.Log);
 
-            this.Logger.LoggingLevel = Level.INFO;
-            Logger.Error("log");
-            Logger.Trace("log");
-            Logger.Info("log");
-            Logger.Debug("log");
-            Logger.Warning("log");
-            Assert.True(Called.ContainsKey(Level.ERROR));
-            Assert.True(Called.ContainsKey(Level.WARN));
-            Assert.True(Called.ContainsKey(Level.INFO));
-            Assert.False(Called.ContainsKey(Level.DEBUG));
-            Assert.False(Called.ContainsKey(Level.TRACE));
+            LogAssert.Expect(LogType.Log, "[] message");
+            LogAssert.Expect(LogType.Error, "[] message");
+            LogAssert.Expect(LogType.Warning, "[] message");
+            
 
-            this.Logger.LoggingLevel = Level.DEBUG;
-            Logger.Error("log");
-            Logger.Trace("log");
-            Logger.Info("log");
-            Logger.Debug("log");
-            Logger.Warning("log");
-            Assert.True(Called.ContainsKey(Level.ERROR));
-            Assert.True(Called.ContainsKey(Level.WARN));
-            Assert.True(Called.ContainsKey(Level.INFO));
-            Assert.True(Called.ContainsKey(Level.DEBUG));
-            Assert.False(Called.ContainsKey(Level.TRACE));
+            engine.Log(LogType.Log, "message");
+            engine.Log(LogType.Error, "message");
+            engine.Log(LogType.Warning, "message");
 
-            this.Logger.LoggingLevel = Level.TRACE;
-            Logger.Error("log");
-            Logger.Trace("log");
-            Logger.Info("log");
-            Logger.Debug("log");
-            Logger.Warning("log");
-            Assert.True(Called.ContainsKey(Level.ERROR));
-            Assert.True(Called.ContainsKey(Level.WARN));
-            Assert.True(Called.ContainsKey(Level.INFO));
-            Assert.True(Called.ContainsKey(Level.DEBUG));
-            Assert.True(Called.ContainsKey(Level.TRACE));
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [Test]
+        public void CanCustomizeLevelByContext()
+        {
+            engine.ConfigureLogging("combat", LogType.Log);
+            LogAssert.Expect(LogType.Error, "[] message");
+            LogAssert.Expect(LogType.Log, "[combat] message");
+
+            engine.Log(LogType.Exception, "message");
+            engine.Log(LogType.Log, "message", "combat");
+
+            LogAssert.NoUnexpectedReceived();
         }
     }
 }

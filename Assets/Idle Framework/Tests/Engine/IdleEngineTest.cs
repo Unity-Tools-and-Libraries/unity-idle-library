@@ -30,7 +30,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
             });
             engine.RegisterMethod("update", (engine, vc, ev) =>
             {
-                return (BigDouble)(ev[0] as ValueContainerWillUpdateEvent).PreviousValue + BigDouble.One;
+                return (BigDouble)ev[1] + BigDouble.One;
             });
             engine.SetProperty("incrementingNumberValue", 0, updater: "update");
         }

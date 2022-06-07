@@ -183,7 +183,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         [Test]
         public void CanSpecifyACalculatingFunction()
         {
-            engine.RegisterMethod("method", (eng, cont, ev) => (BigDouble)(ev[0] as ValueContainerWillUpdateEvent).PreviousValue + 1);
+            engine.RegisterMethod("method", (eng, cont, ev) => (BigDouble)ev[1] + 1);
             var reference = engine.SetProperty("path", 0, updater: "method");
             engine.Start();
             for (int i = 1; i <= 5; i++)

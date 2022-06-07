@@ -13,23 +13,22 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers.Values
     {
         protected object cachedValue;
         private string expression;
-        protected bool IsStaticValue;
         protected ValueModifier(string id, string source, string expression, bool staticValue = false, ContextGenerator contextGenerator = null, int priority = 0) : base(id, source, contextGenerator: contextGenerator, priority: priority)
         {
             this.expression = expression;
-            this.IsStaticValue = staticValue;
+            this.IsStatic= staticValue;
         }
 
         public override abstract object Apply(IdleEngine engine, ValueContainer container, object input);
 
         protected T EvaluateCalculationExpression<T>(IdleEngine engine, ValueContainer container)
         {
-            if(IsStaticValue && cachedValue != null)
+            if(IsStatic && cachedValue != null)
             {
                 return (T)cachedValue;
             }
             var evaluatedExpression = engine.EvaluateExpression(expression, this.GenerateContext(engine, container));
-            if(IsStaticValue && cachedValue == null)
+            if(IsStatic && cachedValue == null)
             {
                 cachedValue = evaluatedExpression;
             }

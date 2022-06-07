@@ -49,7 +49,6 @@ namespace io.github.thisisnozaku.idle.framework
                 return existing;
             }
             set {
-                Debug.Log("Setter called");
                 ValueContainer previous;
                 underlying.TryGetValue(key, out previous);
                 underlying[key] = value;

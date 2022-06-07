@@ -23,5 +23,17 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             engine.AddModule(new ClickerModule());
             Assert.AreEqual(new BigDouble(1.15), engine.GetProperty(ClickerModule.DefaultProperties.PRODUCER_COST_SCALE_FACTOR).ValueAsNumber());
         }
+
+        [Test]
+        public void DoClickAddsPointsEqualToClickIncome()
+        {
+            engine.AddModule(new ClickerModule());
+            Assert.AreEqual(new BigDouble(0), engine.GetProperty("points.quantity").ValueAsNumber());
+            engine.InvokeMethod("DoClick", null);
+            Assert.AreEqual(new BigDouble(1), engine.GetProperty("points.quantity").ValueAsNumber());
+            engine.GetProperty("points.click_income").Set(10);
+            engine.InvokeMethod("DoClick", null);
+            Assert.AreEqual(new BigDouble(11), engine.GetProperty("points.quantity").ValueAsNumber());
+        }
     }
 }

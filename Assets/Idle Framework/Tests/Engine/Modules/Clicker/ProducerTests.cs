@@ -21,8 +21,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         {
             module = new ClickerModule();
             tier1 = new ProducerDefinition("one", "one", 15, 0.1);
-            tier2 = new ProducerDefinition("two", "two", 100, 1);
-            tier3 = new ProducerDefinition("three", "three", 1100, 5);
+            tier2 = new ProducerDefinition("two", "two", 100, 1, enableExpression: "producers.one.quantity > 0");
+            tier3 = new ProducerDefinition("three", "three", 1100, 5, unlockExpression: "producers.one.quantity > 0", enableExpression: "producers.two.quantity > 0");
             module.AddProducer(tier1);
             module.AddProducer(tier2);
             module.AddProducer(tier3);
@@ -74,6 +74,30 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         {
             engine.InvokeMethod(ClickerModule.BuyUpgrade, null, "upgrade-two");
             Assert.AreEqual(new BigDouble(1.5), engine.GetProperty(string.Join(".", "producers", tier2.Id, ProducerDefinition.PropertyNames.OUTPUT_PER_UNIT)).ValueAsNumber());
+        }
+
+        [Test]
+        public void BuyingProducerSubtractsPoints()
+        {
+            engine.GetProperty("points.quantity").Set(15);
+            engine.InvokeMethod(ClickerModule.BuyProducer, null, "one");
+            Assert.AreEqual(new BigDouble(0), engine.GetProperty("points.quantity").ValueAsNumber());
+        }
+
+        [Test]
+        public void ProducerUpdaterSetsEnabledFlagIfExpressionTrue()
+        {
+            engine.GetProperty("producers.one.quantity").Set(1);
+            engine.Update(1);
+            Assert.True(engine.GetProperty("producers.two.enabled").ValueAsBool());
+        }
+
+        [Test]
+        public void ProducerUpdaterSetsUnlockedFlagIfExpressionTrue()
+        {
+            engine.GetProperty("producers.one.quantity").Set(1);
+            engine.Update(1);
+            Assert.True(engine.GetProperty("producers.three.unlocked").ValueAsBool());
         }
     }
 }

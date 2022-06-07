@@ -43,6 +43,7 @@ namespace io.github.thisisnozaku.idle.framework
                 }
             }
         }
+        private object cachedFinalValue;
 
         public ValueContainer SetEphemeral()
         {
@@ -100,7 +101,7 @@ namespace io.github.thisisnozaku.idle.framework
         private Dictionary<string, ISet<ListenerSubscription>> listeners;
         public IdleEngine Engine { get; private set; }
 
-        private List<ContainerModifier> modifiers;
+        private SortedSet<ContainerModifier> modifiers;
 
         public string Id
         {
@@ -140,10 +141,10 @@ namespace io.github.thisisnozaku.idle.framework
             this.Id = id;
             this.Path = path;
             this.Engine = engine;
-            this.modifiers = startingModifiers != null ? startingModifiers : new List<ContainerModifier>();
+            SetModifiers(startingModifiers);
             if (startingValue is IDictionary<string, ValueContainer>)
             {
-                Debug.Log("Wrapping dictionary in parent notifying dictionary");
+                engine.Log(LogType.Log, "Wrapping dictionary in parent notifying dictionary", "engine.internal.container");
                 ParentNotifyingDictionary notifyingDictionary = !(startingValue is ParentNotifyingDictionary) ?
                     new ParentNotifyingDictionary(this, startingValue as IDictionary<string, ValueContainer>) :
                     startingValue as ParentNotifyingDictionary;
@@ -191,67 +192,83 @@ namespace io.github.thisisnozaku.idle.framework
         {
             if (v is BigDouble)
             {
-                return applyModifiersToBigDouble((BigDouble)v);
+                return applyModifiers((BigDouble)v);
             }
             else if (v is bool)
             {
-                return applyModifiersToBool((bool)v);
+                return applyModifiers((bool)v);
             } else if (v is string)
             {
-                return applyModifiersToString(v as string);
+                return applyModifiers(v as string);
             }
             return v;
         }
 
-        private BigDouble applyModifiersToBigDouble(BigDouble originalValue)
+        private T applyModifiers<T>(T previousValue)
         {
-            return modifiers.OrderByDescending(x => x.priority).Aggregate(originalValue, (previousValue, nextModifier) => (BigDouble)nextModifier.Apply(Engine, this, previousValue));
-        }
-
-        private bool applyModifiersToBool(bool originalValue)
-        {
-            return modifiers.OrderByDescending(x => x.priority).Aggregate(originalValue, (previousValue, nextModifier) => (bool)nextModifier.Apply(Engine, this, previousValue));
-        }
-
-        private string applyModifiersToString(string originalValue)
-        {
-            return modifiers.OrderByDescending(x => x.priority).Aggregate(originalValue, (previousValue, nextModifier) => (string)nextModifier.Apply(Engine, this, previousValue));
+            bool allModifierStatic = true;
+            foreach (var modifier in modifiers) {
+                allModifierStatic = allModifierStatic && modifier.IsStatic;
+                previousValue = (T)modifier.Apply(Engine, this, previousValue);
+            }
+            if(allModifierStatic)
+            {
+                cachedFinalValue = previousValue;
+            }
+            return previousValue;
         }
 
         public bool ValueAsBool()
         {
             AssertIsRegistered();
-            return applyModifiersToBool(CoerceToBool(value));
+            if (cachedFinalValue != null)
+            {
+                return CoerceToBool(cachedFinalValue);
+            }
+            return applyModifiers(CoerceToBool(value));
         }
 
         private void AssertIsRegistered()
         {
             if (Id == null || Path == null)
             {
-                Debug.LogError("ValueContainer is not ready to be used; it must be assigned to a global property in the engine or a descendent of one before use.");
+                Engine.Log(LogType.Error, "ValueContainer is not ready to be used; it must be assigned to a global property in the engine or a descendent of one before use.", "engine.internal.container");
             }
         }
 
         public BigDouble ValueAsNumber()
         {
             AssertIsRegistered();
-            return (BigDouble)applyModifiers(CoerceToNumber(value));
+            if (cachedFinalValue != null)
+            {
+                return CoerceToNumber(cachedFinalValue);
+            }
+            return (BigDouble)applyModifiers((object)CoerceToNumber(value));
         }
 
         public string ValueAsString()
         {
             AssertIsRegistered();
-            return (string)applyModifiers(CoerceToString(value));
+            if (cachedFinalValue != null)
+            {
+                return CoerceToString(cachedFinalValue);
+            }
+            return (string)applyModifiers((object)CoerceToString(value));
         }
 
         public IDictionary<string, ValueContainer> ValueAsMap()
         {
             AssertIsRegistered();
-            return (IDictionary<string, ValueContainer>)applyModifiers(CoerceToMap(value));
+            if(cachedFinalValue != null)
+            {
+                return CoerceToMap(cachedFinalValue);
+            }
+            return cachedFinalValue != null ? (IDictionary<string, ValueContainer>)cachedFinalValue : (IDictionary<string, ValueContainer>)applyModifiers((object)CoerceToMap(value));
         }
 
         public object ValueAsRaw()
         {
+
             return applyModifiers(value);
         }
 
@@ -283,7 +300,7 @@ namespace io.github.thisisnozaku.idle.framework
             if (this.updatingMethod != null)
             {
                 // TODO: Normalize
-                var updateOut = engine.InvokeMethod(this.updatingMethod, this, new ValueContainerWillUpdateEvent(this, deltaTime, this.value));
+                var updateOut = engine.InvokeMethod(this.updatingMethod, this, deltaTime, this.value);
                 bool outputIsValid = false;
                 if (updateOut is int)
                 {
@@ -330,6 +347,7 @@ namespace io.github.thisisnozaku.idle.framework
 
         private object setInternal(object newValue)
         {
+            cachedFinalValue = null;
             var old = this.value;
             this.value = this.interceptorMethod != null ? Engine.InvokeMethod(this.interceptorMethod, this, this, this.value, newValue) : newValue;
             NotifyChange(old, this.value);
@@ -368,7 +386,7 @@ namespace io.github.thisisnozaku.idle.framework
         {
             if (newValue != null)
             {
-                Debug.Log("Wrapping dictionary in parent notifying dictionary");
+                Engine.Log(LogType.Log, "Wrapping dictionary in parent notifying dictionary", "engine.internal.container");
                 newValue = new ParentNotifyingDictionary(this, newValue as IDictionary<string, ValueContainer>);
             }
             AssertCanSet();
@@ -378,12 +396,13 @@ namespace io.github.thisisnozaku.idle.framework
 
         public IReadOnlyCollection<ContainerModifier> GetModifiers()
         {
-            return modifiers.AsReadOnly();
+            return modifiers.ToList().AsReadOnly();
         }
 
         internal void SetModifiers(List<ContainerModifier> modifiers)
         {
-            this.modifiers = modifiers != null ? modifiers : new List<ContainerModifier>();
+            this.modifiers = modifiers != null ? new SortedSet<ContainerModifier>(modifiers) : new SortedSet<ContainerModifier>();
+            cachedFinalValue = null;
         }
 
         internal void DoNotification(string eventName, params object[] args)
@@ -401,7 +420,7 @@ namespace io.github.thisisnozaku.idle.framework
 
         internal void Broadcast(string eventName, params object[] args)
         {
-            Debug.Log("Broadcasting " + eventName + " from #" + Id + ".");
+            Engine.Log(LogType.Log, "Broadcasting " + eventName + " from #" + Id + ".", "engine.internal.container");
             DoNotification(eventName, args);
             if (ValueAsMap() != null)
             {
@@ -416,7 +435,7 @@ namespace io.github.thisisnozaku.idle.framework
         {
             if (Engine.IsReady)
             {
-                Debug.Log(string.Format("[event.{0}] Notifying {1}@{2}.", eventName, Id, Path));
+                Engine.Log(LogType.Log, string.Format("[event.{0}] Notifying {1}@{2}.", eventName, Id, Path), "engine.internal.container");
                 AssertIsRegistered();
                 DoNotification(eventName, args);
                 foreach(var mod in modifiers)
@@ -426,7 +445,7 @@ namespace io.github.thisisnozaku.idle.framework
                 Engine.BubbleEvent(eventName, this, args);
             } else
             {
-                Debug.LogWarning("Start() has not been called on the engine.");
+                Engine.Log(LogType.Warning, "Start() has not been called on the engine.", "engine.internal.container");
             }
         }
 
@@ -500,6 +519,7 @@ namespace io.github.thisisnozaku.idle.framework
                 modifier.OnAdd(Engine, this);
                 NotifyChange(old, this.ValueAsRaw());
             }
+            cachedFinalValue = null;
             return this;
         }
 
@@ -512,6 +532,7 @@ namespace io.github.thisisnozaku.idle.framework
                 modifier.OnRemoval(Engine, this);
             }
             NotifyChange(old, this.ValueAsRaw());
+            cachedFinalValue = null;
             return this;
         }
 
@@ -549,12 +570,12 @@ namespace io.github.thisisnozaku.idle.framework
         {
             try
             {
-                Debug.Log("Invoking listener " + listener + " from #" + Id + ".");
+                Engine.Log(LogType.Log, "Invoking listener " + listener + " from #" + Id + ".", "engine.internal.container");
                 Engine.InvokeMethod(listener.MethodName, this, args);
             }
             catch (Exception e)
             {
-                Debug.LogError(string.Format("Error trying to invoke listener from \"{2}\" for event \"{0}\": {1}.", eventName, e.ToString(), listener.SubscriberDescription));
+                Engine.Log(LogType.Error, string.Format("Error trying to invoke listener from \"{2}\" for event \"{0}\": {1}.", eventName, e.ToString(), listener.SubscriberDescription), "engine.internal.container");
             }
         }
 
@@ -646,7 +667,6 @@ namespace io.github.thisisnozaku.idle.framework
             {
                 throw new InvalidOperationException(string.Format("Failed to coerce a value of type {0} to IDictionary<string, ValueReference>.", value.GetType()));
             }
-            //Debug.Log("Coercing to map " + value != null ? value.ToString() : null);
             return (IDictionary<string, ValueContainer>)value;
         }
 

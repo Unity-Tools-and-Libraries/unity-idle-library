@@ -19,7 +19,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         {
             get
             {
-                return c[id];
+                return c.Engine.GetOrCreateContainerByPath(String.Join(".", c.Path, id));
             }
             set
             {

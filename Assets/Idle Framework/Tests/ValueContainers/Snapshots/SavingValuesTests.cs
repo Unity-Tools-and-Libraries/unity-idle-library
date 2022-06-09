@@ -10,7 +10,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         [Test]
         public void RestoringStringFromSnapshot()
         {
-            var container = engine.SetProperty("string", "string");
+            engine.ConfigureLogging("engine.internal", null);
+            var container = engine.CreateProperty("string", "string");
             var serialized = JsonConvert.SerializeObject(container.GetSnapshot());
 
             container.Set(null as string);
@@ -23,7 +24,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         [Test]
         public void RestoringBoolFromSnapshot()
         {
-            var container = engine.SetProperty("bool", true);
+            engine.ConfigureLogging("engine.internal", null);
+            var container = engine.CreateProperty("bool", true);
             var serialized = JsonConvert.SerializeObject(container.GetSnapshot());
 
             container.Set(null as string);
@@ -36,7 +38,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         [Test]
         public void RestoringMapFromSnapshot()
         {
-            var container = engine.SetProperty("global", new Dictionary<string, ValueContainer>() {
+            engine.ConfigureLogging("engine.internal", null);
+            var container = engine.CreateProperty("global", new Dictionary<string, ValueContainer>() {
                 { "key", engine.CreateValueContainer("string") }
             });
             container.ValueAsMap()["nested"] = engine.CreateValueContainer(new Dictionary<string, ValueContainer>() {
@@ -56,7 +59,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         [Test]
         public void EphemeralContainerNotSaved()
         {
-            var container = engine.SetProperty("global", new Dictionary<string, ValueContainer>() {
+            engine.ConfigureLogging("engine.internal", null);
+            var container = engine.CreateProperty("global", new Dictionary<string, ValueContainer>() {
                 { "key", engine.CreateValueContainer("string") }
             });
             container.ValueAsMap()["nested"] = engine.CreateValueContainer(new Dictionary<string, ValueContainer>() {

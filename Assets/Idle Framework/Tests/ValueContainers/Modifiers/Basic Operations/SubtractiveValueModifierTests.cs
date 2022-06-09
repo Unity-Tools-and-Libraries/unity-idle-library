@@ -13,7 +13,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers.BasicOperations
         public void SubtractiveModifierAddsToSetValue()
         {
             engine.Start();
-            var vc = engine.SetProperty("path", null as string, "", new System.Collections.Generic.List<ContainerModifier>()
+            var vc = engine.CreateProperty("path", null as string, "", new System.Collections.Generic.List<IContainerModifier>()
             {
                 new SubtractiveValueModifier("", "", 1)
             });
@@ -27,14 +27,14 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers.BasicOperations
         public void SubtractiveModifierSubtractsDynamicValue()
         {
             engine.Start();
-            var vc = engine.SetProperty("path", null as string, "", new System.Collections.Generic.List<ContainerModifier>()
+            var vc = engine.CreateProperty("path", null as string, "", new System.Collections.Generic.List<IContainerModifier>()
             {
-                new SubtractiveValueModifier("", "", "value", Context.GlobalContextGenerator)
+                new SubtractiveValueModifier("", "", "value", new string[] { "value" }, contextGenerator: Context.GlobalContextGenerator)
             });
-            engine.SetProperty("value", 1);
+            engine.CreateProperty("value", 1);
             vc.Set(BigDouble.One);
             Assert.AreEqual(new BigDouble(0), vc.ValueAsNumber());
-            engine.SetProperty("value", 2);
+            engine.CreateProperty("value", 2);
             Assert.AreEqual(new BigDouble(-1), vc.ValueAsNumber());
         }
 
@@ -42,7 +42,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers.BasicOperations
         public void SubtractiveModifierAppliesAfterMultiplication()
         {
             engine.Start();
-            var vc = engine.SetProperty("path", modifiers: new System.Collections.Generic.List<ContainerModifier>()
+            var vc = engine.CreateProperty("path", modifiers: new System.Collections.Generic.List<IContainerModifier>()
             {
                 new SubtractiveValueModifier("2", "", 2),
                 new MultiplicativeValueModifier("1", "", 2)

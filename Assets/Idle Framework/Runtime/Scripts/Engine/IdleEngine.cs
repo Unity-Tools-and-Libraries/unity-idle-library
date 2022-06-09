@@ -172,7 +172,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         // Global Properties
         public ValueContainer GetProperty(string path)
         {
-            return DoGetProperty(path);
+            return DoGetProperty(path, GetOperationType.CREATE_MISSING);
         }
 
         public enum GetOperationType
@@ -200,6 +200,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                         {
                             container = globalProperties[token] = CreateValueContainer(path: subpath);
                             globalProperties.TryGetValue(token, out container);
+                            script.Globals[token] = container;
                         }
                         else if (operationType == GetOperationType.ASSERT_CORRECT)
                         {
@@ -254,7 +255,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             return container;
         }
 
-        public ValueContainer SetProperty(string property, bool value, string description = "", List<ContainerModifier> modifiers = null, string updater = null, string interceptor = null)
+        public ValueContainer CreateProperty(string property, bool value, string description = "", List<IContainerModifier> modifiers = null, string updater = null, string interceptor = null)
         {
             var container = GetOrCreateContainerByPath(property);
             container.SetInterceptor(interceptor);
@@ -265,7 +266,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             return container;
         }
 
-        public ValueContainer SetProperty(string property, string value = null, string description = "", List<ContainerModifier> modifiers = null, string updater = null, string interceptor = null)
+        public ValueContainer CreateProperty(string property, string value = null, string description = "", List<IContainerModifier> modifiers = null, string updater = null, string interceptor = null)
         {
             var container = GetOrCreateContainerByPath(property);
             container.SetInterceptor(interceptor);
@@ -276,7 +277,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             return container;
         }
 
-        public ValueContainer SetProperty(string property, IDictionary<string, ValueContainer> value, string description = "", List<ContainerModifier> modifiers = null, string updater = null, string interceptor = null)
+        public ValueContainer CreateProperty(string property, IDictionary<string, ValueContainer> value, string description = "", List<IContainerModifier> modifiers = null, string updater = null, string interceptor = null)
         {
             var container = GetOrCreateContainerByPath(property);
             container.SetInterceptor(interceptor);
@@ -287,7 +288,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             return container;
         }
 
-        public ValueContainer SetProperty(string property, BigDouble value, string description = "", List<ContainerModifier> modifiers = null, string updater = null, string interceptor = null)
+        public ValueContainer CreateProperty(string property, BigDouble value, string description = "", List<IContainerModifier> modifiers = null, string updater = null, string interceptor = null)
         {
             var container = GetOrCreateContainerByPath(property);
             container.SetInterceptor(interceptor);
@@ -325,28 +326,28 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             }
         }
 
-        public ValueContainer CreateValueContainer(string value = null, string description = "", string path = null, List<ContainerModifier> modifiers = null, string updater = null)
+        public ValueContainer CreateValueContainer(string value = null, string description = "", string path = null, List<IContainerModifier> modifiers = null, string updater = null)
         {
             var vc = new ValueContainer(this, NextId(), value, description, path, modifiers, updater);
             references[vc.Id] = vc;
             return vc;
         }
 
-        public ValueContainer CreateValueContainer(BigDouble value, string description = "", string path = null, List<ContainerModifier> modifiers = null, string updater = null)
+        public ValueContainer CreateValueContainer(BigDouble value, string description = "", string path = null, List<IContainerModifier> modifiers = null, string updater = null)
         {
             var vc = new ValueContainer(this, NextId(), value, description, path, modifiers, updater);
             references[vc.Id] = vc;
             return vc;
         }
 
-        public ValueContainer CreateValueContainer(bool value, string description = "", string path = null, List<ContainerModifier> modifiers = null, string updater = null)
+        public ValueContainer CreateValueContainer(bool value, string description = "", string path = null, List<IContainerModifier> modifiers = null, string updater = null)
         {
             var vc = new ValueContainer(this, NextId(), value, description, path, modifiers, updater);
             references[vc.Id] = vc;
             return vc;
         }
 
-        public ValueContainer CreateValueContainer(IDictionary<string, ValueContainer> value, string description = "", string path = null, List<ContainerModifier> modifiers = null, string updater = null)
+        public ValueContainer CreateValueContainer(IDictionary<string, ValueContainer> value, string description = "", string path = null, List<IContainerModifier> modifiers = null, string updater = null)
         {
             var vc = new ValueContainer(this, NextId(), value, description, path, modifiers, updater);
             references[vc.Id] = vc;
@@ -380,39 +381,26 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             };
         }
 
-        private IDictionary<string, object> GetGlobalContext()
-        {
-            var properties = new Dictionary<string, object>();
-            foreach (var method in methods)
-            {
-                properties[method.Key] = DynValue.NewCallback(WrapMethod(method.Key));
-            }
-            foreach (var global in globalProperties)
-            {
-                properties[global.Key] = global.Value;
-            }
-            return properties;
-        }
+        private Script script = new Script();
 
-        private Dictionary<string, Script> scriptCache = new Dictionary<string, Script>();
-
-        public object EvaluateExpression(string valueExpression, IDictionary<string, object> context = null)
+        public object EvaluateExpression(string valueExpression, IDictionary<string, object> localContext = null)
         {
             if (valueExpression == null)
             {
                 throw new ArgumentNullException("valueExpression");
             }
-            context = context != null ? context : GetGlobalContext();
-            Script script;
-            if (!scriptCache.TryGetValue(valueExpression, out script))
-            {
-                script = new Script();
-                scriptCache[valueExpression] = script;
+            if (localContext != null) {
+                foreach (var local in localContext)
+                {
+                    script.Globals[local.Key] = local.Value;
+                }
             }
-            foreach (var property in context)
+            var metatable = DynValue.NewTable(script);
+            metatable.Table.Set("__index", DynValue.NewCallback((ctx, args) =>
             {
-                script.Globals[property.Key] = property.Value;
-            }
+                return UserData.Create(GetProperty(args[1].CastToString()));
+            }));
+            script.Globals.MetaTable = metatable.Table;
             return NormalizeValue(script.DoString("return " + valueExpression).ToObject());
         }
 
@@ -483,7 +471,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         public void RegisterMethod(string name, UserMethod method)
         {
+            if(methods.ContainsKey(name))
+            {
+                this.Log(LogType.Error, "The method " + name + " is being registered again.", "engine.internal");
+            }
             methods[name] = method;
+            script.Globals[name] = WrapMethod(name);
         }
 
         public T GetDefinition<T>(string typeName, string id) where T : IDefinition
@@ -532,10 +525,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             });
         }
 
-        private Dictionary<LogType, Dictionary<string, bool>> LoggingContextLevels = new Dictionary<LogType, Dictionary<string, bool>>()
+        private Dictionary<string, Dictionary<LogType, bool>> LoggingContextLevels = new Dictionary<string, Dictionary<LogType, bool>>()
         {
-            { LogType.Exception, new Dictionary<string, bool>(){ { "*", true } } },
-            { LogType.Error, new Dictionary<string, bool>(){ { "*", true } } }
+            { "*", new Dictionary<LogType, bool>() { { LogType.Error, true} } }
         };
         /*
          * 
@@ -543,10 +535,13 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         public void Log(LogType logType, string logMessage, string logContext = null)
         {
             bool logEnabled = false;
-            if(LoggingContextLevels.ContainsKey(logType))
+            logContext = logContext != null ? logContext : "*";
+            if(LoggingContextLevels.ContainsKey(logContext))
             {
-                string context = logContext != null && LoggingContextLevels[logType].ContainsKey(logContext) ? logContext : "*";
-                logEnabled = LoggingContextLevels[logType].TryGetValue(context, out logEnabled);
+                LoggingContextLevels[logContext].TryGetValue(logType, out logEnabled);
+            } else
+            {
+                LoggingContextLevels["*"].TryGetValue(logType, out logEnabled);
             }
             if(logEnabled)
             {
@@ -567,9 +562,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             }
         }
 
-        public void ConfigureLogging(string logContext, LogType logLevel, bool enabled = true)
+        public void ConfigureLogging(string logContext, LogType? logLevel, bool enabled = true)
         {
-            Dictionary<string, bool> contextsForLevel;
+            Dictionary<LogType, bool> contexts;
             switch(logLevel)
             {
                 case LogType.Log:
@@ -579,12 +574,19 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                     ConfigureLogging(logContext, LogType.Error, enabled);
                     break;
             }
-            if(!LoggingContextLevels.TryGetValue(logLevel, out contextsForLevel))
+            if (!LoggingContextLevels.TryGetValue(logContext, out contexts))
             {
-                contextsForLevel = new Dictionary<string, bool>();
-                LoggingContextLevels[logLevel] = contextsForLevel;
+                contexts = new Dictionary<LogType, bool>();
+                LoggingContextLevels[logContext] = contexts;
             }
-            contextsForLevel[logContext] = enabled;
+            if (!logLevel.HasValue)
+            {
+                contexts.Clear();
+            }
+            else
+            {
+                contexts[logLevel.Value] = enabled;
+            }
         }
 
         /*
@@ -594,7 +596,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         {
             var properties = ConvertProperties(definition.Properties);
             return CreateValueContainer(value: properties);
-
         }
 
         public void AddModule(IModule newModule)

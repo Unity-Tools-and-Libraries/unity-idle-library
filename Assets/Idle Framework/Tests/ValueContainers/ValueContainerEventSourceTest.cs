@@ -13,7 +13,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         [SetUp]
         public void Setup()
         {
-            valueReference = engine.SetProperty("path", 0);
+            valueReference = engine.CreateProperty("path", 0);
         }
 
         [Test]

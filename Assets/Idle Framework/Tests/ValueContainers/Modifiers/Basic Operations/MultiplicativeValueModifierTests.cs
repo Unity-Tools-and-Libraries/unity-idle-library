@@ -15,7 +15,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers.BasicOperations
         public void MultiplicativeModifierAddsToSetValue()
         {
             engine.Start();
-            var vc = engine.SetProperty("path", null as string, "", new System.Collections.Generic.List<ContainerModifier>()
+            var vc = engine.CreateProperty("path", null as string, "", new System.Collections.Generic.List<IContainerModifier>()
             {
                 new MultiplicativeValueModifier("", "", 2)
             });
@@ -29,14 +29,14 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers.BasicOperations
         public void MultiplicativeModifierCanHaveADynamicValue()
         {
             engine.Start();
-            var vc = engine.SetProperty("path", null as string, "", new System.Collections.Generic.List<ContainerModifier>()
+            var vc = engine.CreateProperty("path", null as string, "", new System.Collections.Generic.List<IContainerModifier>()
             {
-                new MultiplicativeValueModifier("", "", "foo", Context.GlobalContextGenerator)
+                new MultiplicativeValueModifier("", "", "foo", new string[] { "foo" }, contextGenerator: Context.GlobalContextGenerator)
             });
-            engine.SetProperty("foo", 2);
+            engine.GetProperty("foo").Set(2);
             vc.Set(BigDouble.One);
             Assert.AreEqual(new BigDouble(2), vc.ValueAsNumber());
-            engine.SetProperty("foo", 3);
+            engine.GetProperty("foo").Set(3);
             Assert.AreEqual(new BigDouble(3), vc.ValueAsNumber());
         }
     }

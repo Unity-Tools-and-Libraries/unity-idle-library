@@ -11,10 +11,10 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         public void CanBeGeneratedFromExistingMap()
         {
             engine.Start();
-            var existingMap = engine.SetProperty("path", new Dictionary<string, ValueContainer>() {
+            var existingMap = engine.CreateProperty("path", new Dictionary<string, ValueContainer>() {
                 { "stringKey", engine.CreateValueContainer("stringValue")}
             }).ValueAsMap();
-            var container = engine.SetProperty("parent");
+            var container = engine.CreateProperty("parent");
             var copy =  new ParentNotifyingDictionary(container, existingMap);
             Assert.AreEqual("stringValue", copy["stringKey"].ValueAsString());
             Assert.AreEqual(1, copy.Keys.Count);
@@ -24,7 +24,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void CanAddValue()
         {
-            var map = engine.SetProperty("path", new Dictionary<string, ValueContainer>()).ValueAsMap();
+            var map = engine.CreateProperty("path", new Dictionary<string, ValueContainer>()).ValueAsMap();
             map.Add("key", engine.CreateValueContainer("value"));
         }
 
@@ -32,7 +32,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         public void AddKeyValuePair()
         {
             engine.Start();
-            var map = engine.SetProperty("path", new Dictionary<string, ValueContainer>()).ValueAsMap();
+            var map = engine.CreateProperty("path", new Dictionary<string, ValueContainer>()).ValueAsMap();
             map.Add("key", engine.CreateValueContainer("string"));
             Assert.AreEqual("string", map["key"].ValueAsString());
         }
@@ -40,7 +40,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void ClearNullsValues()
         {
-            var map = engine.SetProperty("path", new Dictionary<string, ValueContainer>()).ValueAsMap();
+            var map = engine.CreateProperty("path", new Dictionary<string, ValueContainer>()).ValueAsMap();
             map.Add("key", engine.CreateValueContainer("string"));
             map.Clear();
             Assert.AreEqual(null, map["key"].ValueAsRaw());
@@ -49,7 +49,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void RemoveValueSetValueToNull()
         {
-            var map = engine.SetProperty("path", new Dictionary<string, ValueContainer>()).ValueAsMap(); map.Add("key", engine.CreateValueContainer("string"));
+            var map = engine.CreateProperty("path", new Dictionary<string, ValueContainer>()).ValueAsMap(); map.Add("key", engine.CreateValueContainer("string"));
             Assert.IsTrue(map.ContainsKey("key"));
             Assert.AreEqual("string", map["key"].ValueAsString());
             map.Remove("key");

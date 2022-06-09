@@ -12,7 +12,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers
         [Test]
         public void FixedValueModifierSetsValue()
         {
-            var vc = engine.SetProperty("path", BigDouble.Zero, "", new List<ContainerModifier>() {
+            var vc = engine.CreateProperty("path", BigDouble.Zero, "", new List<IContainerModifier>() {
                 new SetValueModifier("1", "", BigDouble.One)
             });
             vc.Set(BigDouble.Zero);
@@ -22,7 +22,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers
         [Test]
         public void FixedValueModifierTrumpsAllOtherModifiers()
         {
-            var vc = engine.SetProperty("path", BigDouble.One, "", new List<ContainerModifier>() {
+            var vc = engine.CreateProperty("path", BigDouble.One, "", new List<IContainerModifier>() {
                 new SetValueModifier("1", "", BigDouble.One)
             });
             vc.Set(BigDouble.Zero);
@@ -31,7 +31,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers
 
         [Test]
         public void FixedValueModifierCanSetABool() {
-            var vc = engine.SetProperty("path", false, "", new List<ContainerModifier>() {
+            var vc = engine.CreateProperty("path", false, "", new List<IContainerModifier>() {
                 new SetValueModifier("1", "", true)
             });
             Assert.IsTrue(vc.ValueAsBool());

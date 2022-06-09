@@ -149,7 +149,7 @@ namespace io.github.thisisnozaku.idle.framework
         public override bool Equals(object obj)
         {
             return obj is ParentNotifyingDictionary dictionary &&
-                   EqualityComparer<ValueContainer>.Default.Equals(parent, dictionary.parent) &&
+                   EqualityComparer<string>.Default.Equals(parent.Path, dictionary.parent.Path) &&
                    EqualityComparer<IDictionary<string, ValueContainer>>.Default.Equals(underlying, dictionary.underlying) &&
                    EqualityComparer<List<Action<object>>>.Default.Equals(listeners, dictionary.listeners);
         }

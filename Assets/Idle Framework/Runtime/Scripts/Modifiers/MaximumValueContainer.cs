@@ -11,11 +11,11 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
 
     public class MaximumValueContainer : ValueModifier
     {
-        public MaximumValueContainer(string id, string source, string expression, bool staticValue = false, ContextGenerator contextGenerator = null, int priority = 0) : base(id, source, expression, staticValue, contextGenerator: contextGenerator, priority: priority)
+        public MaximumValueContainer(string id, string source, string expression, string[] dependencies = null, ContextGenerator contextGenerator = null, int priority = 0) : base(id, source, expression, dependencies, contextGenerator: contextGenerator, priority: priority)
         {
         }
 
-        public MaximumValueContainer(string id, string source, BigDouble value, ContextGenerator contextGenerator = null, int priority = 0) : base(id, source, value.ToString(), true, contextGenerator: contextGenerator, priority: priority)
+        public MaximumValueContainer(string id, string source, BigDouble value, ContextGenerator contextGenerator = null, int priority = 0) : base(id, source, value.ToString(), null, contextGenerator: contextGenerator, priority: priority)
         {
         }
 

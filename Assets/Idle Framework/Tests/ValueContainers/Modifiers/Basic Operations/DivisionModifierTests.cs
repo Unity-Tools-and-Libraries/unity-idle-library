@@ -15,7 +15,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers.BasicOperations
         public void MultiplicativeModifierAddsToSetValue()
         {
             engine.Start();
-            var vc = engine.SetProperty("path", null as string, "", new System.Collections.Generic.List<ContainerModifier>()
+            var vc = engine.CreateProperty("path", null as string, "", new System.Collections.Generic.List<IContainerModifier>()
             {
                 new DivisionValueModifier("", "", 2)
             });
@@ -27,14 +27,14 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers.BasicOperations
         public void DivisionModifierCanHaveDynamicValue()
         {
             engine.Start();
-            var vc = engine.SetProperty("path", null as string, "", new System.Collections.Generic.List<ContainerModifier>()
+            var vc = engine.CreateProperty("path", null as string, "", new System.Collections.Generic.List<IContainerModifier>()
             {
-                new DivisionValueModifier("", "", "foo.bar", Context.GlobalContextGenerator)
+                new DivisionValueModifier("", "", "foo.bar", new string[] { "foo.bar" }, contextGenerator: Context.GlobalContextGenerator)
             });
-            engine.SetProperty("foo.bar", 2);
+            engine.GetProperty("foo.bar").Set(2);
             vc.Set(10);
             Assert.AreEqual(new BigDouble(5), vc.ValueAsNumber());
-            engine.SetProperty("foo.bar", 5);
+            engine.CreateProperty("foo.bar", 5);
             Assert.AreEqual(new BigDouble(2), vc.ValueAsNumber());
         }
     }

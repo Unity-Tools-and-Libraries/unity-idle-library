@@ -62,30 +62,33 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             engine.RegisterMethod(DoClick);
             engine.RegisterMethod(ProducerUpdater);
 
-            engine.SetProperty(DefaultProperties.PRODUCER_COST_SCALE_FACTOR, 1.15);
+            engine.CreateProperty(DefaultProperties.PRODUCER_COST_SCALE_FACTOR, 1.15);
             engine.SetDefinitions("producer", definitions["producer"]);
-            engine.SetProperty("points.income", 0);
-            engine.SetProperty("points.click_income", 1);
-            engine.SetProperty("points.quantity", 0, updater: "PointsUpdater");
+            engine.CreateProperty("points.income", 0);
+            engine.CreateProperty("points.click_income", 1);
+            engine.CreateProperty("points.quantity", 0, updater: "PointsUpdater");
             foreach (var producer in definitions["producer"])
             {
                 string producerBasePath = string.Join(".", "producers", producer.Key);
-                engine.SetProperty(producerBasePath, updater: "ProducerUpdater");
-                engine.SetProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.COST), ((ProducerDefinition)producer.Value).BaseCost, modifiers: new List<ContainerModifier>() {
-                    new MultiplicativeValueModifier("1", "cost multiplier", "1.15 ^ this.quantity", ValueContainer.Context.ParentGenerator)
+                engine.CreateProperty(producerBasePath, updater: "ProducerUpdater");
+                engine.CreateProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.COST), ((ProducerDefinition)producer.Value).BaseCost, modifiers: new List<IContainerModifier>() {
+                    new MultiplicativeValueModifier(String.Format("producer {0} quantity cost modifier", producer.Key), "cost multiplier", "1.15 ^ this.quantity", new string[] { producerBasePath + ".quantity" }, ValueContainer.Context.ParentGenerator)
                 });
-                engine.SetProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.QUANTITY), 0);
-                engine.SetProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.OUTPUT_PER_UNIT), ((ProducerDefinition)producer.Value).OutputPerSecond);
-                engine.SetProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.OUTPUT_MULTIPLIER), 1);
-                engine.SetProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.TOTAL_OUTPUT), 0, modifiers: new List<ContainerModifier>()
+                engine.CreateProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.QUANTITY), 0);
+                engine.CreateProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.OUTPUT_PER_UNIT), ((ProducerDefinition)producer.Value).OutputPerSecond);
+                engine.CreateProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.OUTPUT_MULTIPLIER), 1);
+                engine.CreateProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.TOTAL_OUTPUT), 0, modifiers: new List<IContainerModifier>()
                 {
-                    new AdditiveValueModifier("base", "base", "this.output_per_unit_per_second * this.quantity * this.output_multiplier", contextGenerator: Context.ParentGenerator)
+                    new AdditiveValueModifier(producer.Key + "base", "base", "this.output_per_unit_per_second * this.quantity * this.output_multiplier",
+                    new string[] { "this.output_per_unit_per_second", "this.quantity", "this.output_multiplier"},
+                    contextGenerator: Context.ParentGenerator)
                 });
-                engine.SetProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.ENABLED), false);
-                engine.SetProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.UNLOCKED), false);
+                engine.CreateProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.ENABLED), false);
+                engine.CreateProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.UNLOCKED), false);
 
+                string producerOutput = String.Format("producers.{0}.total_output", producer.Key);
                 engine.GetProperty("points.income").AddModifier(
-                    new AdditiveValueModifier("producer " + producer.Key, "producer " + producer.Key, String.Format("producers.{0}.total_output", producer.Key), ValueContainer.Context.GlobalContextGenerator)
+                    new AdditiveValueModifier("producer " + producer.Key, "producer " + producer.Key, producerOutput, new string[] { producerOutput }, ValueContainer.Context.GlobalContextGenerator)
                     );
             }
 
@@ -139,10 +142,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
         {
             string upgradeId = args[0] as string;
             UpgradeDefinition upgradeDefinition = engine.GetDefinition<UpgradeDefinition>("upgrade", upgradeId);
-            foreach(var target in upgradeDefinition.UpgradeTargets)
+            foreach(var modifier in upgradeDefinition.GenerateModifiers())
             {
-                engine.GetProperty(String.Join(".", "producers", target, ProducerDefinition.PropertyNames.OUTPUT_PER_UNIT))
-                    .AddModifier(upgradeDefinition.GenerateModifier());
+                engine.GetProperty(modifier.Key)
+                    .AddModifier(modifier.Value);
             }
             return null;
         }

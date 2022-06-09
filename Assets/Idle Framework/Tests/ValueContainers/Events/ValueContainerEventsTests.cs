@@ -14,7 +14,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         [Test]
         public void WatchingForChangesReceivesCurrentValueImmediately()
         {
-            var valueReference = engine.SetProperty("path");
+            var valueReference = engine.CreateProperty("path");
             bool called = false;
             engine.RegisterMethod("method", (ie, c, ev) => { called = true; return null; });
             engine.Start();
@@ -25,7 +25,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         [Test]
         public void ChangingValueOfWatchedValueNotifiesListeners()
         {
-            var valueReference = engine.SetProperty("path");
+            var valueReference = engine.CreateProperty("path");
             int calls = 0;
             engine.RegisterMethod("method", (ie, c, ev) =>
             {
@@ -59,7 +59,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
             engine.RegisterMethod("method", (ie, vc, ev) => {
                 throw new System.Exception();
             });
-            engine.SetProperty("path").Subscribe("event", "event", "method");
+            engine.CreateProperty("path").Subscribe("event", "event", "method");
             engine.Start();
             engine.GetProperty("path").NotifyImmediately("event", null);
         }

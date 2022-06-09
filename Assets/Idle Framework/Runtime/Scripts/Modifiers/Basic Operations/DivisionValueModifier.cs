@@ -10,12 +10,12 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers.Values
 {
     public class DivisionValueModifier : ValueModifier
     {
-        public DivisionValueModifier(string id, string description, BigDouble value, ContextGenerator contextGenerator = null) : base(id, description, value.ToString(), true, contextGenerator: contextGenerator, priority: 2000)
+        public DivisionValueModifier(string id, string description, BigDouble value, ContextGenerator contextGenerator = null) : base(id, description, value.ToString(), null, contextGenerator: contextGenerator, priority: 2000)
         {
 
         }
 
-        public DivisionValueModifier(string id, string description, string expression, ContextGenerator contextGenerator = null) : base(id, description, expression, contextGenerator: contextGenerator, priority: 2000)
+        public DivisionValueModifier(string id, string description, string expression, string[] dependencies = null, ContextGenerator contextGenerator = null) : base(id, description, expression, dependencies, contextGenerator: contextGenerator, priority: 2000)
         {
 
         }

@@ -11,9 +11,9 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         [Test]
         public void GetsAllGlobalProperties()
         {
-            engine.SetProperty("foo", 1);
-            engine.SetProperty("bar", 2);
-            engine.SetProperty("baz", 3);
+            engine.CreateProperty("foo", 1);
+            engine.CreateProperty("bar", 2);
+            engine.CreateProperty("baz", 3);
             var saved = engine.GetSnapshot();
             Assert.AreEqual(new BigDouble(1), saved.GlobalProperties["foo"].Value);
             Assert.AreEqual(new BigDouble(2), saved.GlobalProperties["bar"].Value);

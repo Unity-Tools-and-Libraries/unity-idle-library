@@ -3,20 +3,27 @@ using io.github.thisisnozaku.idle.framework;
 using io.github.thisisnozaku.idle.framework.Events;
 using io.github.thisisnozaku.idle.framework.Modifiers;
 using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers
 {
     public class CompositeModifierTests : RequiresEngineTests
     {
+        [SetUp]
+        public void Setup()
+        {
+            base.InitializeEngine();
+            engine.ConfigureLogging("engine.internal", null);
+        }
         [Test]
         public void OnAddAppliesChildModifications()
         {
-            var modifier = new MockCompositeListener("", "", Modifications: new Dictionary<string, string>()
+            var modifier = new MockCompositeListener("mock", "", Modifications: new Dictionary<string, string>()
         {
             { "childString", "=\"foobar\"" },
             { "childNumber", "=5" }
         });
-            var target = engine.SetProperty("path", new Dictionary<string, ValueContainer>());
+            var target = engine.CreateProperty("path", new Dictionary<string, ValueContainer>());
             target.AddModifier(modifier);
             Assert.AreEqual("foobar", target.GetProperty("childString").ValueAsString());
             Assert.AreEqual(new BigDouble(5), target.GetProperty("childNumber").ValueAsNumber());
@@ -30,7 +37,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers
             { "childString", "=\"foobar\"" },
             { "childNumber", "=5" }
         });
-            var target = engine.SetProperty("path", new Dictionary<string, ValueContainer>());
+            var target = engine.CreateProperty("path", new Dictionary<string, ValueContainer>());
             target.AddModifier(modifier);
             Assert.AreEqual("foobar", target.GetProperty("childString").ValueAsString());
             Assert.AreEqual(new BigDouble(5), target.GetProperty("childNumber").ValueAsNumber());
@@ -48,7 +55,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers
             {
                 { "event", new List<string>() { "method()" } }
             });
-            var target = engine.SetProperty("path", new Dictionary<string, ValueContainer>());
+            var target = engine.CreateProperty("path", new Dictionary<string, ValueContainer>());
             target.AddModifier(modifier);
             engine.RegisterMethod("method", (a, b, c) => {
                 callCount++;
@@ -62,6 +69,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers
         {
             public MockCompositeListener(string id, string description, Dictionary<string, string> Modifications = null, Dictionary<string, List<string>> Events = null, int priority = 0) : base(id, description, Modifications, Events, priority)
             {
+            }
+
+            public override bool SupportsType(Type type)
+            {
+                return true;
             }
         }
     }

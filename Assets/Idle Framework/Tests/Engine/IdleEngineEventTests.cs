@@ -44,13 +44,13 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
                 return null;
             };
             engine.RegisterMethod(listener);
-            var global = engine.SetProperty("global");
+            var global = engine.CreateProperty("global");
             global.Subscribe("event", "event", listener.Method.Name);
             
-            var middle = engine.SetProperty("global.middle");
+            var middle = engine.CreateProperty("global.middle");
             middle.Subscribe("event", "event", listener.Method.Name);
 
-            var bottom = engine.SetProperty("global.middle.bottom");
+            var bottom = engine.CreateProperty("global.middle.bottom");
             bottom.Subscribe("event", "event", listener.Method.Name);
 
             engine.Subscribe("", "event", listener);

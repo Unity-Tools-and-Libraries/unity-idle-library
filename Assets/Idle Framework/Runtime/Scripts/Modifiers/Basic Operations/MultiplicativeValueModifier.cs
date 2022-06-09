@@ -11,12 +11,12 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers.Values
 {
     public class MultiplicativeValueModifier : ValueModifier
     {
-        public MultiplicativeValueModifier(string id, string description, BigDouble value, ContextGenerator contextGenerator = null, int priority = ValueModifier.DefaultPriorities.MULTIPLICATION ) : base(id, description, value.ToString(), true, priority: priority, contextGenerator: contextGenerator)
+        public MultiplicativeValueModifier(string id, string description, BigDouble value, ContextGenerator contextGenerator = null, int priority = ValueModifier.DefaultPriorities.MULTIPLICATION ) : base(id, description, value.ToString(), null, priority: priority, contextGenerator: contextGenerator)
         {
 
         }
 
-        public MultiplicativeValueModifier(string id, string description, string expression, ContextGenerator contextGenerator = null, int priority = ValueModifier.DefaultPriorities.MULTIPLICATION) : base(id, description, expression, priority: priority, contextGenerator: contextGenerator)
+        public MultiplicativeValueModifier(string id, string description, string expression, string[] dependencies = null, ContextGenerator contextGenerator = null, int priority = ValueModifier.DefaultPriorities.MULTIPLICATION) : base(id, description, expression, dependencies, priority: priority, contextGenerator: contextGenerator)
         {
 
         }

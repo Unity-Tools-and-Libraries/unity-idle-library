@@ -16,7 +16,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         [Test]
         public void CanSpecifyAnAdditiveModifierOnCreationWhichAddsToNumberValue()
         {
-            var reference = engine.SetProperty("path", modifiers: new System.Collections.Generic.List<ContainerModifier>() {
+            var reference = engine.CreateProperty("path", modifiers: new System.Collections.Generic.List<IContainerModifier>() {
                 new AdditiveValueModifier("1", "1", 1)
             });
             reference.Set(0);
@@ -26,7 +26,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         [Test]
         public void AdditiveModifierAddedToSetValue()
         {
-            var reference = engine.SetProperty("path", modifiers: new System.Collections.Generic.List<ContainerModifier>() {
+            var reference = engine.CreateProperty("path", modifiers: new System.Collections.Generic.List<IContainerModifier>() {
                 new AdditiveValueModifier("1", "1", 1)
             });
             reference.Set(1);
@@ -36,7 +36,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         [Test]
         public void CanSpecifyAMultiplicativeModifierOnCreationWhichChangesNumberValue()
         {
-            var reference = engine.SetProperty("path", modifiers: new System.Collections.Generic.List<ContainerModifier>()
+            var reference = engine.CreateProperty("path", modifiers: new System.Collections.Generic.List<IContainerModifier>()
             {
                 new MultiplicativeValueModifier("1", "1", 2)
             });
@@ -49,7 +49,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         public void ModifiersApplyToUpdateOutputValue()
         {
             engine.RegisterMethod("update", (e, vc, ev) => BigDouble.One);
-            var reference = engine.SetProperty("path", BigDouble.Zero, "", new System.Collections.Generic.List<ContainerModifier>()
+            var reference = engine.CreateProperty("path", BigDouble.Zero, "", new System.Collections.Generic.List<IContainerModifier>()
             {
                 new AdditiveValueModifier("add", "", 1),
                 new MultiplicativeValueModifier("1", "1", 2)

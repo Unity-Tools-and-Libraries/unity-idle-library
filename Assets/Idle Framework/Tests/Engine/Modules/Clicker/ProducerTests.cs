@@ -27,8 +27,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             module.AddProducer(tier2);
             module.AddProducer(tier3);
 
-            module.AddUpgrade(new FlatProducerUpgradeDefinition("upgrade-one", "upgrade one", 100, 0.1, tier1));
-            module.AddUpgrade(new MultiplierProducerUpgradeDefinition("upgrade-two", "upgrade two", 100, 1.5, tier2));
+            module.AddUpgrade(new FlatProducerUpgradeDefinition("upgrade-one", "upgrade one", 100, "true", "true", Tuple.Create("producers.one.output_per_unit_per_second", 0.1.ToString())));
+            module.AddUpgrade(new MultiplierProducerUpgradeDefinition("upgrade-two", "upgrade two", 100, "true", "true", Tuple.Create("producers.two.output_per_unit_per_second", 1.5.ToString())));
 
             engine.AddModule(module);
 
@@ -47,8 +47,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void CostIncreasesBasedOnQuantity()
         {
+            engine.ConfigureLogging("engine.internal.container.cache", LogType.Log);
+            var producerQuantity = engine.CreateProperty("producers.one.quantity");
             for (int i = 0; i < 10; i++) {
-                engine.SetProperty("producers.one.quantity", i);
+                producerQuantity.Set(i);
+                engine.Update(0f);
                 Assert.AreEqual(new BigDouble(15) * new BigDouble(1.15).Pow(i), engine.GetProperty("producers.one.cost").ValueAsNumber());
             }
         }
@@ -56,7 +59,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void QuantityChangesOnUpdate()
         {
-            engine.SetProperty("producers.one.quantity", 1);
+            engine.GetProperty("producers.one.quantity").Set(1);
             Assert.AreEqual(new BigDouble(.1), engine.GetProperty("points.income").ValueAsNumber());
             engine.Update(1);
             Assert.AreEqual(new BigDouble(.1), engine.GetProperty("points.quantity").ValueAsNumber());

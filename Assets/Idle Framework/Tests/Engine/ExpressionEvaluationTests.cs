@@ -25,7 +25,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         [Test]
         public void PathEvaluatesToContainer()
         {
-            engine.SetProperty("foo.bar", 5);
+            engine.CreateProperty("foo.bar", 5);
             Assert.AreEqual(typeof(ValueContainer), engine.EvaluateExpression("foo.bar").GetType());
         }
 
@@ -74,7 +74,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         [Test]
         public void CanUseCustomContext()
         {
-            engine.SetProperty("foo.bar", 5);
+            engine.CreateProperty("foo.bar", 5);
             var result = engine.EvaluateExpression("bar", new Dictionary<string, object>()
             {
                 { "bar", engine.GetProperty("foo.bar") }

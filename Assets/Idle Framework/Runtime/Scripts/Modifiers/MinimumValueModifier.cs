@@ -7,11 +7,11 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
 {
     public class MinimumValueModifier : ValueModifier
     {
-        public MinimumValueModifier(string id, string source, string expression, bool staticValue = false, ContextGenerator contextGenerator = null, int priority = 0) : base(id, source, expression, staticValue, priority: priority, contextGenerator: contextGenerator)
+        public MinimumValueModifier(string id, string source, string expression, string[] dependencies = null, bool staticValue = false, ContextGenerator contextGenerator = null, int priority = 0) : base(id, source, expression, dependencies, staticValue, priority: priority, contextGenerator: contextGenerator)
         {
         }
 
-        public MinimumValueModifier(string id, string source, BigDouble value, ContextGenerator contextGenerator = null, int priority = 0) : base(id, source, value.ToString(), true, priority: priority, contextGenerator: contextGenerator)
+        public MinimumValueModifier(string id, string source, BigDouble value,  ContextGenerator contextGenerator = null, int priority = 0) : base(id, source, value.ToString(), null, true, priority: priority, contextGenerator: contextGenerator)
         {
         }
 

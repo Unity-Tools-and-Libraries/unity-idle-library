@@ -44,7 +44,7 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
             }
         }
 
-        public override void OnRemoval(IdleEngine engine, ValueContainer target)
+        public override void OnRemove(IdleEngine engine, ValueContainer target)
         {
             foreach (var effect in Modifications)
             {

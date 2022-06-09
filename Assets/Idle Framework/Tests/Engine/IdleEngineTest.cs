@@ -14,17 +14,17 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         public void setup()
         {
             engine = new IdleEngine(null);
-            engine.SetProperty("globalBoolean", true);
-            engine.SetProperty("globalBooleanNoStartingValue");
+            engine.CreateProperty("globalBoolean", true);
+            engine.CreateProperty("globalBooleanNoStartingValue");
 
-            engine.SetProperty("globalNumber", BigDouble.One);
-            engine.SetProperty("globalNumberNoStartingValue");
+            engine.CreateProperty("globalNumber", BigDouble.One);
+            engine.CreateProperty("globalNumberNoStartingValue");
 
-            engine.SetProperty("globalString", "startingValue");
-            engine.SetProperty("globalStringNoStartingValue");
+            engine.CreateProperty("globalString", "startingValue");
+            engine.CreateProperty("globalStringNoStartingValue");
 
-            engine.SetProperty("globalMapNoStartingValue");
-            engine.SetProperty("globalMap", new Dictionary<string, ValueContainer>()
+            engine.CreateProperty("globalMapNoStartingValue");
+            engine.CreateProperty("globalMap", new Dictionary<string, ValueContainer>()
             {
                 { "foo", engine.CreateValueContainer("bar") }
             });
@@ -32,7 +32,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
             {
                 return (BigDouble)ev[1] + BigDouble.One;
             });
-            engine.SetProperty("incrementingNumberValue", 0, updater: "update");
+            engine.CreateProperty("incrementingNumberValue", 0, updater: "update");
         }
 
         [Test]
@@ -118,7 +118,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         [Test]
         public void SettingGlobalPropertySetsPathOfResultingContainer()
         {
-            var container = engine.SetProperty("property");
+            var container = engine.CreateProperty("property");
             Assert.AreEqual("property", container.Path);
         }
 

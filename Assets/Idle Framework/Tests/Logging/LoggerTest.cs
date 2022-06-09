@@ -16,9 +16,9 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         [Test]
         public void LogsAtErrorLevelByDefault()
         {
-            LogAssert.Expect(UnityEngine.LogType.Error, "[] message");
+            LogAssert.Expect(UnityEngine.LogType.Error, "[*] message");
             
-            engine.Log(UnityEngine.LogType.Exception, "message");
+            engine.Log(UnityEngine.LogType.Error, "message");
             engine.Log(LogType.Log, "message");
 
             LogAssert.NoUnexpectedReceived();
@@ -29,9 +29,9 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         {
             engine.ConfigureLogging("*", LogType.Log);
 
-            LogAssert.Expect(LogType.Log, "[] message");
-            LogAssert.Expect(LogType.Error, "[] message");
-            LogAssert.Expect(LogType.Warning, "[] message");
+            LogAssert.Expect(LogType.Log, "[*] message");
+            LogAssert.Expect(LogType.Error, "[*] message");
+            LogAssert.Expect(LogType.Warning, "[*] message");
             
 
             engine.Log(LogType.Log, "message");
@@ -45,10 +45,10 @@ namespace io.github.thisisnozaku.idle.framework.Tests
         public void CanCustomizeLevelByContext()
         {
             engine.ConfigureLogging("combat", LogType.Log);
-            LogAssert.Expect(LogType.Error, "[] message");
+            LogAssert.Expect(LogType.Error, "[*] message");
             LogAssert.Expect(LogType.Log, "[combat] message");
 
-            engine.Log(LogType.Exception, "message");
+            engine.Log(LogType.Error, "message");
             engine.Log(LogType.Log, "message", "combat");
 
             LogAssert.NoUnexpectedReceived();

@@ -10,12 +10,12 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers.Values
 {
     public class SubtractiveValueModifier : ValueModifier
     {
-        public SubtractiveValueModifier(string id, string description, BigDouble value, ContextGenerator contextGenerator = null) : base(id, description, value.ToString(), true, contextGenerator: contextGenerator, priority: ValueModifier.DefaultPriorities.ADDITION)
+        public SubtractiveValueModifier(string id, string description, BigDouble value, ContextGenerator contextGenerator = null) : base(id, description, value.ToString(), null, contextGenerator: contextGenerator, priority: ValueModifier.DefaultPriorities.ADDITION)
         {
 
         }
 
-        public SubtractiveValueModifier(string id, string description, string expression, ContextGenerator contextGenerator = null) : base(id, description, expression, contextGenerator: contextGenerator, priority: ValueModifier.DefaultPriorities.ADDITION)
+        public SubtractiveValueModifier(string id, string description, string expression, string[] dependencies = null, ContextGenerator contextGenerator = null) : base(id, description, expression, dependencies, contextGenerator: contextGenerator, priority: ValueModifier.DefaultPriorities.ADDITION)
         {
 
         }

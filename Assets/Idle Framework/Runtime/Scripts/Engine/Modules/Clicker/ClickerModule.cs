@@ -130,6 +130,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             ProducerDefinition producerDefinition = engine.GetDefinition<ProducerDefinition>("producer", producerId);
             ValueContainer points = engine.GetProperty("points.quantity");
             points.Set(points.ValueAsNumber() - CalculatePurchaseCost(producerDefinition, engine.GetProperty("producers." + producerId + ".quantity").ValueAsNumber()));
+            engine.GetProperty(String.Format("producers.{0}.quantity", producerId)).Set(engine.GetProperty(String.Format("producers.{0}.quantity", producerId)).ValueAsNumber() + 1);
             return null;
         }
 

@@ -33,12 +33,12 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers.Values
 
         protected T EvaluateCalculationExpression<T>(IdleEngine engine, ValueContainer container)
         {
-            if(IsCached && cachedValue != null)
+            if (cachedValue != null)
             {
                 return (T)cachedValue;
             }
             var evaluatedExpression = engine.EvaluateExpression(expression, this.GenerateContext(engine, container));
-            if(IsCached && cachedValue == null)
+            if (cachedValue == null)
             {
                 cachedValue = evaluatedExpression;
             }

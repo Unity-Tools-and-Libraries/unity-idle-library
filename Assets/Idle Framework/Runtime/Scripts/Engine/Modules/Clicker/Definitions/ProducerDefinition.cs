@@ -1,15 +1,16 @@
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Definitions;
+using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitions;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 {
-    public class ProducerDefinition : IDefinition
+    public class ProducerDefinition : IDefinition, IUnlockable, IEnableable, IBuyable
     {
         public string Id { get; }
         public string Name { get; }
-        public BigDouble BaseCost { get; }
+        public string CostExpression { get; }
         public BigDouble OutputPerSecond { get; }
         public string UnlockExpression { get; }
         public string EnableExpression { get; }
@@ -17,7 +18,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
         {
             this.Id = Id;
             this.Name = name;
-            this.BaseCost = baseCost;
+            this.CostExpression = baseCost.ToString();
             this.OutputPerSecond = outputPerSecond;
             this.UnlockExpression = unlockExpression;
             this.EnableExpression = enableExpression;
@@ -33,6 +34,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             public const string UNLOCKED = "unlocked";
             public const string ENABLED = "enabled";
             public const string OUTPUT_MULTIPLIER = "output_multiplier";
+            public const string BUYABLE = "buyable";
         }
     }
 }

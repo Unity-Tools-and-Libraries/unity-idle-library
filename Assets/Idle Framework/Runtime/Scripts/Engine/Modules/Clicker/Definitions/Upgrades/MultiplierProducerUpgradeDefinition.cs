@@ -17,7 +17,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitio
         public override IDictionary<string, ContainerModifier> GenerateModifiers()
         {
             return UpgradeTargetsAndEffects
-                .ToDictionary(u => u.Item1, u => (ContainerModifier)new MultiplicativeValueModifier(Id, Name, u.Item2, new string[] { u.Item1 }));
+                .ToDictionary(u => u.Item1, u => (ContainerModifier)new MultiplicativeValueModifier(Id + u.Item1, Name, u.Item2, priority: ValueModifier.DefaultPriorities.ADDITION + 1));
         }
     }
 }

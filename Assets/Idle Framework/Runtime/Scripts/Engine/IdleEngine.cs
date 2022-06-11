@@ -227,7 +227,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                         }
                         else
                         {
-                            return null;
+                            break;
                         }
                     }
                     var map = container.ValueAsMap();
@@ -243,7 +243,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                         }
                         else
                         {
-                            return null;
+                            container = null;
+                            break;
                         }
                     }
                     if (token != "^" && !map.TryGetValue(token, out container) && operationType == GetOperationType.CREATE_MISSING)
@@ -251,6 +252,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                         container = map[token] = CreateValueContainer(path: subpath);
                     }
                 }
+            }
+            if(container == null)
+            {
+                Log(LogType.Warning, String.Format("Returning null for path {0}", path), "engine.internal");
             }
             return container;
         }

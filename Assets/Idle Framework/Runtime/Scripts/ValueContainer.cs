@@ -700,6 +700,16 @@ namespace io.github.thisisnozaku.idle.framework
             {
                 return BigDouble.Zero;
             }
+            else if(value is string)
+            {
+                try
+                {
+                    return BigDouble.Parse(value as string);
+                } catch(Exception ex)
+                {
+                    return BigDouble.NaN;
+                }
+            }
             else
             {
                 return (BigDouble)value;

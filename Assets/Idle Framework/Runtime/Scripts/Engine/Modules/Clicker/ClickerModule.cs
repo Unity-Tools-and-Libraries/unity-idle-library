@@ -77,10 +77,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 });
                 engine.CreateProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.QUANTITY), 0);
                 engine.CreateProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.OUTPUT_PER_UNIT), ((ProducerDefinition)producer.Value).OutputPerSecond);
-                engine.CreateProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.OUTPUT_MULTIPLIER), 1);
                 engine.CreateProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.TOTAL_OUTPUT), 0, modifiers: new List<IContainerModifier>()
                 {
-                    new AdditiveValueModifier(producer.Key + "base", "base", "this.output_per_unit_per_second * this.quantity * this.output_multiplier",
+                    new AdditiveValueModifier(producer.Key + "base", "base", "this.output_per_unit_per_second * this.quantity",
                     new string[] { "this.output_per_unit_per_second", "this.quantity", "this.output_multiplier"},
                     contextGenerator: Context.ParentGenerator)
                 });
@@ -127,7 +126,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 }
             }
             BigDouble quantity = container.ValueAsMap().ContainsKey(ProducerDefinition.PropertyNames.QUANTITY) ? container[ProducerDefinition.PropertyNames.QUANTITY].ValueAsNumber() : 0;
-            container[ProducerDefinition.PropertyNames.BUYABLE].Set(CalculatePurchaseCost(engine, (IBuyable)entityDef, quantity) <= engine.GetProperty("points.quantity").ValueAsNumber());
+            container.GetProperty(ProducerDefinition.PropertyNames.BUYABLE).Set(CalculatePurchaseCost(engine, (IBuyable)entityDef, quantity) <= engine.GetProperty("points.quantity").ValueAsNumber());
             return args[1];
         }
 

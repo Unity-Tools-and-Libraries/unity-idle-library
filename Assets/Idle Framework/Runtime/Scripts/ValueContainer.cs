@@ -189,24 +189,6 @@ namespace io.github.thisisnozaku.idle.framework
             }
             return "null";
         }
-
-        private object applyModifiers(object v)
-        {
-            if (v is BigDouble)
-            {
-                return applyModifiers((BigDouble)v);
-            }
-            else if (v is bool)
-            {
-                return applyModifiers((bool)v);
-            }
-            else if (v is string)
-            {
-                return applyModifiers(v as string);
-            }
-            return v;
-        }
-
         private T applyModifiers<T>(T previousValue)
         {
             foreach (var modifier in modifiers)

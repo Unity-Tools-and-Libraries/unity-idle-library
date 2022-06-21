@@ -31,10 +31,10 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers.BasicOperations
             {
                 new DivisionValueModifier("", "", "foo.bar", new string[] { "foo.bar" }, contextGenerator: Context.GlobalContextGenerator)
             });
-            engine.GetProperty("foo.bar").Set(2);
+            engine.GetProperty("foo.bar", framework.Engine.IdleEngine.GetOperationType.GET_OR_CREATE).Set(2);
             vc.Set(10);
             Assert.AreEqual(new BigDouble(5), vc.ValueAsNumber());
-            engine.CreateProperty("foo.bar", 5);
+            engine.GetProperty("foo.bar").Set(5);
             Assert.AreEqual(new BigDouble(2), vc.ValueAsNumber());
         }
     }

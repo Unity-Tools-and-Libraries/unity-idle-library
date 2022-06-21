@@ -17,6 +17,11 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers.Values
         protected object cachedValue;
         private string expression;
         public string[] Dependencies { get; }
+        public Delegate[] CachedChangeListeners { get
+            {
+                return CacheChanged != null ? CacheChanged.GetInvocationList() : new Delegate[] { };
+            } 
+        }
         protected ValueModifier(string id, string source, string expression, string[] dependencies, bool staticValue = false, ContextGenerator contextGenerator = null, int priority = 0) : base(id, source, contextGenerator: contextGenerator, priority: priority)
         {
             this.expression = expression;
@@ -37,17 +42,12 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers.Values
             {
                 return (T)cachedValue;
             }
-            var evaluatedExpression = engine.EvaluateExpression(expression, this.GenerateContext(engine, container));
+            var evaluatedExpression = engine.EvaluateExpression("return " + expression, this.GenerateContext(engine, container));
             if (cachedValue == null)
             {
                 cachedValue = evaluatedExpression;
             }
             return (T)ValueContainer.NormalizeValue(evaluatedExpression);
-        }
-
-        public override bool SupportsType(Type type)
-        {
-            return typeof(BigDouble) == type;
         }
 
         public override void OnAdd(IdleEngine engine, ValueContainer container)
@@ -60,9 +60,8 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers.Values
                 foreach (var dependency in Dependencies)
                 {
                     engine.Log(UnityEngine.LogType.Log, String.Format("Modifier {0} subscribing to dependency '{1}'", Id, dependency), "engine.internal.modifier");
-                    var targetContainer = engine.EvaluateExpression(dependency, GenerateContext(engine, container));
-                    var targetPath = targetContainer != null ? (targetContainer as ValueContainer).Path : dependency;
-                    engine.GetOrCreateContainerByPath(targetPath).Subscribe(Id + "modifier dependency", ValueChangedEvent.EventName, Id + "CacheClear");
+                    var targetPath = engine.EvaluateExpression(String.Format("return {0}.Path", dependency), GenerateContext(engine, container)) as string;
+                    engine.GetProperty(targetPath, IdleEngine.GetOperationType.GET_OR_CREATE).Subscribe(Id + "modifier dependency", ValueChangedEvent.EventName, Id + "CacheClear");
                 }
             } else
             {
@@ -70,7 +69,7 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers.Values
             }
         }
 
-        private object CacheClear(IdleEngine engine, ValueContainer container, params object[] args)
+        protected object CacheClear(IdleEngine engine, params object[] args)
         {
             engine.Log(LogType.Log, String.Format("Clearing cached value of modifier {0}", Id), "engine.internal.modifier");
             cachedValue = null;

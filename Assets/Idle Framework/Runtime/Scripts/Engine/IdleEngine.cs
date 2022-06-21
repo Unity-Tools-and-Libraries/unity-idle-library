@@ -1,6 +1,7 @@
 ﻿using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Definitions;
 using io.github.thisisnozaku.idle.framework.Engine.Modules;
+using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg;
 using io.github.thisisnozaku.idle.framework.Events;
 using io.github.thisisnozaku.idle.framework.Modifiers;
 using MoonSharp.Interpreter;
@@ -13,20 +14,20 @@ using static io.github.thisisnozaku.idle.framework.ValueContainer;
 
 namespace io.github.thisisnozaku.idle.framework.Engine
 {
-    public partial class IdleEngine : RandomNumberSource, EventSource<ListenerSubscription>, IDefinitionManager
-
+    public partial class IdleEngine : RandomNumberSource, IDefinitionManager
     {
         private System.Random random;
-        public delegate object UserMethod(IdleEngine engine, ValueContainer container, params object[] args);
-        private static Regex PathRegex = new Regex("[a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)*");
-
+        public delegate object UserMethod(IdleEngine engine, params object[] args);
+        private static Regex PathRegex = new Regex("^[a-zA-Z_-][a-zA-Z0-9_-]*(\\.[a-zA-Z0-9_-]+)*$");
         private IDictionary<string, ValueContainer> references = new Dictionary<string, ValueContainer>();
         public bool IsReady { get; private set; }
         private readonly IDictionary<string, ValueContainer> globalProperties = new Dictionary<string, ValueContainer>();
-        private Dictionary<string, List<ListenerSubscription>> listeners = new Dictionary<string, List<ListenerSubscription>>();
+        private readonly EventListeners listeners;
         private Dictionary<string, UserMethod> methods = new Dictionary<string, UserMethod>();
         private DefinitionManager definitions = new DefinitionManager();
+        private ScriptingManagement scripting;
 
+        public ScriptingManagement Scripting => scripting;
 
         public static void ValidatePath(string path)
         {
@@ -36,128 +37,118 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             }
         }
 
+        public void OverrideRandomNumberGenerator(System.Random rng)
+        {
+            random = rng;
+        }
+
         public IdleEngine(GameObject gameObject)
         {
             random = new System.Random();
-            UserData.RegisterProxyType<ValueContainerScriptProxy, ValueContainer>(c => new ValueContainerScriptProxy(c));
-            UserData.RegisterType<BigDouble>();
-            Script.GlobalOptions.CustomConverters.SetScriptToClrCustomConversion(DataType.Number, typeof(BigDouble), (arg) =>
-            {
-                return BigDouble.Parse(arg.CastToString());
-            });
-            Script.GlobalOptions.CustomConverters.SetScriptToClrCustomConversion(DataType.UserData, typeof(BigDouble), (arg) =>
-            {
-                var obj = arg.ToObject();
-                if (obj is ValueContainer)
-                {
-                    return (obj as ValueContainer).ValueAsNumber();
-                }
-                else if (obj is BigDouble)
-                {
-                    return (BigDouble)obj;
-                }
-                else
-                {
-                    return null;
-                }
-            });
-            Script.GlobalOptions.CustomConverters.SetClrToScriptCustomConversion(typeof(BigDouble), (script, arg) =>
-            {
-                return UserData.Create(arg);
-            });
+            scripting = new ScriptingManagement(this);
+            listeners = new EventListeners(this);
         }
 
         public void Start()
         {
             Log(LogType.Log, "Starting engine", "engine.internal");
             IsReady = true;
-            Broadcast(EngineReadyEvent.EventName);
+            Broadcast(EngineReadyEvent.EventName, null);
         }
 
         // Event Management
-        public void Broadcast(string eventName, params object[] args)
+        public void Broadcast(string eventName, string target, params object[] args)
         {
+            Queue<ValueContainer> broadcastTargets = new Queue<ValueContainer>();
             Log(LogType.Log, "Broadcasting " + eventName, "engine.internal.events");
-            NotifyImmediately(eventName, args);
-            foreach (var prop in globalProperties)
+            if (target == null)
             {
-                if (prop.Value != null)
+                foreach (var global in globalProperties.Values)
                 {
-                    prop.Value.Broadcast(eventName, args);
+                    broadcastTargets.Enqueue(global);
+                };
+                NotifyImmediately(eventName, null, null, args);
+            }
+            else
+            {
+                var targetProperty = GetProperty(target);
+                if (targetProperty != null)
+                {
+                    broadcastTargets.Enqueue(targetProperty);
+                }
+            }
+
+            ValueContainer next;
+            while(broadcastTargets.Count() > 0)
+            {
+                next = broadcastTargets.Dequeue();
+                listeners.Notify(eventName, next.Path, args);
+                if (next.DataType == "map")
+                {
+                    foreach (var child in next.ValueAsMap().Values) {
+                        broadcastTargets.Enqueue(child);
+                    }
+                } else if (next.DataType == "list")
+                {
+                    foreach (var child in next.ValueAsList())
+                    {
+                        broadcastTargets.Enqueue(child);
+                    }
                 }
             }
         }
 
-        public void NotifyImmediately(string eventName, params object[] arguments)
+        public void NotifyImmediately(string eventName, string eventTarget = null, IDictionary<string, object> context = null, params object[] args)
         {
-            List<ListenerSubscription> listeners = null;
-            if (this.listeners.TryGetValue(eventName, out listeners))
+            listeners.Notify(eventName, eventTarget, context, args);
+            if (eventTarget != null)
             {
+                var targetContainer = GetProperty(eventTarget);
+                if (targetContainer != null)
                 {
-                    foreach (var listener in listeners)
-                    {
-                        InvokeMethod(listener.MethodName, null, arguments);
-                    }
+                    BubbleEvent(eventName, targetContainer, args);
                 }
             }
         }
 
         public void Unsubscribe(ListenerSubscription subscription)
         {
-            List<ListenerSubscription> listeners;
-            if (this.listeners.TryGetValue(subscription.Event, out listeners))
-            {
-                listeners.Remove(subscription);
-            }
+            listeners.Unsubscribe(subscription);
         }
 
-        public void Unsubscribe(string subscriber, string eventName)
+        public void Unsubscribe(string subscriber, string eventName, string target = null)
         {
-            List<ListenerSubscription> listeners;
-            if (this.listeners.TryGetValue(eventName, out listeners))
-            {
-                ListenerSubscription subscription = listeners.Where(l => l.SubscriberDescription == subscriber && l.Event == eventName)
-                    .FirstOrDefault();
-                if (subscription != null)
-                {
-                    listeners.Remove(subscription);
-                }
-            }
+            listeners.Unsubscribe(subscriber, eventName, target);
         }
 
-        public ListenerSubscription Subscribe(string subscriber, string eventName, string listener, bool ephemeral = false)
+        public ListenerSubscription Subscribe(string subscriber, string eventName, string listenerName, string targetName = null, bool ephemeral = false)
         {
-            List<ListenerSubscription> eventListeners;
-            if (!this.listeners.TryGetValue(eventName, out eventListeners))
-            {
-                eventListeners = new List<ListenerSubscription>();
-                listeners[eventName] = eventListeners;
-            }
-            var subscription = new ListenerSubscription(subscriber, eventName, listener, ephemeral);
-            eventListeners.Add(subscription);
-            return subscription;
+            return listeners.Subscribe(targetName, subscriber, eventName, listenerName, ephemeral);
         }
 
-        public ListenerSubscription Subscribe(string subscriber, string eventName, UserMethod listener, bool ephemeral = false)
+        public ListenerSubscription Subscribe(string subscriber, string eventName, UserMethod listener, string targetName = null, bool ephemeral = false)
         {
-            return Subscribe(subscriber, eventName, listener.Method.Name, ephemeral);
+            return Subscribe(subscriber, eventName, listener.Method.Name, targetName, ephemeral);
         }
 
         internal void BubbleEvent(string eventName, ValueContainer valueContainer, params object[] args)
         {
             var sourcePath = valueContainer.Path;
-            var sourceTokens = sourcePath.Split('.');
-            for (int i = sourceTokens.Length - 1; i > 0; i--)
+            if (sourcePath != null)
             {
-                string targetPath = sourceTokens[0];
-                for (int t = 1; t < i; t++)
+                var sourceTokens = sourcePath.Split('.');
+                for (int i = sourceTokens.Length - 1; i > 0; i--)
                 {
-                    targetPath += "." + sourceTokens[t];
-                }
-                var targetContainer = GetProperty(targetPath);
-                if (targetContainer != null && targetContainer != valueContainer)
-                {
-                    targetContainer.DoNotification(eventName, args);
+                    string targetPath = sourceTokens[0];
+                    for (int t = 1; t < i; t++)
+                    {
+                        targetPath += "." + sourceTokens[t];
+                    }
+                    var targetContainer = GetProperty(targetPath, GetOperationType.GET_OR_THROW);
+                    if (targetContainer != null && targetContainer != valueContainer)
+                    {
+                        targetContainer.DoNotification(eventName, args);
+                    }
                 }
             }
         }
@@ -170,143 +161,116 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         }
 
         // Global Properties
-        public ValueContainer GetProperty(string path)
+        public ValueContainer GetProperty(string path, GetOperationType operationType = GetOperationType.GET_OR_NULL)
         {
-            return DoGetProperty(path, GetOperationType.CREATE_MISSING);
+            var tokens = path.Split('.');
+            ValueContainer container = null;
+            if (!globalProperties.TryGetValue(tokens[0], out container))
+            {
+                switch (operationType)
+                {
+                    case GetOperationType.GET_OR_NULL:
+                        return null;
+                    case GetOperationType.GET_OR_THROW:
+                        throw new InvalidOperationException();
+                    case GetOperationType.GET_OR_CREATE:
+                        container = globalProperties[tokens[0]] = CreateProperty(tokens[0]);
+                        container.Path = tokens[0];
+                        break;
+                }
+            }
+            if (tokens.Length > 1)
+            {
+                return container.GetProperty(string.Join(".", tokens.Skip(1).ToArray()), operationType);
+            }
+            return container;
         }
 
         public enum GetOperationType
         {
-            IGNORE_MISSING, // If a path reaches a non-existant container or an intermediate container which is not a dictionary, return null
-            CREATE_MISSING, // If a path reaches a non-existant container, create it; if it reaches a non-dictionary intermediate container, return null.
-            ASSERT_CORRECT  // If a path reaches a non-existant container or an intermediate container which is not a dictionary, throw an exception
+            GET_OR_NULL,   // If a path reaches a non-existant container or an intermediate container which is not a dictionary, return null
+            GET_OR_CREATE, // If a path reaches a non-existant container, create it; if it reaches a non-dictionary intermediate container, return null.
+            GET_OR_THROW   // If a path reaches a non-existant container or an intermediate container which is not a dictionary, throw an exception
         }
 
-        private ValueContainer DoGetProperty(string path, GetOperationType operationType = GetOperationType.IGNORE_MISSING)
+        public ValueContainer CreateProperty(string property, ValueContainer value)
         {
-            var tokens = path.Split('.');
-            ValueContainer container = null;
-            string subpath = "";
-            for (int i = 0; i < tokens.Length; i++)
-            {
-                string token = tokens[i];
-
-                if (i == 0)
-                {
-                    subpath = token;
-                    if (!globalProperties.TryGetValue(subpath, out container))
-                    {
-                        if (operationType == GetOperationType.CREATE_MISSING)
-                        {
-                            container = globalProperties[token] = CreateValueContainer(path: subpath);
-                            globalProperties.TryGetValue(token, out container);
-                            script.Globals[token] = container;
-                        }
-                        else if (operationType == GetOperationType.ASSERT_CORRECT)
-                        {
-                            throw new InvalidOperationException("While performing a strict traversal operation, a null container was found within the path at " + subpath);
-                        }
-                    }
-                }
-                else
-                {
-                    subpath = String.Join(".", subpath, token);
-                    if (token == "^")
-                    {
-                        if (container.Parent == null)
-                        {
-                            throw new InvalidOperationException("Tried to go up the path hierarchy but were already at the top.");
-                        }
-                        container = container.Parent;
-                    }
-                    else if (container == null)
-                    {
-                        if (operationType == GetOperationType.ASSERT_CORRECT)
-                        {
-                            throw new ArgumentException(String.Format("Found null container at {0}", subpath));
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-                    var map = container.ValueAsMap();
-                    if (map == null)
-                    {
-                        if (container.ValueAsRaw() != null && operationType == GetOperationType.ASSERT_CORRECT)
-                        {
-                            throw new InvalidOperationException(String.Format("Found a container at path \"{0}\" which is a non-null, non-dictionary value but is trying to be set as a parent of another value.", subpath));
-                        }
-                        else if (operationType == GetOperationType.CREATE_MISSING)
-                        {
-                            map = container.Set(new Dictionary<string, ValueContainer>() { }).ValueAsMap();
-                        }
-                        else
-                        {
-                            container = null;
-                            break;
-                        }
-                    }
-                    if (token != "^" && !map.TryGetValue(token, out container) && operationType == GetOperationType.CREATE_MISSING)
-                    {
-                        container = map[token] = CreateValueContainer(path: subpath);
-                    }
-                }
-            }
-            if(container == null)
-            {
-                Log(LogType.Warning, String.Format("Returning null for path {0}", path), "engine.internal");
-            }
-            return container;
+            return DoCreateProperty(property, value.ValueAsRaw(), value.Description, new List<IContainerModifier>(value.GetModifiers()), value.GetUpdater(), value.GetInterceptor());
         }
 
         public ValueContainer CreateProperty(string property, bool value, string description = "", List<IContainerModifier> modifiers = null, string updater = null, string interceptor = null)
         {
-            var container = GetOrCreateContainerByPath(property);
-            container.SetInterceptor(interceptor);
-            container.Path = property;
-            container.Set(value);
-            container.SetUpdater(updater);
-            container.SetModifiers(modifiers);
-            return container;
+            return DoCreateProperty(property, value, description, modifiers, updater, interceptor);
+        }
+
+        public ValueContainer CreateProperty(string property, List<ValueContainer> value, string description = "", List<IContainerModifier> modifiers = null, string updater = null, string interceptor = null)
+        {
+            return DoCreateProperty(property, value, description, modifiers, updater, interceptor);
         }
 
         public ValueContainer CreateProperty(string property, string value = null, string description = "", List<IContainerModifier> modifiers = null, string updater = null, string interceptor = null)
         {
-            var container = GetOrCreateContainerByPath(property);
-            container.SetInterceptor(interceptor);
-            container.Path = property;
-            container.Set(value);
-            container.SetModifiers(modifiers);
-            container.SetUpdater(updater);
-            return container;
+            return DoCreateProperty(property, value, description, modifiers, updater, interceptor);
         }
 
         public ValueContainer CreateProperty(string property, IDictionary<string, ValueContainer> value, string description = "", List<IContainerModifier> modifiers = null, string updater = null, string interceptor = null)
         {
-            var container = GetOrCreateContainerByPath(property);
-            container.SetInterceptor(interceptor);
-            container.Path = property;
-            container.Set(value);
-            container.SetModifiers(modifiers);
-            container.SetUpdater(updater);
-            return container;
+            return DoCreateProperty(property, value, description, modifiers, updater, interceptor);
         }
 
         public ValueContainer CreateProperty(string property, BigDouble value, string description = "", List<IContainerModifier> modifiers = null, string updater = null, string interceptor = null)
         {
-            var container = GetOrCreateContainerByPath(property);
-            container.SetInterceptor(interceptor);
-            container.Path = property;
-            container.Set(value);
-            container.SetModifiers(modifiers);
-            container.SetUpdater(updater);
-            return container;
+            return DoCreateProperty(property, value, description, modifiers, updater, interceptor);
         }
 
-        public ValueContainer GetOrCreateContainerByPath(string path, bool assertParentsAreDictionary = true)
+        private ValueContainer DoCreateProperty(string property, object value, string description, List<IContainerModifier> modifiers, string updater, string interceptor)
         {
-            return DoGetProperty(path, operationType: GetOperationType.CREATE_MISSING);
+            bool globalExists = false;
+            var pathelements = property.Split('.').ToArray();
+            ValueContainer parent = null;
+            for (int i = 0; i < pathelements.Count() - 1; i++)
+            {
+                globalExists = true;
+                var path = string.Join(".", pathelements.Take(i + 1));
+                var newContainer = GetProperty(path, GetOperationType.GET_OR_CREATE);
+                newContainer.Parent = parent;
+                newContainer.Path = path;
+                if (newContainer.ValueAsMap() == null)
+                {
+                    newContainer.Set(new Dictionary<string, ValueContainer>());
+                }
+                parent = newContainer;
+            }
+            ValueContainer container = null;
+            switch (DetermineType(value))
+            {
+                case "string":
+                case "null":
+                    container = CreateValueContainer(value as string, description, parent, modifiers, updater, interceptor);
+                    break;
+                case "number":
+                    container = CreateValueContainer((BigDouble)value, description, parent, modifiers, updater, interceptor);
+                    break;
+                case "map":
+                    container = CreateValueContainer(value as IDictionary<string, ValueContainer>, description, parent, modifiers, updater, interceptor);
+                    break;
+                case "list":
+                    container = CreateValueContainer(value as IList<ValueContainer>, description, parent, modifiers, updater, interceptor);
+                    break;
+                case "bool":
+                    container = CreateValueContainer((bool)value, description, parent, modifiers, updater, interceptor);
+                    break;
+            }
+            if (parent != null)
+            {
+                parent.ValueAsMap()[pathelements[pathelements.Count() - 1]] = container;
+            }
+            if (!globalExists)
+            {
+                globalProperties[property] = container;
+            }
+            container.Path = property;
+            return container;
         }
 
         public static string ReplacePlaceholders(string expression, Dictionary<string, string> values)
@@ -331,42 +295,56 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             }
         }
 
-        public ValueContainer CreateValueContainer(string value = null, string description = "", string path = null, List<IContainerModifier> modifiers = null, string updater = null)
+        public ValueContainer CreateValueContainer(string value = null, string description = "", ValueContainer parent = null, List<IContainerModifier> modifiers = null, string updater = null, string interceptor = null)
         {
-            var vc = new ValueContainer(this, NextId(), value, description, path, modifiers, updater);
-            references[vc.Id] = vc;
+            var id = NextId();
+            references[id] = null;
+            var vc = new ValueContainer(this, id, value as string, description, parent, modifiers, updater, interceptor);
+            references[id] = vc;
             return vc;
         }
 
-        public ValueContainer CreateValueContainer(BigDouble value, string description = "", string path = null, List<IContainerModifier> modifiers = null, string updater = null)
+        public ValueContainer CreateValueContainer(BigDouble value, string description = "", ValueContainer parent = null, List<IContainerModifier> modifiers = null, string updater = null, string interceptor = null)
         {
-            var vc = new ValueContainer(this, NextId(), value, description, path, modifiers, updater);
-            references[vc.Id] = vc;
+            var id = NextId();
+            references[id] = null;
+            var vc = new ValueContainer(this, id, value, description, parent, modifiers, updater, interceptor);
+            references[id] = vc;
             return vc;
         }
 
-        public ValueContainer CreateValueContainer(bool value, string description = "", string path = null, List<IContainerModifier> modifiers = null, string updater = null)
+        public ValueContainer CreateValueContainer(bool value, string description = "", ValueContainer parent = null, List<IContainerModifier> modifiers = null, string updater = null, string interceptor = null)
         {
-            var vc = new ValueContainer(this, NextId(), value, description, path, modifiers, updater);
-            references[vc.Id] = vc;
+            var id = NextId();
+            references[id] = null;
+            var vc = new ValueContainer(this, id, value, description, parent, modifiers, updater, interceptor);
+            references[id] = vc;
             return vc;
         }
 
-        public ValueContainer CreateValueContainer(IDictionary<string, ValueContainer> value, string description = "", string path = null, List<IContainerModifier> modifiers = null, string updater = null)
+        public ValueContainer CreateValueContainer(IDictionary<string, ValueContainer> value, string description = "", ValueContainer parent = null, List<IContainerModifier> modifiers = null, string updater = null, string interceptor = null)
         {
-            var vc = new ValueContainer(this, NextId(), value, description, path, modifiers, updater);
-            references[vc.Id] = vc;
+            var id = NextId();
+            references[id] = null;
+            var vc = new ValueContainer(this, id, value, description, parent, modifiers, updater, interceptor);
+            references[id] = vc;
             return vc;
         }
-        private static Regex PlaceholderRegex = new Regex("\\$\\{(.+?)\\}");
 
-        private Dictionary<string, Script> CachedScripts;
+        public ValueContainer CreateValueContainer(IList<ValueContainer> value, string description = "", ValueContainer parent = null, List<IContainerModifier> modifiers = null, string updater = null, string interceptor = null)
+        {
+            var id = NextId();
+            references[id] = null;
+            var vc = new ValueContainer(this, id, value, description, parent, modifiers, updater, interceptor);
+            references[id] = vc;
+            return vc;
+        }
 
         private Func<ScriptExecutionContext, CallbackArguments, DynValue> WrapMethod(string methodName)
         {
             return (ctx, args) =>
             {
-                var methodOut = NormalizeValue(methods[methodName].Invoke(this, null, args.GetArray().Select(arg => ValueContainer.NormalizeValue(arg.ToObject())).ToArray()));
+                var methodOut = NormalizeValue(methods[methodName].Invoke(this, args.GetArray().Select(arg => ValueContainer.NormalizeValue(arg.ToObject())).ToArray()));
                 if (methodOut != null)
                 {
                     if (methodOut is bool)
@@ -386,27 +364,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             };
         }
 
-        private Script script = new Script();
-
         public object EvaluateExpression(string valueExpression, IDictionary<string, object> localContext = null)
         {
             if (valueExpression == null)
             {
                 throw new ArgumentNullException("valueExpression");
             }
-            if (localContext != null) {
-                foreach (var local in localContext)
-                {
-                    script.Globals[local.Key] = local.Value;
-                }
-            }
-            var metatable = DynValue.NewTable(script);
-            metatable.Table.Set("__index", DynValue.NewCallback((ctx, args) =>
-            {
-                return UserData.Create(GetProperty(args[1].CastToString()));
-            }));
-            script.Globals.MetaTable = metatable.Table;
-            return NormalizeValue(script.DoString("return " + valueExpression).ToObject());
+
+            return NormalizeValue(Scripting.DoString(valueExpression, localContext).ToObject());
         }
 
         private string NextId()
@@ -427,7 +392,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         public Snapshot GetSnapshot()
         {
-            return new Snapshot(globalProperties.ToDictionary(x => x.Value.Path, x => x.Value.GetSnapshot()));
+            return new Snapshot(globalProperties.ToDictionary(x => x.Value.Path, x => x.Value.GetSnapshot()),
+                listeners.listeners.SelectMany(x => x.Value.SelectMany(y => y.Value)).Where(l => !l.Ephemeral).ToList());
         }
 
         public void RestoreFromSnapshot(Snapshot snapshot)
@@ -436,27 +402,33 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             {
                 if (e.Value != null)
                 {
-                    GetOrCreateContainerByPath(e.Value.Path).RestoreFromSnapshot(this, e.Value);
+                    GetProperty(e.Value.Path, GetOperationType.GET_OR_CREATE).RestoreFromSnapshot(this, e.Value);
                 }
+            }
+            foreach(var l in snapshot.Listeners)
+            {
+                listeners.Subscribe(l.SubscriptionTarget, l.SubscriberDescription, l.Event, l.MethodName, false);
             }
         }
 
         public class Snapshot
         {
             public readonly Dictionary<string, ValueContainer.Snapshot> GlobalProperties;
+            public readonly List<ListenerSubscription> Listeners;
 
-            public Snapshot(Dictionary<string, ValueContainer.Snapshot> globalProperties)
+            public Snapshot(Dictionary<string, ValueContainer.Snapshot> globalProperties, List<ListenerSubscription> listeners)
             {
                 GlobalProperties = globalProperties;
+                this.Listeners = listeners;
             }
         }
 
-        public object InvokeMethod(string methodName, ValueContainer container, params object[] arg)
+        public object InvokeMethod(string methodName, params object[] args)
         {
             UserMethod method;
             if (methods.TryGetValue(methodName, out method))
             {
-                return method(this, container, arg);
+                return method(this, args);
             }
             else
             {
@@ -464,9 +436,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             }
         }
 
-        public object InvokeMethod(UserMethod method, ValueContainer container, params object[] args)
+        public object InvokeMethod(UserMethod method, params object[] args)
         {
-            return InvokeMethod(method.Method.Name, container, args);
+            return InvokeMethod(method.Method.Name, args);
         }
 
         public void RegisterMethod(UserMethod method)
@@ -476,12 +448,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         public void RegisterMethod(string name, UserMethod method)
         {
-            if(methods.ContainsKey(name))
+            if (methods.ContainsKey(name))
             {
                 this.Log(LogType.Error, "The method " + name + " is being registered again.", "engine.internal");
             }
             methods[name] = method;
-            script.Globals[name] = WrapMethod(name);
+            //Scripting.Globals[name] = WrapMethod(name);
         }
 
         public T GetDefinition<T>(string typeName, string id) where T : IDefinition
@@ -541,14 +513,15 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         {
             bool logEnabled = false;
             logContext = logContext != null ? logContext : "*";
-            if(LoggingContextLevels.ContainsKey(logContext))
+            if (LoggingContextLevels.ContainsKey(logContext))
             {
                 LoggingContextLevels[logContext].TryGetValue(logType, out logEnabled);
-            } else
+            }
+            else
             {
                 LoggingContextLevels["*"].TryGetValue(logType, out logEnabled);
             }
-            if(logEnabled)
+            if (logEnabled)
             {
                 string finalMessage = string.Format("[{0}] {1}", logContext, logMessage);
                 switch (logType)
@@ -570,7 +543,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         public void ConfigureLogging(string logContext, LogType? logLevel, bool enabled = true)
         {
             Dictionary<LogType, bool> contexts;
-            switch(logLevel)
+            switch (logLevel)
             {
                 case LogType.Log:
                     ConfigureLogging(logContext, LogType.Warning, enabled);
@@ -594,10 +567,15 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             }
         }
 
+        internal void DoNotification(string eventName, string target, object[] args)
+        {
+            listeners.Notify(eventName, target, args);
+        }
+
         /*
          * Transform a definition into a dictionary containing the definition properties.
          */
-        public ValueContainer InstantiateDefinition(IDefinition definition)
+        public ValueContainer InstantiateDefinitionInstance(IDefinition definition)
         {
             var properties = ConvertProperties(definition.Properties);
             return CreateValueContainer(value: properties);
@@ -613,7 +591,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             {
                 SetDefinitions(definition.Key, definition.Value);
             }
-            newModule.SetEngineProperties(this);
+            newModule.ConfigureEngine(this);
         }
 
         internal IDictionary<string, object> GenerateGlobalContext()
@@ -628,6 +606,265 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                 properties[method.Key] = WrapMethod(method.Key);
             }
             return properties;
+        }
+
+        public class ScriptingManagement
+        {
+            internal Script script = new Script();
+            public Table Globals => script.Globals;
+            private IdleEngine engine;
+            public ScriptingManagement(IdleEngine engine)
+            {
+                UserData.RegisterProxyType<ValueContainerScriptProxy, ValueContainer>(c => new ValueContainerScriptProxy(c));
+                UserData.RegisterType<BigDouble>();
+                SetScriptToClrCustomConversion(DataType.Number, typeof(BigDouble), (arg) =>
+                {
+                    return BigDouble.Parse(arg.CastToString());
+                });
+                SetScriptToClrCustomConversion(DataType.UserData, typeof(BigDouble), (arg) =>
+                {
+                    var obj = arg.ToObject();
+                    if (obj is ValueContainer)
+                    {
+                        return (obj as ValueContainer).ValueAsNumber();
+                    }
+                    else if (obj is BigDouble)
+                    {
+                        return (BigDouble)obj;
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                });
+                SetScriptToClrCustomConversion(DataType.UserData, typeof(string), (arg) =>
+                {
+                    var obj = arg.ToObject();
+                    if (obj is ValueContainer)
+                    {
+                        return (obj as ValueContainer).ValueAsString();
+                    }
+                    else
+                    {
+                        return obj.ToString();
+                    }
+                });
+                SetScriptToClrCustomConversion(DataType.String, typeof(BigDouble), (arg) =>
+                {
+                    var converted = arg.CastToNumber();
+                    if (converted != null)
+                    {
+                        return new BigDouble(converted.Value);
+                    }
+                    return BigDouble.NaN;
+                });
+                SetClrToScriptCustomConversion(typeof(BigDouble), (script, arg) =>
+                {
+                    return UserData.Create(arg);
+                });
+                SetClrToScriptCustomConversion(typeof(ValueContainer), (script, arg) =>
+                {
+                    return UserData.Create(arg);
+                });
+                this.engine = engine;
+                GlobalIndexMethod = DynValue.NewCallback((ctx, args) =>
+                {
+                    string property = args[1].CastToString();
+                    object found = this.engine.GetProperty(property, GetOperationType.GET_OR_NULL);
+                    if (found != null)
+                    {
+                        return UserData.Create(found);
+                    }
+                    else
+                    {
+                        if (engine.methods.ContainsKey(property))
+                        {
+                            return DynValue.NewCallback((ctx, args) =>
+                            {
+                                object output = engine.methods[property].Invoke(engine, args.GetArray()
+                                    .Select(x => ValueContainer.NormalizeValue(x.ToObject())).ToArray()); ;
+                                if (output == null)
+                                {
+                                    return DynValue.Nil;
+                                }
+                                else
+                                {
+                                    return DynValue.FromObject(script, ValueContainer.NormalizeValue(output));
+                                }
+                            });
+                        }
+                        else if (ctx.CurrentGlobalEnv.Get(property) != DynValue.Nil)
+                        {
+
+                            return ctx.CurrentGlobalEnv.Get(property);
+                        }
+                        return DynValue.FromObject(script, engine.GetProperty(property, GetOperationType.GET_OR_CREATE));
+                    }
+                });
+                script.Globals["getOrCreate"] = DynValue.NewCallback((ctx, args) =>
+                {
+                    var propertyObject = DoString("return " + args[0].CastToString(), ctx.CurrentGlobalEnv).ToObject();
+                    string property;
+                    if (propertyObject is ValueContainer)
+                    {
+                        property = (propertyObject as ValueContainer).Path;
+                    }
+                    else
+                    {
+                        property = propertyObject.ToString();
+                    }
+
+                    return DynValue.FromObject(ctx.GetScript(), engine.GetProperty(property, GetOperationType.GET_OR_CREATE));
+                });
+            }
+
+            private DynValue GlobalIndexMethod;
+
+            public Table GenerateContextTable(IDictionary<string, object> contextVariables = null)
+            {
+                var contextTable = new Table(script);
+                foreach (var global in script.Globals.Pairs)
+                {
+                    contextTable.Set(global.Key, global.Value);
+                }
+                contextTable.MetaTable = new Table(script);
+                contextTable.MetaTable.Set("__index", GlobalIndexMethod);
+                if (contextVariables != null)
+                {
+                    foreach (var contextVariable in contextVariables)
+                    {
+                        contextTable.Set(contextVariable.Key, DynValue.FromObject(script, contextVariable.Value));
+                    }
+                }
+                return contextTable;
+            }
+
+            public void SetClrToScriptCustomConversion(Type clrType, Func<object, object, DynValue> converter)
+            {
+                Script.GlobalOptions.CustomConverters.SetClrToScriptCustomConversion(clrType, converter);
+            }
+
+            public void SetScriptToClrCustomConversion(DataType scriptDataType, Type clrDataType, Func<DynValue, object> converter)
+            {
+                Script.GlobalOptions.CustomConverters.SetScriptToClrCustomConversion(scriptDataType, clrDataType, converter);
+            }
+
+            public DynValue DoString(string expression, IDictionary<string, object> context = null)
+            {
+                return DoString(expression, GenerateContextTable(context));
+            }
+
+            public DynValue DoString(string expression, Table context = null)
+            {
+                return script.DoString(expression, context);
+            }
+        }
+
+        private class EventListeners
+        {
+            public Dictionary<string, Dictionary<string, List<ListenerSubscription>>> listeners = new Dictionary<string, Dictionary<string, List<ListenerSubscription>>>();
+            private IdleEngine engine;
+
+            public EventListeners(IdleEngine engine)
+            {
+                this.engine = engine;
+            }
+
+            internal void Notify(string eventName, string eventTarget, IDictionary<string, object> context, object[] args)
+            {
+                if (eventTarget == null)
+                {
+                    eventTarget = "";
+                }
+                Dictionary<string, List<ListenerSubscription>> events;
+                if (listeners.TryGetValue(eventTarget, out events))
+                {
+                    List<ListenerSubscription> eventListeners = null;
+                    if (events.TryGetValue(eventName, out eventListeners))
+                    {
+                        {
+                            foreach (var listener in eventListeners)
+                            {
+                                engine.InvokeMethod(listener.MethodName, args);
+                            }
+                        }
+                    }
+                }
+            }
+
+            internal void Notify(string eventName, string target, object[] args)
+            {
+                if (target == null)
+                {
+                    target = "";
+                }
+                Dictionary<string, List<ListenerSubscription>> events;
+                if (listeners.TryGetValue(target, out events))
+                {
+                    List<ListenerSubscription> eventListeners = null;
+                    if (events.TryGetValue(eventName, out eventListeners))
+                    {
+                        var toInvoke = eventListeners.ToArray();
+                        foreach (var listener in toInvoke)
+                        {
+                            engine.InvokeMethod(listener.MethodName, null, args);
+                        }
+                    }
+                }
+            }
+
+            internal ListenerSubscription Subscribe(string target, string subscriber, string eventName, string listenerName, bool ephemeral)
+            {
+                if (target == null)
+                {
+                    target = "";
+                }
+                ListenerSubscription subscription = new ListenerSubscription(target, subscriber, eventName, listenerName, ephemeral);
+                Dictionary<string, List<ListenerSubscription>> events;
+                if (!listeners.TryGetValue(subscription.SubscriptionTarget, out events))
+                {
+                    events = new Dictionary<string, List<ListenerSubscription>>();
+                    listeners[subscription.SubscriptionTarget] = events;
+                }
+                List<ListenerSubscription> eventListeners;
+                if (!events.TryGetValue(subscription.Event, out eventListeners))
+                {
+                    eventListeners = new List<ListenerSubscription>();
+                    events[subscription.Event] = eventListeners;
+                }
+                eventListeners.Add(subscription);
+                return subscription;
+            }
+
+            internal void Unsubscribe(ListenerSubscription subscription)
+            {
+                Dictionary<string, List<ListenerSubscription>> events;
+                if (listeners.TryGetValue(subscription.SubscriptionTarget, out events))
+                {
+                    List<ListenerSubscription> eventListeners = null;
+                    if (events.TryGetValue(subscription.Event, out eventListeners))
+                    {
+                        eventListeners.Remove(subscription);
+                    }
+                }
+            }
+
+            internal void Unsubscribe(string subscriber, string eventName, string target)
+            {
+                if (target == null)
+                {
+                    target = "";
+                }
+                Dictionary<string, List<ListenerSubscription>> events;
+                if (listeners.TryGetValue(target, out events))
+                {
+                    List<ListenerSubscription> eventListeners = null;
+                    if (events.TryGetValue(eventName, out eventListeners))
+                    {
+                        eventListeners.Remove(eventListeners.Find(x => x.Event == eventName && x.SubscriberDescription == subscriber && x.SubscriptionTarget == target));
+                    }
+                }
+            }
         }
     }
 }

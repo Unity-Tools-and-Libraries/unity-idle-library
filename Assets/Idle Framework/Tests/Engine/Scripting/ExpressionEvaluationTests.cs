@@ -13,26 +13,26 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         [Test]
         public void SimpleStringEvaluatedToString()
         {
-            Assert.AreEqual("string", engine.EvaluateExpression("\"string\""));
+            Assert.AreEqual("string", engine.EvaluateExpression("return \"string\""));
         }
 
         [Test]
         public void SimpleNumberEvaluatedToBigDouble()
         {
-            Assert.AreEqual(new BigDouble(5), engine.EvaluateExpression("5"));
+            Assert.AreEqual(new BigDouble(5), engine.EvaluateExpression("return 5"));
         }
 
         [Test]
         public void PathEvaluatesToContainer()
         {
             engine.CreateProperty("foo.bar", 5);
-            Assert.AreEqual(typeof(ValueContainer), engine.EvaluateExpression("foo.bar").GetType());
+            Assert.AreEqual(typeof(ValueContainer), engine.EvaluateExpression("return foo.bar").GetType());
         }
 
         [Test]
         public void CallingUserFunctionWrapsOutputInDynamicLuaValue()
         {
-            engine.RegisterMethod("method", (a, b, c) =>
+            engine.RegisterMethod("method", (a, c) =>
             {
                 return 1;
             });
@@ -46,7 +46,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         public void FunctionInvocationCallsMethod()
         {
             int calls = 0;
-            engine.RegisterMethod("method", (a, b, c) =>
+            engine.RegisterMethod("method", (a, c) =>
             {
                 calls++;
                 return null;
@@ -59,7 +59,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         public void FunctionInvocationPassesArguments()
         {
             int calls = 0;
-            engine.RegisterMethod("method", (a, b, c) =>
+            engine.RegisterMethod("method", (a, c) =>
             {
                 calls++;
                 Assert.AreEqual(new BigDouble(1), c[0]);
@@ -75,7 +75,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         public void CanUseCustomContext()
         {
             engine.CreateProperty("foo.bar", 5);
-            var result = engine.EvaluateExpression("bar", new Dictionary<string, object>()
+            var result = engine.EvaluateExpression("return bar", new Dictionary<string, object>()
             {
                 { "bar", engine.GetProperty("foo.bar") }
             });

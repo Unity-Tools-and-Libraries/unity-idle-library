@@ -48,7 +48,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         public void CostIncreasesBasedOnQuantity()
         {
             engine.ConfigureLogging("engine.internal.container.cache", LogType.Log);
-            var producerQuantity = engine.CreateProperty("producers.one.quantity");
+            var producerQuantity = engine.GetProperty("producers.one.quantity");
             for (int i = 0; i < 10; i++) {
                 producerQuantity.Set(i);
                 engine.Update(0f);
@@ -68,14 +68,14 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void UpgradeCanIncreaseOutputByAFlatAmount()
         {
-            engine.InvokeMethod(ClickerModule.BuyUpgrade, null, "upgrade-one");
+            engine.InvokeMethod(ClickerModule.BuyUpgrade, "upgrade-one");
             Assert.AreEqual(new BigDouble(0.2), engine.GetProperty(string.Join(".", "producers", tier1.Id, ProducerDefinition.PropertyNames.OUTPUT_PER_UNIT)).ValueAsNumber());
         }
 
         [Test]
         public void UpgradeCanIncreaseOutputByAMultiplier()
         {
-            engine.InvokeMethod(ClickerModule.BuyUpgrade, null, "upgrade-two");
+            engine.InvokeMethod(ClickerModule.BuyUpgrade, "upgrade-two");
             Assert.AreEqual(new BigDouble(1.5), engine.GetProperty(string.Join(".", "producers", tier2.Id, ProducerDefinition.PropertyNames.OUTPUT_PER_UNIT)).ValueAsNumber());
         }
 
@@ -83,7 +83,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         public void BuyingProducerSubtractsPoints()
         {
             engine.GetProperty("points.quantity").Set(15);
-            engine.InvokeMethod(ClickerModule.BuyProducer, null, "one");
+            engine.InvokeMethod(ClickerModule.BuyProducer, "one");
             Assert.AreEqual(new BigDouble(0), engine.GetProperty("points.quantity").ValueAsNumber());
         }
 

@@ -2,6 +2,7 @@
 using io.github.thisisnozaku.idle.framework.Engine;
 using io.github.thisisnozaku.idle.framework.Events;
 using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 
 namespace io.github.thisisnozaku.idle.framework.Tests.Engine
@@ -28,7 +29,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
             {
                 { "foo", engine.CreateValueContainer("bar") }
             });
-            engine.RegisterMethod("update", (engine, vc, ev) =>
+            engine.RegisterMethod("update", (engine, ev) =>
             {
                 return (BigDouble)ev[1] + BigDouble.One;
             });
@@ -97,7 +98,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         {
             ValueContainer propertyReference = engine.GetProperty("incrementingNumberValue");
             int listenerCalled = 0;
-            engine.RegisterMethod("method", (ie, c, ev) =>
+            engine.RegisterMethod("method", (ie, ev) =>
             {
                 listenerCalled++;
                 return null;
@@ -111,7 +112,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         [Test]
         public void CanSubscribeToEvents()
         {
-            engine.RegisterMethod("method", (ie, c, ev) => null);
+            engine.RegisterMethod("method", (ie, ev) => null);
             engine.Subscribe("", "customEvent", "method");
         }
 
@@ -125,7 +126,49 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         [Test]
         public void EmptyPathFailsValidation()
         {
+            Assert.Throws(typeof(ArgumentException), () =>
+            {
+                IdleEngine.ValidatePath("");
+            });
+        }
 
+        [Test]
+        public void PathStartingWithPeriodFailsValidation()
+        {
+            Assert.Throws(typeof(ArgumentException), () =>
+            {
+                IdleEngine.ValidatePath(".two.three");
+            });
+        }
+
+        [Test]
+        public void PathEndingWithPeriodFailsValidation()
+        {
+            Assert.Throws(typeof(ArgumentException), () =>
+            {
+                IdleEngine.ValidatePath("one.two.");
+            });
+        }
+
+        [Test]
+        public void PathContainingRepeatedPeriodsFailsValudation()
+        {
+            Assert.Throws(typeof(ArgumentException), () =>
+            {
+                IdleEngine.ValidatePath("one..two");
+            });
+        }
+
+        [Test]
+        public void PathContainingOnePropertyNamePassesValidation()
+        {
+            IdleEngine.ValidatePath("one");
+        }
+
+        [Test]
+        public void PathContainingPropertiesSeparatedByPeriodsPassesValidation()
+        {
+            IdleEngine.ValidatePath("one.two.three");
         }
     }
 }

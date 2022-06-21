@@ -16,7 +16,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         {
             var valueReference = engine.CreateProperty("path");
             bool called = false;
-            engine.RegisterMethod("method", (ie, c, ev) => { called = true; return null; });
+            engine.RegisterMethod("method", (ie, ev) => { called = true; return null; });
             engine.Start();
             valueReference.Subscribe("", ValueChangedEvent.EventName, "method");
             Assert.IsTrue(called);
@@ -27,7 +27,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         {
             var valueReference = engine.CreateProperty("path");
             int calls = 0;
-            engine.RegisterMethod("method", (ie, c, ev) =>
+            engine.RegisterMethod("method", (ie, ev) =>
             {
                 var newValue = ev[2];
                 calls++;
@@ -56,12 +56,12 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
                 "  at io.github.thisisnozaku.idle.framework.ValueContainer.DoListenerInvocation (io.github.thisisnozaku.idle.framework.ValueContainer+ListenerSubscription listener, io.github.thisisnozaku.idle.framework.Events.IdleEngineEvent ev, System.String eventName) [0x00044] in D:\\Unity Projects\\IdleFramework\\Assets\\Idle Framework\\Runtime\\Scripts\\ValueContainer.cs:555 ."
                 );
 
-            engine.RegisterMethod("method", (ie, vc, ev) => {
+            engine.RegisterMethod("method", (ie, ev) => {
                 throw new System.Exception();
             });
             engine.CreateProperty("path").Subscribe("event", "event", "method");
             engine.Start();
-            engine.GetProperty("path").NotifyImmediately("event", null);
+            engine.GetProperty("path").NotifyImmediately("event", args: null);
         }
     }
 }

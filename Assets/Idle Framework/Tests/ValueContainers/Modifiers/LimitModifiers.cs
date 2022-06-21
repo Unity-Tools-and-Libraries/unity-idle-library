@@ -54,4 +54,28 @@ public class LimitModifiers : RequiresEngineTests
         var output = modifier.Apply(engine, null, new BigDouble(15));
         Assert.AreEqual(new BigDouble(10), output);
     }
+    
+    [Test]
+    public void ClampFloorCanBeStringExpression()
+    {
+        var modifier = new ClampValueModifier("", "", "return 5", 10);
+        var output = modifier.Apply(engine, null, new BigDouble(15));
+        Assert.AreEqual(new BigDouble(10), output);
+    }
+
+    [Test]
+    public void ClampCeilingCanBeStringExpression()
+    {
+        var modifier = new ClampValueModifier("", "", 5, "return 10");
+        var output = modifier.Apply(engine, null, new BigDouble(15));
+        Assert.AreEqual(new BigDouble(10), output);
+    }
+
+    [Test]
+    public void ClampCeilingAndFloorCanBeStringExpressionsAtTheSameTime()
+    {
+        var modifier = new ClampValueModifier("", "", "return 5", "return 10");
+        var output = modifier.Apply(engine, null, new BigDouble(15));
+        Assert.AreEqual(new BigDouble(10), output);
+    }
 }

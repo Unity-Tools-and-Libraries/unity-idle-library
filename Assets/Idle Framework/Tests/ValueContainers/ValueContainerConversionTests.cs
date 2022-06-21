@@ -15,7 +15,14 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers.Conversion
 
             container.Set("");
             Assert.IsFalse(container.ValueAsBool());
+        }
 
+
+        [Test]
+        public void NonNumberStringToNumber()
+        {
+            ValueContainer container = engine.CreateProperty("path", "string");
+            Assert.IsTrue(BigDouble.IsNaN(container.ValueAsNumber()));
         }
 
         //[Test]
@@ -95,12 +102,18 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers.Conversion
         }
 
         [Test]
+        public void ListAsListReturnsList()
+        {
+            Assert.AreEqual(new List<ValueContainer>(), engine.CreateProperty("path", new List<ValueContainer>()).ValueAsList());
+        }
+
+        [Test]
         public void RawValueReturnsActualValue()
         {
-            var booleanReference = engine.CreateProperty("1", true);
-            var numberReference = engine.CreateProperty("2", BigDouble.One);
-            var stringReference = engine.CreateProperty("3", "string");
-            var mapReference = engine.CreateProperty("4", new Dictionary<string, ValueContainer>());
+            var booleanReference = engine.CreateProperty("one", true);
+            var numberReference = engine.CreateProperty("two", BigDouble.One);
+            var stringReference = engine.CreateProperty("three", "string");
+            var mapReference = engine.CreateProperty("four", new Dictionary<string, ValueContainer>());
 
             Assert.AreEqual(true, booleanReference.ValueAsRaw());
             Assert.AreEqual(BigDouble.One, numberReference.ValueAsRaw());

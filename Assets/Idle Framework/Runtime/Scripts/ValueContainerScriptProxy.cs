@@ -19,7 +19,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         {
             get
             {
-                return c.Engine.GetOrCreateContainerByPath(String.Join(".", c.Path, id));
+                return c.GetProperty(id, IdleEngine.GetOperationType.GET_OR_CREATE);
             }
             set
             {
@@ -29,7 +29,21 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         public DynValue Index(Script script, DynValue index, bool isDirectIndexing)
         {
-            return DynValue.FromObject(script, this[index.CastToString()]);
+            var argument = index.CastToString();
+            switch(argument)
+            {
+                case "Path":
+                    return DynValue.NewString(c.Path);
+                case "Parent":
+                    return DynValue.FromObject(script, c.Parent);
+                default:
+                    return DynValue.FromObject(script, c.GetProperty(index.CastToString(), IdleEngine.GetOperationType.GET_OR_CREATE));
+            }
+        }
+
+        private static DynValue DoAddStrings(string a, string b)
+        {
+            return DynValue.NewString(a + b);
         }
 
         public DynValue MetaIndex(Script script, string metaname)
@@ -37,72 +51,23 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             switch (metaname)
             {
                 case "__add":
-                    return DynValue.NewCallback((ctx, args) =>
-                    {
-                        BigDouble lhv = args[0].ToObject<BigDouble>();
-                        BigDouble rhv = args[1].ToObject<BigDouble>();
-                        return DynValue.FromObject(ctx.GetScript(), lhv + rhv);
-                    });
+                    return Operations.Add;
                 case "__sub":
-                    return DynValue.NewCallback((ctx, args) =>
-                    {
-                        BigDouble lhv = args[0].ToObject<BigDouble>();
-                        BigDouble rhv = args[1].ToObject<BigDouble>();
-                        return DynValue.FromObject(ctx.GetScript(), lhv - rhv);
-                    });
+                    return Operations.Sub;
                 case "__mul":
-                    return DynValue.NewCallback((ctx, args) =>
-                    {
-                        BigDouble lhv = args[0].ToObject<BigDouble>();
-                        BigDouble rhv = args[1].ToObject<BigDouble>();
-                        return DynValue.FromObject(ctx.GetScript(), lhv * rhv);
-                    });
+                    return Operations.Mul;
                 case "__div":
-                    return DynValue.NewCallback((ctx, args) =>
-                    {
-                        BigDouble lhv = args[0].ToObject<BigDouble>();
-                        BigDouble rhv = args[1].ToObject<BigDouble>();
-                        return DynValue.FromObject(ctx.GetScript(), lhv / rhv);
-                    });
-                case "__mod":
-                    return null;
+                    return Operations.Div;
                 case "__unm":
-                    return DynValue.NewCallback((ctx, args) =>
-                    {
-                        BigDouble lhv = args[0].ToObject<BigDouble>();
-                        //BigDouble rhv = args[1].ToObject<BigDouble>();
-                        return DynValue.FromObject(ctx.GetScript(), -lhv);
-                    });
+                    return Operations.Negate;
                 case "__eq":
-                    return DynValue.NewCallback((ctx, args) =>
-                    {
-                        BigDouble lhv = args[0].ToObject<BigDouble>();
-                        BigDouble rhv = args[1].ToObject<BigDouble>();
-                        return DynValue.FromObject(ctx.GetScript(), lhv == rhv);
-                    });
+                    return Operations.Eq;
                 case "__lt":
-                    return DynValue.NewCallback((ctx, args) =>
-                    {
-                        BigDouble lhv = args[0].ToObject<BigDouble>();
-                        BigDouble rhv = args[1].ToObject<BigDouble>();
-                        return DynValue.FromObject(ctx.GetScript(), lhv < rhv);
-                    });
+                    return Operations.Lt;
                 case "__le":
-                    return DynValue.NewCallback((ctx, args) =>
-                    {
-                        BigDouble lhv = args[0].ToObject<BigDouble>();
-                        BigDouble rhv = args[1].ToObject<BigDouble>();
-                        return DynValue.FromObject(ctx.GetScript(), lhv <= rhv);
-                    });
-                case "__len":
-                    return null;
+                    return Operations.Le;
                 case "__pow":
-                    return DynValue.NewCallback((ctx, args) =>
-                    {
-                        BigDouble lhv = args[0].ToObject<BigDouble>();
-                        BigDouble rhv = args[1].ToObject<BigDouble>();
-                        return DynValue.FromObject(ctx.GetScript(), lhv.Pow(rhv));
-                    });
+                    return Operations.Pow;
                 default:
                     return null;
             }
@@ -111,6 +76,78 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         public bool SetIndex(Script script, DynValue index, DynValue value, bool isDirectIndexing)
         {
             throw new NotImplementedException();
+        }
+
+        private static class Operations
+        {
+            public static DynValue Add = DynValue.NewCallback((ctx, args) =>
+            {
+
+                if (args[0].Type == DataType.UserData && args[0].UserData.Object.GetType() == typeof(ValueContainer))
+                {
+                    var leftContainer = args[0].ToObject<ValueContainer>();
+                    switch (leftContainer.DataType)
+                    {
+                        case "string":
+                            return DoAddStrings(args[0].ToObject<string>(), args[1].ToObject<string>());
+                        case "number":
+                            return DynValue.FromObject(ctx.GetScript(), leftContainer.ValueAsNumber() + args[1].ToObject<BigDouble>());
+                    }
+                }
+                else if (args[0].Type == DataType.String)
+                {
+                    return DoAddStrings(args[0].String, args[1].Type == DataType.UserData ? args[1].ToObject<string>() : args[1].CastToString());
+                }
+                throw new InvalidOperationException();
+            });
+            public static DynValue Sub = DynValue.NewCallback((ctx, args) =>
+            {
+                BigDouble lhv = args[0].ToObject<BigDouble>();
+                BigDouble rhv = args[1].ToObject<BigDouble>();
+                return DynValue.FromObject(ctx.GetScript(), lhv - rhv);
+            });
+            public static DynValue Pow = DynValue.NewCallback((ctx, args) =>
+                    {
+                        BigDouble lhv = args[0].ToObject<BigDouble>();
+            BigDouble rhv = args[1].ToObject<BigDouble>();
+                        return DynValue.FromObject(ctx.GetScript(), lhv.Pow(rhv));
+                    });
+            public static DynValue Mul = DynValue.NewCallback((ctx, args) =>
+            {
+                BigDouble lhv = args[0].ToObject<BigDouble>();
+                BigDouble rhv = args[1].ToObject<BigDouble>();
+                return DynValue.FromObject(ctx.GetScript(), lhv * rhv);
+            });
+            public static DynValue Div = DynValue.NewCallback((ctx, args) =>
+            {
+                BigDouble lhv = args[0].ToObject<BigDouble>();
+                BigDouble rhv = args[1].ToObject<BigDouble>();
+                return DynValue.FromObject(ctx.GetScript(), lhv / rhv);
+            });
+            public static DynValue Negate = DynValue.NewCallback((ctx, args) =>
+            {
+                BigDouble lhv = args[0].ToObject<BigDouble>();
+                //BigDouble rhv = args[1].ToObject<BigDouble>();
+                return DynValue.FromObject(ctx.GetScript(), -lhv);
+            });
+            public static DynValue Eq = DynValue.NewCallback((ctx, args) =>
+            {
+                BigDouble lhv = args[0].ToObject<BigDouble>();
+                BigDouble rhv = args[1].ToObject<BigDouble>();
+                return DynValue.FromObject(ctx.GetScript(), lhv == rhv);
+            });
+            public static DynValue Lt = DynValue.NewCallback((ctx, args) =>
+            {
+                BigDouble lhv = args[0].ToObject<BigDouble>();
+                BigDouble rhv = args[1].ToObject<BigDouble>();
+                return DynValue.FromObject(ctx.GetScript(), lhv < rhv);
+            });
+            public static DynValue Le = DynValue.NewCallback((ctx, args) =>
+            {
+                BigDouble lhv = args[0].ToObject<BigDouble>();
+                BigDouble rhv = args[1].ToObject<BigDouble>();
+                return DynValue.FromObject(ctx.GetScript(), lhv <= rhv);
+            });
         }
     }
 }

@@ -26,7 +26,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
             var mapReference = engine.CreateValueContainer(new Dictionary<string, ValueContainer>());
             var fooReference = mapReference.ValueAsMap()["foo"];
             var watchListenerCalled = false;
-            fooReference.Subscribe("", ValueChangedEvent.EventName, (ie, c, ev) =>
+            fooReference.Subscribe("", ValueChangedEvent.EventName, (ie, ev) =>
             {
                 return watchListenerCalled = true;
             });
@@ -38,11 +38,12 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         {
             engine.Start();
             int callCount = 0;
-            engine.RegisterMethod("method", (ie, vc, ev) => {
+            engine.RegisterMethod("method", (ie, ev) =>
+            {
                 callCount++;
                 return null;
             });
-            var container = engine.CreateValueContainer(new Dictionary<string, ValueContainer>(), path: "path");
+            var container = engine.CreateValueContainer(new Dictionary<string, ValueContainer>());
             var subscription = container.Subscribe("event", "event", "method");
             container.NotifyImmediately("event", null, null, null);
             container.Unsubscribe(subscription);
@@ -53,7 +54,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         [Test]
         public void CanSetPropertyIfHoldingDictionary()
         {
-            var container = engine.CreateValueContainer(new Dictionary<string, ValueContainer>(), path: "path");
+            var container = engine.CreateValueContainer(new Dictionary<string, ValueContainer>());
             container["foo"] = engine.CreateValueContainer("bar");
             Assert.AreEqual("bar", container.ValueAsMap()["foo"].ValueAsString());
         }
@@ -64,14 +65,14 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
             var container = engine.CreateValueContainer(new Dictionary<string, ValueContainer>()
             {
                 { "foo", engine.CreateValueContainer("bar") }
-            }, path: "path");
+            });
             Assert.AreEqual("bar", container["foo"].ValueAsString());
         }
 
         [Test]
         public void CannotSetPropertyIfNotHoldingDictionary()
         {
-            var container = engine.CreateValueContainer(true, path: "path");
+            var container = engine.CreateValueContainer(true);
 
             Assert.Throws(typeof(InvalidOperationException), () =>
             {
@@ -82,8 +83,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         [Test]
         public void GettingPropertyViaIndexReturnsNullIfNotContainingDictionary()
         {
-            var container = engine.CreateValueContainer(true, path: "path");
-            
+            var container = engine.CreateValueContainer(true);
+
             Assert.IsNull(container["foo"]);
         }
 
@@ -93,7 +94,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
             var mapReference = engine.CreateProperty("path", new Dictionary<string, ValueContainer>());
             var map = mapReference.ValueAsMap();
             int watchListenerCalled = 0;
-            engine.RegisterMethod("method", (ie, c, args) =>
+            engine.RegisterMethod("method", (ie, args) =>
             {
                 Assert.AreEqual("path.foo", args[1] as string);
 
@@ -106,7 +107,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
             Assert.AreEqual(1, watchListenerCalled);
         }
 
-        [Test]
+
         public void ValueReferenceEqualsComparesUnderlyingValue()
         {
             var ref1 = engine.CreateValueContainer(true);
@@ -120,7 +121,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         public void CanSetUpdateMethodByName()
         {
             engine.Start();
-            engine.RegisterMethod("method", (ie, cv, ev) =>
+            engine.RegisterMethod("method", (ie, ev) =>
             {
                 return 1;
             });
@@ -136,7 +137,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         public void CanSetUpdateMethodByMethod()
         {
             engine.Start();
-            IdleEngine.UserMethod listener = (ie, cv, ev) =>
+            IdleEngine.UserMethod listener = (ie, ev) =>
             {
                 return 1;
             };
@@ -159,20 +160,20 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         [Test]
         public void ToStringDescribesContents()
         {
-            var mapReference = engine.CreateProperty("1", new Dictionary<string, ValueContainer>());
-            Assert.AreEqual("Reference #1 @1: (containing map)", mapReference.ToString());
+            var mapReference = engine.CreateProperty("one", new Dictionary<string, ValueContainer>());
+            Assert.AreEqual("Reference #1 @one: (containing map)", mapReference.ToString());
 
-            var stringReference = engine.CreateProperty("2", "aString");
-            Assert.AreEqual("Reference #2 @2: (containing string 'aString')", stringReference.ToString());
+            var stringReference = engine.CreateProperty("two", "aString");
+            Assert.AreEqual("Reference #2 @two: (containing string aString)", stringReference.ToString());
 
-            var boolReference = engine.CreateProperty("3", true);
-            Assert.AreEqual("Reference #3 @3: (containing boolean True)", boolReference.ToString());
+            var boolReference = engine.CreateProperty("three", true);
+            Assert.AreEqual("Reference #3 @three: (containing bool True)", boolReference.ToString());
 
-            var numberReference = engine.CreateProperty("4", BigDouble.One);
-            Assert.AreEqual("Reference #4 @4: (containing number 1)", numberReference.ToString());
+            var numberReference = engine.CreateProperty("four", BigDouble.One);
+            Assert.AreEqual("Reference #4 @four: (containing number 1)", numberReference.ToString());
         }
 
-        [Test]
+
         public void HashcodeSameAsValue()
         {
             var reference = engine.CreateProperty("1", "string");
@@ -185,7 +186,10 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         [Test]
         public void CanSpecifyACalculatingFunction()
         {
-            engine.RegisterMethod("method", (eng, cont, ev) => (BigDouble)ev[1] + 1);
+            engine.RegisterMethod("method", (eng, ev) =>
+            {
+                return (BigDouble)ev[2] + 1;
+            });
             var reference = engine.CreateProperty("path", 0, updater: "method");
             engine.Start();
             for (int i = 1; i <= 5; i++)
@@ -198,7 +202,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         [Test]
         public void ReturningIntFromUpdaterBecomesBigDouble()
         {
-            engine.RegisterMethod("method", (eng, cont, ev) => 1);
+            engine.RegisterMethod("method", (eng, ev) => 1);
             var reference = engine.CreateProperty("path", 0, updater: "method");
             engine.Start();
             engine.Update(1f);
@@ -208,7 +212,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         [Test]
         public void ReturningFloatFromUpdaterBecomesBigDouble()
         {
-            engine.RegisterMethod("method", (eng, cont, ev) => 1f);
+            engine.RegisterMethod("method", (eng, ev) => 1f);
             var reference = engine.CreateProperty("path", 0, updater: "method");
             engine.Start();
             engine.Update(1f);
@@ -218,7 +222,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         [Test]
         public void ReturningLongFromUpdaterBecomesBigDouble()
         {
-            engine.RegisterMethod("method", (eng, cont, ev) => 1L);
+            engine.RegisterMethod("method", (eng, ev) => 1L);
             var reference = engine.CreateProperty("path", 0, updater: "method");
             engine.Start();
             engine.Update(1f);
@@ -228,7 +232,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         [Test]
         public void ReturningDoubleFromUpdaterBecomesBigDouble()
         {
-            engine.RegisterMethod("method", (eng, cont, ev) => 1.0);
+            engine.RegisterMethod("method", (eng, ev) => 1.0);
             var reference = engine.CreateProperty("path", 0, updater: "method");
             engine.Start();
             engine.Update(1f);
@@ -236,9 +240,19 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         }
 
         [Test]
+        public void ReturningListFromUpdaterBecomesBigDouble()
+        {
+            engine.RegisterMethod("method", (eng, ev) => new List<ValueContainer>());
+            var reference = engine.CreateProperty("path", 0, updater: "method");
+            engine.Start();
+            engine.Update(1f);
+            Assert.AreEqual(new List<ValueContainer>(), reference.ValueAsList());
+        }
+
+        [Test]
         public void ReturningInvalidValueFromUpdaterThrowsException()
         {
-            engine.RegisterMethod("method", (eng, cont, ev) => new string[] { });
+            engine.RegisterMethod("method", (eng, ev) => new string[] { });
             var reference = engine.CreateProperty("path", 0, updater: "method");
             engine.Start();
             Assert.Throws(typeof(InvalidOperationException), () =>
@@ -247,11 +261,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
             });
         }
 
-        [Test]
+
         public void GettingBoolFromUnregisteredContainerLogsError()
         {
             LogAssert.Expect(LogType.Error, "[engine.internal.container] ValueContainer is not ready to be used; it must be assigned to a global property in the engine or a descendent of one before use.");
-            var container = engine.CreateValueContainer(path: null);
+            var container = engine.CreateValueContainer();
             container.ValueAsBool();
         }
 
@@ -259,7 +273,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         public void InterceptorMethodCalledBeforeSettingValue()
         {
             int call = 0;
-            engine.RegisterMethod("interceptor", (ie, vc, ev) => {
+            engine.RegisterMethod("interceptor", (ie, ev) =>
+            {
                 call++;
                 return null;
             });
@@ -277,7 +292,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         [Test]
         public void CanSetInterceptorMethod()
         {
-            UserMethod listener = (ie, vc, ev) => {
+            UserMethod listener = (ie, ev) =>
+            {
                 return null;
             };
             engine.CreateProperty("path").SetInterceptor(listener);
@@ -291,7 +307,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
             var container = engine.CreateProperty("path");
             var modifier = new CallCountingModifier(new AdditiveValueModifier("id", "modifier", 1));
             container.AddModifier(modifier);
-            for(int i = 0; i < 10; i++)
+            for (int i = 0; i < 10; i++)
             {
                 container.ValueAsNumber();
             }
@@ -340,15 +356,15 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
                 wrappedModifier.OnRemove(engine, container);
             }
 
-            public void Trigger(IdleEngine engine, string eventName)
+            public void Trigger(IdleEngine engine, string eventName, IDictionary<string, object> context = null)
             {
                 triggerCallCount++;
-                wrappedModifier.Trigger(engine, eventName);
+                wrappedModifier.Trigger(engine, eventName, context);
             }
 
-            public bool SupportsType(Type type)
+            public bool CanApply(object target)
             {
-                return wrappedModifier.SupportsType(type);
+                return wrappedModifier.CanApply(target);
             }
         }
     }

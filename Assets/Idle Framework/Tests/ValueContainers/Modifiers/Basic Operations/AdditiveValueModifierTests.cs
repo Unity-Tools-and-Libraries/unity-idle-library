@@ -32,10 +32,10 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers.BasicOperations
             {
                 new AdditiveValueModifier("", "", "value", new string[] { "value" }, Context.GlobalContextGenerator)
             });
-            engine.CreateProperty("value", 1);
+            engine.GetProperty("value").Set(1);
             vc.Set(BigDouble.One);
             Assert.AreEqual(new BigDouble(2), vc.ValueAsNumber());
-            engine.CreateProperty("value", 2);
+            engine.GetProperty("value").Set(2);
             Assert.AreEqual(new BigDouble(3), vc.ValueAsNumber());
         }
 

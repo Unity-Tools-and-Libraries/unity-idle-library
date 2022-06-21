@@ -28,5 +28,10 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers.Values
             var expressionResult = EvaluateCalculationExpression<object>(engine, container);
             return ((BigDouble)input).Add(expressionResult is ValueContainer ? (expressionResult as ValueContainer).ValueAsNumber() : (BigDouble)expressionResult);
         }
+
+        public override bool CanApply(object target)
+        {
+            return ValueContainer.DetermineType(target) == "number";
+        }
     }
 }

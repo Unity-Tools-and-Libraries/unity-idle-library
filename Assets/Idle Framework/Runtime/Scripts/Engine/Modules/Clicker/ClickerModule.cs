@@ -56,12 +56,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             return definitions;
         }
 
-        public void SetEngineProperties(IdleEngine engine)
+        public void ConfigureEngine(IdleEngine engine)
         {
             engine.RegisterMethod(PointsUpdater);
             engine.RegisterMethod(DoClick);
-            engine.RegisterMethod("ProducerUpdater", (ie, vc, args) => Updater<ProducerDefinition>("producer", ie, vc, args));
-            engine.RegisterMethod("UpgradeUpdater", (ie, vc, args) => Updater<UpgradeDefinition>("upgrade", ie, vc, args));
+            engine.RegisterMethod("ProducerUpdater", (ie, args) => Updater<ProducerDefinition>("producer", ie, args));
+            engine.RegisterMethod("UpgradeUpdater", (ie, args) => Updater<UpgradeDefinition>("upgrade", ie, args));
 
             engine.CreateProperty(DefaultProperties.PRODUCER_COST_SCALE_FACTOR, 1.15);
             engine.SetDefinitions("producer", definitions["producer"]);
@@ -71,20 +71,21 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             foreach (var producer in definitions["producer"])
             {
                 string producerBasePath = string.Join(".", "producers", producer.Key);
-                engine.CreateProperty(producerBasePath, updater: "ProducerUpdater");
-                engine.CreateProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.COST), ((ProducerDefinition)producer.Value).CostExpression, modifiers: new List<IContainerModifier>() {
-                    new MultiplicativeValueModifier(String.Format("producer {0} quantity cost modifier", producer.Key), "cost multiplier", "1.15 ^ this.quantity", new string[] { producerBasePath + ".quantity" }, ValueContainer.Context.ParentGenerator)
-                });
+                engine.CreateProperty(producerBasePath, new Dictionary<string, ValueContainer>(), updater: "ProducerUpdater");
                 engine.CreateProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.QUANTITY), 0);
+                engine.CreateProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.COST), ((ProducerDefinition)producer.Value).CostExpression, modifiers: new List<IContainerModifier>() {
+                    new MultiplicativeValueModifier(String.Format("producer {0} quantity cost modifier", producer.Key), "cost multiplier", "1.15 ^ this.quantity", new string[] { "this.quantity" }, ValueContainer.Context.ParentGenerator)
+                });
                 engine.CreateProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.OUTPUT_PER_UNIT), ((ProducerDefinition)producer.Value).OutputPerSecond);
                 engine.CreateProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.TOTAL_OUTPUT), 0, modifiers: new List<IContainerModifier>()
                 {
-                    new AdditiveValueModifier(producer.Key + "base", "base", "this.output_per_unit_per_second * this.quantity",
-                    new string[] { "this.output_per_unit_per_second", "this.quantity", "this.output_multiplier"},
+                    new AdditiveValueModifier(String.Format(" producer {0} total output", producer.Key), "base", "this.output_per_unit_per_second * this.quantity",
+                    new string[] { "this.output_per_unit_per_second", "this.quantity"},
                     contextGenerator: Context.ParentGenerator)
                 });
                 engine.CreateProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.ENABLED), false);
                 engine.CreateProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.UNLOCKED), false);
+                engine.CreateProperty(string.Join(".", producerBasePath, ProducerDefinition.PropertyNames.BUYABLE), false);
 
                 string producerOutput = String.Format("producers.{0}.total_output", producer.Key);
                 engine.GetProperty("points.income").AddModifier(
@@ -106,41 +107,42 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             engine.RegisterMethod(BuyProducer);
         }
 
-        private static object Updater<T>(string type, IdleEngine engine, ValueContainer container, params object[] args)  where T: IDefinition
+        private static object Updater<T>(string type, IdleEngine engine, params object[] args)  where T: IDefinition
         {
+            var container = args[0] as ValueContainer;
             T entityDef = engine.GetDefinition<T>(type, container.Path.Substring(container.Path.LastIndexOf(".") + 1));
             if (!container[ProducerDefinition.PropertyNames.ENABLED].ValueAsBool() && ((IEnableable)entityDef).EnableExpression != null)
             {
-                container[ProducerDefinition.PropertyNames.ENABLED].Set((bool)engine.EvaluateExpression(((IEnableable)entityDef).EnableExpression));
+                container[ProducerDefinition.PropertyNames.ENABLED].Set((bool)engine.EvaluateExpression("return " + ((IEnableable)entityDef).EnableExpression));
                 if (container[ProducerDefinition.PropertyNames.ENABLED])
                 {
-                    engine.Broadcast(String.Format("{0}_enabled", type), entityDef);
+                    engine.Broadcast(String.Format("{0}_enabled", type), null, entityDef);
                 }
             }
             if (!container[ProducerDefinition.PropertyNames.UNLOCKED].ValueAsBool() && ((IUnlockable)entityDef).UnlockExpression != null)
             {
-                container[ProducerDefinition.PropertyNames.UNLOCKED].Set((bool)engine.EvaluateExpression(((IUnlockable)entityDef).UnlockExpression));
+                container[ProducerDefinition.PropertyNames.UNLOCKED].Set((bool)engine.EvaluateExpression("return " + ((IUnlockable)entityDef).UnlockExpression));
                 if (container[ProducerDefinition.PropertyNames.UNLOCKED])
                 {
-                    engine.Broadcast(String.Format("{0}_unlocked", type), entityDef);
+                    engine.Broadcast(String.Format("{0}_unlocked", type), null, entityDef);
                 }
             }
             BigDouble quantity = container.ValueAsMap().ContainsKey(ProducerDefinition.PropertyNames.QUANTITY) ? container[ProducerDefinition.PropertyNames.QUANTITY].ValueAsNumber() : 0;
             container.GetProperty(ProducerDefinition.PropertyNames.BUYABLE).Set(CalculatePurchaseCost(engine, (IBuyable)entityDef, quantity) <= engine.GetProperty("points.quantity").ValueAsNumber());
-            return args[1];
+            return args[2];
         }
 
-        private static object DoClick(IdleEngine engine, ValueContainer container, object[] args)
+        private static object DoClick(IdleEngine engine, object[] args)
         {
             BigDouble currentPoint = engine.GetProperty("points.quantity").ValueAsNumber();
             engine.GetProperty("points.quantity").Set(currentPoint + engine.GetProperty("points.click_income").ValueAsNumber());
             return null;
         }
 
-        private static object PointsUpdater(IdleEngine engine, ValueContainer container, params object[] args)
+        private static object PointsUpdater(IdleEngine engine, params object[] args)
         {
-            var updateTime = (float)args[0];
-            BigDouble previousValue = (BigDouble)args[1];
+            var updateTime = (BigDouble)args[1];
+            BigDouble previousValue = (BigDouble)args[2];
             return previousValue + (engine.GetProperty("points.income").ValueAsNumber() * updateTime);
         }
 
@@ -150,7 +152,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             points.Set(points.ValueAsNumber() - quantity);
         }
 
-        public static object BuyProducer(IdleEngine engine, ValueContainer container, object[] args)
+        public static object BuyProducer(IdleEngine engine, object[] args)
         {
             string producerId = args[0] as string;
             ProducerDefinition producerDefinition = engine.GetDefinition<ProducerDefinition>("producer", producerId);
@@ -162,10 +164,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 
         public static BigDouble CalculatePurchaseCost(IdleEngine engine, IBuyable buyable, BigDouble quantity)
         {
-            return ((BigDouble)engine.EvaluateExpression(buyable.CostExpression) * new BigDouble(1.15).Pow(quantity)).Ceiling();
+            return ((BigDouble)engine.EvaluateExpression("return " + buyable.CostExpression) * new BigDouble(1.15).Pow(quantity)).Ceiling();
         }
 
-        public static object BuyUpgrade(IdleEngine engine, ValueContainer container, params object[] args)
+        public static object BuyUpgrade(IdleEngine engine, params object[] args)
         {
             string upgradeId = args[0] as string;
             UpgradeDefinition upgradeDefinition = engine.GetDefinition<UpgradeDefinition>("upgrade", upgradeId);

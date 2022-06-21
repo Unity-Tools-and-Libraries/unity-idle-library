@@ -15,10 +15,10 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
      */
     public abstract class CompositeModifier : ContainerModifier
     {
-        public Dictionary<string, string> Modifications { get; }
-        public Dictionary<string, List<string>> Events { get; }
+        public IDictionary<string, string> Modifications { get; }
+        public IDictionary<string, List<string>> Events { get; }
 
-        protected CompositeModifier(string id, string description, Dictionary<string, string> Modifications, Dictionary<string, List<string>> Events = null, int priority = 0) : base(id, description, priority: priority)
+        protected CompositeModifier(string id, string description, IDictionary<string, string> Modifications, IDictionary<string, List<string>> Events = null, int priority = 0) : base(id, description, priority: priority)
         {
             this.Events = Events;
             this.Modifications = Modifications;
@@ -28,11 +28,16 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
         {
             if (Modifications != null)
             {
+                var context = new Dictionary<string, object>()
+                    {
+                        { "target", target }
+                    };
                 foreach (var effect in Modifications)
                 {
+
                     try
                     {
-                        ValueContainer effectTarget = engine.GetOrCreateContainerByPath(string.Join(".", target.Path, effect.Key));
+                        ValueContainer effectTarget = (engine.EvaluateExpression(string.Format("return getOrCreate('{0}')", effect.Key), context) as ValueContainer);
                         ContainerModifier modifier = GenerateValueModifier(target.Engine, Id, effectTarget, effect.Value);
                         effectTarget.AddModifier(modifier);
                     }
@@ -46,11 +51,15 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
 
         public override void OnRemove(IdleEngine engine, ValueContainer target)
         {
+            var context = new Dictionary<string, object>()
+                    {
+                        { "target", target }
+                    };
             foreach (var effect in Modifications)
             {
                 try
                 {
-                    ValueContainer effectTarget = target.GetProperty(effect.Key);
+                    ValueContainer effectTarget = (engine.EvaluateExpression("return " + effect.Key, context) as ValueContainer);
                     if (effectTarget == null)
                     {
                         throw new InvalidOperationException("No contained at path " + String.Join(".", target.Path, effect.Key) + " found.");
@@ -65,7 +74,8 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
             }
         }
 
-        public override void Trigger(IdleEngine engine, string eventName) {
+        public override void Trigger(IdleEngine engine, string eventName, IDictionary<string, object> Context = null)
+        {
             if (Events != null)
             {
                 List<string> actions;
@@ -73,7 +83,7 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
                 {
                     foreach (var action in actions)
                     {
-                        engine.EvaluateExpression(action);
+                        engine.EvaluateExpression(action, Context);
                     }
                 }
             }
@@ -88,7 +98,7 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
             {
                 throw new ArgumentException("Unknown operator " + modifierOperator);
             }
-            switch(modifierOperator)
+            switch (modifierOperator)
             {
                 case ContainerModifier.ADD_OPERATOR:
                     return new AdditiveValueModifier(Id, this.Id, valueExpression);
@@ -104,6 +114,6 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
             throw new InvalidOperationException();
         }
 
-        
+
     }
 }

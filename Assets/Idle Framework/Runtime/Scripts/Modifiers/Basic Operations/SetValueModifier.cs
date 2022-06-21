@@ -27,7 +27,7 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers.Values
             return EvaluateCalculationExpression<object>(engine, container);
         }
 
-        public override bool SupportsType(Type type)
+        public override bool CanApply(object target)
         {
             return true;
         }

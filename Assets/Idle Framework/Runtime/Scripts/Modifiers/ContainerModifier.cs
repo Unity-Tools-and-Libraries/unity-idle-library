@@ -60,7 +60,7 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
         }
 
         public virtual void OnUpdate(IdleEngine engine, ValueContainer container) { }
-        public virtual void Trigger(IdleEngine engine, string eventName) { }
+        public virtual void Trigger(IdleEngine engine, string eventName, IDictionary<string, object> context = null) { }
 
         public virtual IDictionary<string, object> GenerateContext(IdleEngine engine, ValueContainer container)
         {
@@ -89,7 +89,10 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
             hashCode = hashCode * -1521134295 + EqualityComparer<ContextGenerator>.Default.GetHashCode(contextGenerator);
             return hashCode;
         }
-
-        public abstract bool SupportsType(Type type);
+        public abstract bool CanApply(object target);
+        public override string ToString()
+        {
+            return String.Format("{0} '{1}'", GetType().Name, Id);
+        }
     }
 }

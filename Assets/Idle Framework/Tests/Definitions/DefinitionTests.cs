@@ -21,8 +21,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Definitions
                     { "childString", "child" }
                 } }
             });
-            var instance = engine.InstantiateDefinition(def);
-            instance.Path = "path";
+            var instance = engine.InstantiateDefinitionInstance(def);
+            engine.CreateProperty("path", instance);
             Assert.AreEqual("string", instance.ValueAsMap()["foo"].ValueAsString());
             Assert.AreEqual(BigDouble.One, instance.ValueAsMap()["bar"].ValueAsNumber());
             Assert.AreEqual(true, instance.ValueAsMap()["baz"].ValueAsBool());

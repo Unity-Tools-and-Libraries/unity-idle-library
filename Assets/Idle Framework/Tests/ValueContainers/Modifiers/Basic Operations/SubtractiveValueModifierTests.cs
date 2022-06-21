@@ -31,10 +31,10 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers.BasicOperations
             {
                 new SubtractiveValueModifier("", "", "value", new string[] { "value" }, contextGenerator: Context.GlobalContextGenerator)
             });
-            engine.CreateProperty("value", 1);
+            engine.GetProperty("value").Set(1);
             vc.Set(BigDouble.One);
             Assert.AreEqual(new BigDouble(0), vc.ValueAsNumber());
-            engine.CreateProperty("value", 2);
+            engine.GetProperty("value").Set(2);
             Assert.AreEqual(new BigDouble(-1), vc.ValueAsNumber());
         }
 

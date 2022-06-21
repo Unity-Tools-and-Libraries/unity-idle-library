@@ -10,13 +10,13 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         public void NotifyTriggersListenersOnEngine()
         {
             int listenerCallCount = 0;
-            IdleEngine.UserMethod listener = (ie, vc, ev) => {
+            IdleEngine.UserMethod listener = (ie, ev) => {
                 listenerCallCount++;
                 return null; };
             engine.RegisterMethod(listener);
             engine.Subscribe("", "event", listener);
             engine.Start();
-            engine.NotifyImmediately("event", null);
+            engine.NotifyImmediately("event", args: null);
             Assert.AreEqual(1, listenerCallCount);
         }
 
@@ -24,7 +24,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         public void BroadcastNotifiesListeners()
         {
             int listenerCallCount = 0;
-            IdleEngine.UserMethod listener = (ie, vc, ev) => {
+            IdleEngine.UserMethod listener = (ie, ev) => {
                 listenerCallCount++;
                 return null;
             };
@@ -39,23 +39,23 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         public void NotifyBubblesUp()
         {
             int listenerCallCount = 0;
-            IdleEngine.UserMethod listener = (ie, vc, ev) => {
+            IdleEngine.UserMethod listener = (ie, ev) => {
                 listenerCallCount++;
                 return null;
             };
-            engine.RegisterMethod(listener);
+            engine.RegisterMethod("listener", listener);
             var global = engine.CreateProperty("global");
-            global.Subscribe("event", "event", listener.Method.Name);
+            global.Subscribe("event", "event", "listener");
             
             var middle = engine.CreateProperty("global.middle");
-            middle.Subscribe("event", "event", listener.Method.Name);
+            middle.Subscribe("event", "event", "listener");
 
             var bottom = engine.CreateProperty("global.middle.bottom");
-            bottom.Subscribe("event", "event", listener.Method.Name);
+            bottom.Subscribe("event", "event", "listener");
 
-            engine.Subscribe("", "event", listener);
+            engine.Subscribe("", "event", "listener");
             engine.Start();
-            bottom.NotifyImmediately("event", null);
+            bottom.NotifyImmediately("event", args: null);
             Assert.AreEqual(3, listenerCallCount);
         }
 
@@ -63,17 +63,17 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         public void CanUnsubscribeGlobalListeners()
         {
             int listenerCallCount = 0;
-            IdleEngine.UserMethod listener = (ie, vc, ev) => {
+            IdleEngine.UserMethod listener = (ie, ev) => {
                 listenerCallCount++;
                 return null;
             };
             engine.RegisterMethod(listener);
             var subscription = engine.Subscribe("", "event", listener);
             engine.Start();
-            engine.NotifyImmediately("event", null);
+            engine.NotifyImmediately("event", args: null);
             Assert.AreEqual(1, listenerCallCount);
             engine.Unsubscribe(subscription);
-            engine.NotifyImmediately("event", null);
+            engine.NotifyImmediately("event", args: null);
             Assert.AreEqual(1, listenerCallCount);
         }
 
@@ -81,17 +81,17 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         public void CanUnsubscribeGlobalListenersByNameAndSource()
         {
             int listenerCallCount = 0;
-            IdleEngine.UserMethod listener = (ie, vc, ev) => {
+            IdleEngine.UserMethod listener = (ie, ev) => {
                 listenerCallCount++;
                 return null;
             };
             engine.RegisterMethod(listener);
             var subscription = engine.Subscribe("", "event", listener);
             engine.Start();
-            engine.NotifyImmediately("event", null);
+            engine.NotifyImmediately("event", args: null);
             Assert.AreEqual(1, listenerCallCount);
             engine.Unsubscribe(subscription.SubscriberDescription, subscription.Event);
-            engine.NotifyImmediately("event", null);
+            engine.NotifyImmediately("event", args: null);
             Assert.AreEqual(1, listenerCallCount);
         }
     }

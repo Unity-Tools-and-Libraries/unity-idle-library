@@ -19,5 +19,10 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
         {
             return BigDouble.Max(EvaluateCalculationExpression<BigDouble>(engine, container), (BigDouble)input);
         }
+
+        public override bool CanApply(object target)
+        {
+            return ValueContainer.DetermineType(target) == "number";
+        }
     }
 }

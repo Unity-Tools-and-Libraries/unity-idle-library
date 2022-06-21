@@ -1,7 +1,10 @@
 using BreakInfinity;
+using io.github.thisisnozaku.idle.framework.Engine;
 using io.github.thisisnozaku.idle.framework.Modifiers;
 using io.github.thisisnozaku.idle.framework.Modifiers.Values;
 using NUnit.Framework;
+using System.Collections.Generic;
+using static io.github.thisisnozaku.idle.framework.Tests.ValueContainers.ValueContainerTest;
 
 namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
 {
@@ -21,6 +24,20 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
             });
             reference.Set(0);
             Assert.AreEqual(new BigDouble(1), reference.ValueAsNumber());
+        }
+
+        [Test]
+        public void CallingSetModifiersUnsubscribesTheExistingModifiers()
+        {
+            engine.CreateProperty("value", 1);
+            var modifier = new AdditiveValueModifier("modifier", "", "value");
+            engine.CreateProperty("path", modifiers: new List<IContainerModifier>()
+            {
+                modifier
+            });
+            Assert.AreEqual(1, modifier.CachedChangeListeners.Length);
+            engine.GetProperty("path").SetModifiers(new List<IContainerModifier>());
+            Assert.AreEqual(0, modifier.CachedChangeListeners.Length);
         }
 
         [Test]
@@ -48,7 +65,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         [Test]
         public void ModifiersApplyToUpdateOutputValue()
         {
-            engine.RegisterMethod("update", (e, vc, ev) => BigDouble.One);
+            engine.RegisterMethod("update", (e, ev) => BigDouble.One);
             var reference = engine.CreateProperty("path", BigDouble.Zero, "", new System.Collections.Generic.List<IContainerModifier>()
             {
                 new AdditiveValueModifier("add", "", 1),
@@ -59,5 +76,15 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
             engine.Update(1f);
             Assert.AreEqual(new BigDouble(3), reference.ValueAsNumber());
         }
+
+        /*
+        public class ThrowOnCacheClearModifier : ValueModifier
+        {
+            public override object Apply(IdleEngine engine, ValueContainer container, object input)
+            {
+                throw new System.NotImplementedException();
+            }
+        }
+        */
     }
 }

@@ -9,6 +9,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules
     public interface IModule
     {
         IDictionary<string, IDictionary<string, IDefinition>> GetDefinitions();
-        void SetEngineProperties(IdleEngine engine);
+        void ConfigureEngine(IdleEngine engine);
     }
 }

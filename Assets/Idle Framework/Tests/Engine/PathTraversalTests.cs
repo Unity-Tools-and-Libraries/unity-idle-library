@@ -26,11 +26,31 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         }
 
         [Test]
-        public void NavigatingToNonExistantChildPathReturnsNNewContainer()
+        public void NavigatingToNonExistantChildPathWithGetOrCreateOptionReturnsNewContainer()
         {
             var container = engine.CreateProperty("top");
             
-            Assert.NotNull(engine.GetProperty("top.middle"));
+            Assert.NotNull(engine.GetProperty("top.middle", framework.Engine.IdleEngine.GetOperationType.GET_OR_CREATE));
+        }
+
+        [Test]
+        public void NavigatingToNonExistantChildPathWithGetOrNullOptionReturnsNull()
+        {
+            var container = engine.CreateProperty("top");
+
+            Assert.Null(engine.GetProperty("top.middle", framework.Engine.IdleEngine.GetOperationType.GET_OR_NULL));
+            Assert.Null(engine.GetProperty("top.middle"));
+        }
+
+        [Test]
+        public void NavigatingToNonExistantChildPathWithGetOrThrowOptionThrows()
+        {
+            var container = engine.CreateProperty("top");
+
+            Assert.Throws(typeof(InvalidOperationException), () =>
+            {
+                Assert.Null(engine.GetProperty("top.middle", framework.Engine.IdleEngine.GetOperationType.GET_OR_THROW));
+            });
         }
     }
 }

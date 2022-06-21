@@ -18,11 +18,10 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers
         [Test]
         public void OnAddAppliesChildModifications()
         {
-            var modifier = new MockCompositeListener("mock", "", Modifications: new Dictionary<string, string>()
-        {
-            { "childString", "=\"foobar\"" },
-            { "childNumber", "=5" }
-        });
+            var modifier = new MockCompositeListener("mock", "", Modifications: new Dictionary<string, string>(){
+                { "target.childString", "=\"foobar\"" },
+                { "target.childNumber", "=5" }
+            });
             var target = engine.CreateProperty("path", new Dictionary<string, ValueContainer>());
             target.AddModifier(modifier);
             Assert.AreEqual("foobar", target.GetProperty("childString").ValueAsString());
@@ -34,8 +33,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers
         {
             var modifier = new MockCompositeListener("", "", Modifications: new Dictionary<string, string>()
         {
-            { "childString", "=\"foobar\"" },
-            { "childNumber", "=5" }
+            { "target.childString", "=\"foobar\"" },
+            { "target.childNumber", "=5" }
         });
             var target = engine.CreateProperty("path", new Dictionary<string, ValueContainer>());
             target.AddModifier(modifier);
@@ -57,7 +56,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers
             });
             var target = engine.CreateProperty("path", new Dictionary<string, ValueContainer>());
             target.AddModifier(modifier);
-            engine.RegisterMethod("method", (a, b, c) => {
+            engine.RegisterMethod("method", (a, c) =>
+            {
                 callCount++;
                 return null;
             });
@@ -71,7 +71,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers
             {
             }
 
-            public override bool SupportsType(Type type)
+            public override bool CanApply(object target)
             {
                 return true;
             }

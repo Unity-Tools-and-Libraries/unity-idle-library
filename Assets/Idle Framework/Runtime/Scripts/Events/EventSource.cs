@@ -17,10 +17,6 @@ namespace io.github.thisisnozaku.idle.framework.Events
          */
         void Unsubscribe(ListenerSubscription subscription);
         /*
-         * Remove the given subscription.
-         */
-        void Unsubscribe(string subscriber, string eventName);
-        /*
          * Immediately notify all listeners on this source.
          * 
          * Additionally, will notify parents of this source if the event bubbles.

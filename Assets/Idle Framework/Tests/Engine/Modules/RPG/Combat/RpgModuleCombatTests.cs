@@ -4,6 +4,7 @@ using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg;
 using BreakInfinity;
 using static io.github.thisisnozaku.idle.framework.Engine.IdleEngine;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Combat;
+using System;
 
 namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 {
@@ -16,12 +17,17 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         public void Setup()
         {
             base.InitializeEngine();
-            engine.AddModule(new RpgModule());
-            engine.CreateProperty("configuration.action_meter_required_to_act", 2);
+            var module = new RpgModule();
+
+            module.AddCreature(new CreatureDefinition.Builder().Build("1"));
+            module.AddEncounter(new EncounterDefinition("1", Tuple.Create("1", 1)));
+
+            engine.AddModule(module);
             engine.OverrideRandomNumberGenerator(rng);
             
             attacker = engine.CreateProperty("attacker", new Dictionary<string, ValueContainer>(), updater: "CharacterUpdateMethod").AsCharacter();
-            defender = engine.CreateProperty("defender", new Dictionary<string, ValueContainer>(), updater: "CharacterUpdateMethod").AsCharacter();
+            attacker.Precision = 5;
+            defender = engine.CreateProperty("encounter.creatures", new List<ValueContainer>() { engine.CreateValueContainer() }).ValueAsList()[0].AsCharacter();
 
             defender.MaximumHealth = defender.CurrentHealth = 10;
             attacker.Damage = 1;
@@ -37,8 +43,9 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         }
 
         [Test]
-        public void UpdateUpdatedActionMeterOfEachCharacterInCombat()
+        public void UpdateActionMeterOfEachCharacterInCombat()
         {
+            rng.SetNextValue(0);
             engine.Update(1f);
             Assert.AreEqual(new BigDouble(1), attacker.ActionMeter);
             Assert.AreEqual(new BigDouble(1), defender.ActionMeter);
@@ -52,9 +59,14 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
                 listenerCalled = true;
                 return null;
             });
+            rng.SetNextValue(0);
+            rng.SetNextValue(0);
+            rng.SetNextValue(0); rng.SetNextValue(0); rng.SetNextValue(0); rng.SetNextValue(0); rng.SetNextValue(0); rng.SetNextValue(0); rng.SetNextValue(0); rng.SetNextValue(0);
+            rng.SetNextValue(100);
+            attacker.ActionMeter = 2;
             attacker.ActionMeter = 100000;
             attacker.Subscribe("test", CharacterActedEvent.EventName, "listener");
-            engine.Update(2.5f);
+            engine.Update(.5f);
             Assert.IsTrue(listenerCalled);
         }
 
@@ -63,9 +75,14 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         {
             
             rng.SetNextValue(1);
+            rng.SetNextValue(1000);
+
             Assert.AreEqual(new BigDouble(10), defender.CurrentHealth);
             engine.MakeAttack(attacker, defender);
             Assert.AreEqual(new BigDouble(9), defender.CurrentHealth);
+
+            rng.SetNextValue(1);
+            rng.SetNextValue(1000);
             attacker.Damage = 5;
             engine.MakeAttack(attacker, defender);
             Assert.AreEqual(new BigDouble(4), defender.CurrentHealth);
@@ -75,6 +92,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         public void WhenAnAttackHitsTheDefenderADamageTakenEventIsDispatched()
         {
             rng.SetNextValue(1);
+            rng.SetNextValue(1000);
             int callCount = 0;
             UserMethod listener = (ie, args) => {
                 callCount++;
@@ -102,17 +120,27 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             Assert.True(attackMissed);
         }
 
-        public class RiggedRandom: System.Random
+        [Test]
+        public void WhenAttackHitsAndCritRollLessThanAttackerCritChance()
         {
-            private int? nextValue;
-            public void SetNextValue(int nextValue) => this.nextValue = nextValue;
+            rng.SetNextValue(0);
+            rng.SetNextValue(0);
+            rng.SetNextValue(0);
+            var result = engine.MakeAttack(attacker, defender);
+            Assert.AreEqual("critical hit", result.Description);
+        }
+
+        public class RiggedRandom: Random
+        {
+            private Queue<int> nextValues = new Queue<int>();
+            public void SetNextValue(int nextValue) => nextValues.Enqueue(nextValue);
             public override int Next(int maxValue)
             {
-                if(nextValue.HasValue)
+                if(nextValues.Count > 0)
                 {
-                    return nextValue.Value;
+                    return nextValues.Dequeue();
                 }
-                throw new System.Exception();
+                throw new Exception();
             }
         }
     }

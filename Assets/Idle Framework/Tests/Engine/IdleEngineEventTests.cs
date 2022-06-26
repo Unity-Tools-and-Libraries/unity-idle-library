@@ -76,23 +76,5 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
             engine.NotifyImmediately("event", args: null);
             Assert.AreEqual(1, listenerCallCount);
         }
-
-        [Test]
-        public void CanUnsubscribeGlobalListenersByNameAndSource()
-        {
-            int listenerCallCount = 0;
-            IdleEngine.UserMethod listener = (ie, ev) => {
-                listenerCallCount++;
-                return null;
-            };
-            engine.RegisterMethod(listener);
-            var subscription = engine.Subscribe("", "event", listener);
-            engine.Start();
-            engine.NotifyImmediately("event", args: null);
-            Assert.AreEqual(1, listenerCallCount);
-            engine.Unsubscribe(subscription.SubscriberDescription, subscription.Event);
-            engine.NotifyImmediately("event", args: null);
-            Assert.AreEqual(1, listenerCallCount);
-        }
     }
 }

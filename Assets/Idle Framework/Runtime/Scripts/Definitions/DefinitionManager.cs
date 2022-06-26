@@ -1,4 +1,4 @@
-using System.Collections;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -23,7 +23,7 @@ namespace io.github.thisisnozaku.idle.framework.Definitions
         {
             IDictionary<string, IDefinition> definitions;
             this.definitions.TryGetValue(typeName, out definitions);
-            return (ICollection<T>)definitions;
+            return definitions.Values.Select(x => (T)x).ToList();
         }
 
         public void SetDefinitions(string typeName, IDictionary<string, IDefinition> definitions)

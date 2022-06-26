@@ -1,6 +1,7 @@
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg;
 using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 {
@@ -15,6 +16,13 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             module.AddStatus(new StatusDefinition.Builder()
                 .SetsProperty("statused", "true")
                 .Build("status", "status"));
+
+            module.AddCreature(new CreatureDefinition.Builder()
+                .WithHealthExpression("1")
+                .Build("1"));
+
+            module.AddEncounter(new EncounterDefinition("1", Tuple.Create("1", 1)));
+
             engine.AddModule(module);
             character = engine.CreateProperty("character").AsCharacter();
         }

@@ -1,5 +1,6 @@
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg;
 using NUnit.Framework;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,13 +11,17 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg.Abiliti
     public class RpgModuleAbilitiesInCombatTests : RequiresEngineTests
     {
         private Character attacker, defender;
-        private RiggedRandom rng = new RiggedRandom();
+        private RiggedRandom rng;
 
         [SetUp]
         public void Setup()
         {
+            rng = new RiggedRandom();
             base.InitializeEngine();
-            engine.AddModule(new RpgModule());
+            var module = new RpgModule();
+            module.AddCreature(new CreatureDefinition.Builder().Build("1"));
+            module.AddEncounter(new EncounterDefinition("1", Tuple.Create("1", 1)));
+            engine.AddModule(module);
             engine.CreateProperty("configuration.action_meter_required_to_act", 2);
             engine.OverrideRandomNumberGenerator(rng);
 
@@ -63,6 +68,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg.Abiliti
         public void AbilityCanTriggerOnHittingWithAttack()
         {
             rng.SetNextValue(1);
+            rng.SetNextValue(100);
             engine.MakeAttack(attacker, defender);
             Assert.IsTrue(attacker.GetProperty("hit").ValueAsBool());
         }
@@ -70,6 +76,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg.Abiliti
         [Test]
         public void AbilityCanTriggerOnMissingingWithAttack()
         {
+            rng.SetNextValue(100);
             rng.SetNextValue(100);
             engine.MakeAttack(attacker, defender);
             Assert.IsTrue(attacker.GetProperty("missed").ValueAsBool());
@@ -87,6 +94,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg.Abiliti
         public void AbilityCanTriggerOnBeingHitWithAttack()
         {
             rng.SetNextValue(1);
+            rng.SetNextValue(1000);
             engine.MakeAttack(attacker, defender);
             Assert.IsTrue(defender.GetProperty("was_hit").ValueAsBool());
         }
@@ -106,6 +114,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg.Abiliti
                 {
                     Assert.IsTrue(result.AttackHit);
                 }
+                rng.SetNextValue(74);
+                rng.SetNextValue(1000);
             }
         }
     }

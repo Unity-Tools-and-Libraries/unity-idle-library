@@ -36,6 +36,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                     return DynValue.NewString(c.Path);
                 case "Parent":
                     return DynValue.FromObject(script, c.Parent);
+                case "AsNumber":
+                    return DynValue.FromObject(script, c.AsNumber);
+                case "AsString":
+                    return DynValue.NewString(c.AsString);
+                case "AsBool":
+                    return DynValue.NewBoolean(c.AsBool);
+                case "AsList":
+                    return DynValue.FromObject(script, c.AsList);
+                case "AsMap":
+                    return DynValue.FromObject(script, c.AsMap);
                 default:
                     return DynValue.FromObject(script, c.GetProperty(index.CastToString(), IdleEngine.GetOperationType.GET_OR_CREATE));
             }

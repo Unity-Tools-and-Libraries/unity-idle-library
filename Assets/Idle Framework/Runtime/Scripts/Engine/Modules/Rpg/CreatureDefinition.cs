@@ -1,4 +1,5 @@
 using io.github.thisisnozaku.idle.framework.Definitions;
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,17 +9,29 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 {
     public class CreatureDefinition : IDefinition
     {
-        public string Id => throw new System.NotImplementedException();
+        public string Id { get; }
         private IDictionary<string, object> properties;
         public IDictionary<string, object> Properties => properties;
 
+        [JsonConstructor]
         private CreatureDefinition(string id, IDictionary<string, object> properties) {
+            this.Id = id;
             this.properties = properties;
         }
 
         public class Builder
         {
-            private IDictionary<string, object> properties = new Dictionary<string, object>();
+            private IDictionary<string, object> properties = new Dictionary<string, object>()
+            {
+                { Character.Attributes.DAMAGE,              "1" },
+                { Character.Attributes.MAXIMUM_HEALTH,      "1" },
+                { Character.Attributes.ACCURACY,            "0" },
+                { Character.Attributes.ACTION,              ""  },
+                { Character.Attributes.ACTION_METER_SPEED,  "0" },
+                { Character.Attributes.DEFENSE,             "0" },
+                { Character.Attributes.EVASION,             "0" },
+                { Character.Attributes.PENETRATION,         "0" }
+            };
             public CreatureDefinition Build(string withId)
             {
                 return new CreatureDefinition(withId, properties);
@@ -33,6 +46,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             public Builder WithDamageExpression(string expression)
             {
                 properties[Character.Attributes.DAMAGE] = expression;
+                return this;
+            }
+
+            public Builder WithIcon(string iconPath)
+            {
+                properties[Character.Attributes.ICON] = iconPath;
                 return this;
             }
         }

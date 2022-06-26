@@ -37,6 +37,10 @@ namespace io.github.thisisnozaku.idle.framework
             while (children.MoveNext())
             {
                 var child = children.Current;
+                if(parent.Path != null)
+                {
+                    child.Value.Path = string.Join(".", parent.Path, child.Key);
+                }
                 child.Value.Parent = parent;
             }
         }

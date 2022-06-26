@@ -59,7 +59,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
         public void ConfigureEngine(IdleEngine engine)
         {
             engine.RegisterMethod(PointsUpdater);
-            engine.RegisterMethod(DoClick);
+            engine.RegisterMethod("DoClick", DoClick);
             engine.RegisterMethod("ProducerUpdater", (ie, args) => Updater<ProducerDefinition>("producer", ie, args));
             engine.RegisterMethod("UpgradeUpdater", (ie, args) => Updater<UpgradeDefinition>("upgrade", ie, args));
 
@@ -67,7 +67,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             engine.SetDefinitions("producer", definitions["producer"]);
             engine.CreateProperty("points.income", 0);
             engine.CreateProperty("points.click_income", 1);
-            engine.CreateProperty("points.quantity", 0, updater: "PointsUpdater");
+            engine.CreateProperty("points.quantity", 0, updater: IdleEngine.NormalizeFullMethodName(PointsUpdater));
             foreach (var producer in definitions["producer"])
             {
                 string producerBasePath = string.Join(".", "producers", producer.Key);
@@ -179,6 +179,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             SpendPoints(engine, CalculatePurchaseCost(engine, upgradeDefinition, 0));
             engine.GetProperty(String.Join(".", "upgrades", upgradeId)).NotifyImmediately("upgrade_bought", upgradeId);
             return null;
+        }
+
+        public void AssertReady()
+        {
+            
         }
 
         public static class DefaultProperties

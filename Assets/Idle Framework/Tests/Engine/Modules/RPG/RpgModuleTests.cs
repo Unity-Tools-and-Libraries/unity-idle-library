@@ -1,5 +1,6 @@
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg;
 using NUnit.Framework;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -13,7 +14,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         {
             base.InitializeEngine();
 
-            engine.AddModule(new RpgModule());
+            var module = new RpgModule();
+            module.AddCreature(new CreatureDefinition.Builder().Build("1"));
+            module.AddEncounter(new EncounterDefinition("1", Tuple.Create("1", 1)));
+
+            engine.AddModule(module);
         }
         [Test]
         public void SetsAnActionPhaseStringProperty()

@@ -19,6 +19,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             var creatureDef = new CreatureDefinition.Builder()
                 .WithHealthExpression("5")
                 .WithDamageExpression("1")
+                .WithIcon("")
                 .Build("1");
             engine.SetDefinitions("creature", new Dictionary<string, IDefinition>()
             {

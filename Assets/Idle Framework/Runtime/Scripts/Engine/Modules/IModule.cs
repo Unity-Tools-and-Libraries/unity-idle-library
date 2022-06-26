@@ -10,5 +10,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules
     {
         IDictionary<string, IDictionary<string, IDefinition>> GetDefinitions();
         void ConfigureEngine(IdleEngine engine);
+        void AssertReady();
     }
 }

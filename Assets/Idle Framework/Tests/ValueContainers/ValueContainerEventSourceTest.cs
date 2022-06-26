@@ -67,34 +67,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         }
 
         [Test]
-        public void CanUnsubscribeByMethodNameAndSubscriberDescription()
-        {
-            int listenerCallCount = 0;
-            UserMethod changed = (ie, args) =>
-            {
-                var newValue = args[2];
-                if (listenerCallCount == 1)
-                {
-                    Assert.AreEqual(BigDouble.One, newValue);
-                }
-                else
-                {
-                    Assert.AreEqual(BigDouble.Zero, newValue);
-                }
-                listenerCallCount++;
-                return null;
-            };
-            engine.RegisterMethod(changed);
-            engine.Start();
-            var subscription = valueReference.Subscribe("", ValueChangedEvent.EventName, changed);
-            valueReference.Set(1);
-            Assert.AreEqual(2, listenerCallCount);
-            valueReference.Unsubscribe("", ValueChangedEvent.EventName);
-            valueReference.Set(3);
-            Assert.AreEqual(2, listenerCallCount);
-        }
-
-        [Test]
         public void BroadcastCallsNotificationOnContainerAndAllChildren()
         {
             int listenerCallCount = 0;

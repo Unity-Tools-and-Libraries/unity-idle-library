@@ -25,12 +25,30 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             {
                 underlying.GetProperty(Attributes.STATUSES).Set(new Dictionary<string, ValueContainer>());
             }
-            underlying.GetProperty(Attributes.MAXIMUM_HEALTH, IdleEngine.GetOperationType.GET_OR_CREATE);
-            underlying.GetProperty(Attributes.CURRENT_HEALTH, IdleEngine.GetOperationType.GET_OR_CREATE);
-            underlying.GetProperty(Attributes.ACTION, IdleEngine.GetOperationType.GET_OR_CREATE).Set("");
-            underlying.GetProperty(Attributes.ACTION_METER, IdleEngine.GetOperationType.GET_OR_CREATE).Set(0);
-            underlying.GetProperty(Attributes.LEVEL, IdleEngine.GetOperationType.GET_OR_CREATE).Set(0);
-            underlying.GetProperty(Attributes.ITEMS, IdleEngine.GetOperationType.GET_OR_CREATE).Set(new Dictionary<string, ValueContainer>());
+            if(underlying.GetProperty(Attributes.MAXIMUM_HEALTH, IdleEngine.GetOperationType.GET_OR_CREATE).ValueAsRaw() == null)
+            {
+                underlying.GetProperty(Attributes.MAXIMUM_HEALTH, IdleEngine.GetOperationType.GET_OR_CREATE).Set(0);
+            }
+            if (underlying.GetProperty(Attributes.CURRENT_HEALTH, IdleEngine.GetOperationType.GET_OR_CREATE).ValueAsRaw() == null)
+            {
+                underlying.GetProperty(Attributes.CURRENT_HEALTH, IdleEngine.GetOperationType.GET_OR_CREATE).Set(0);
+            }
+            if(underlying.GetProperty(Attributes.ACTION, IdleEngine.GetOperationType.GET_OR_CREATE).ValueAsRaw() == null)
+            {
+                underlying.GetProperty(Attributes.ACTION, IdleEngine.GetOperationType.GET_OR_CREATE).Set("");
+            }
+            if (underlying.GetProperty(Attributes.ACTION_METER, IdleEngine.GetOperationType.GET_OR_CREATE).ValueAsRaw() == null)
+            {
+                underlying.GetProperty(Attributes.ACTION_METER, IdleEngine.GetOperationType.GET_OR_CREATE).Set(0);
+            }
+            if (underlying.GetProperty(Attributes.LEVEL, IdleEngine.GetOperationType.GET_OR_CREATE).ValueAsRaw() == null)
+            {
+                underlying.GetProperty(Attributes.LEVEL, IdleEngine.GetOperationType.GET_OR_CREATE).Set(1);
+            }
+            if (underlying.GetProperty(Attributes.ITEMS, IdleEngine.GetOperationType.GET_OR_CREATE).ValueAsMap() == null)
+            {
+                underlying.GetProperty(Attributes.ITEMS, IdleEngine.GetOperationType.GET_OR_CREATE).Set(new Dictionary<string, ValueContainer>());
+            }
             underlying.GetProperty(Attributes.ITEM_SLOTS, IdleEngine.GetOperationType.GET_OR_CREATE).Set(RpgModule.defaultItemSlots
                 .ToDictionary(x => x.Key, x => targetContainer.Engine.CreateValueContainer(x.Value)));
             targetContainer.SetUpdater("CharacterUpdateMethod");
@@ -38,6 +56,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
         public object Act(IdleEngine engine, params object[] args)
         {
+            var target = engine.GetRandomTarget(Party);
+            engine.MakeAttack(this, target);
+            underlying.NotifyImmediately(CharacterActedEvent.EventName, null, this);
             return null;
         }
         public string Id { get { return underlying.Id; } }
@@ -57,13 +78,28 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             foreach (var slot in itemSlots)
             {
                 var existing = underlying.GetProperty(Attributes.ITEMS).GetProperty(slot, IdleEngine.GetOperationType.GET_OR_CREATE).ValueAsList();
-                if(existing == null)
+                if (existing == null)
                 {
                     existing = underlying.GetProperty(Attributes.ITEMS).GetProperty(slot, IdleEngine.GetOperationType.GET_OR_CREATE).Set(new List<ValueContainer>());
                 }
                 existing.Add(item);
             }
             return true;
+        }
+
+        internal BigDouble InflictDamage(BigDouble attackDamage, Character attacker)
+        {
+            var startingHealth = CurrentHealth;
+            BigDouble actualDamage = BigDouble.Min(attackDamage, CurrentHealth);
+            CurrentHealth -= actualDamage;
+            underlying.Engine.Log(UnityEngine.LogType.Log, () => String.Format("Dealing {0} damage to character {1}. Current health from {2} to {3}.", attackDamage, underlying.Id, startingHealth, CurrentHealth), "character.combat");
+            underlying.Engine.NotifyImmediately(CharacterDamagedEvent.EventName, underlying.Path, null, this, actualDamage);
+            if (CurrentHealth == 0)
+            {
+                underlying.Engine.Log(UnityEngine.LogType.Log, () => string.Format("Character {0} died", underlying.Id), "character.combat");
+                underlying.Engine.NotifyImmediately(CharacterDiedEvent.EventName, underlying.Path, null, this);
+            }
+            return actualDamage;
         }
 
         public BigDouble CurrentHealth { get { return underlying.GetProperty(Attributes.CURRENT_HEALTH, IdleEngine.GetOperationType.GET_OR_CREATE); } set { underlying.GetProperty(Attributes.CURRENT_HEALTH, IdleEngine.GetOperationType.GET_OR_CREATE).Set(value); } }
@@ -88,12 +124,17 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public bool IsAlive { get { return underlying.GetProperty(Attributes.CURRENT_HEALTH, IdleEngine.GetOperationType.GET_OR_CREATE).ValueAsNumber() > 0; } }
         public string Icon { get { return underlying.GetProperty(Attributes.ICON, IdleEngine.GetOperationType.GET_OR_CREATE).ValueAsString(); } set { underlying.GetProperty(Attributes.ICON, IdleEngine.GetOperationType.GET_OR_CREATE).Set(value); } }
         public string Action { get { return underlying.GetProperty(Attributes.ACTION, IdleEngine.GetOperationType.GET_OR_CREATE).ValueAsString(); } set { underlying.GetProperty(Attributes.ACTION, IdleEngine.GetOperationType.GET_OR_CREATE).Set(value); } }
+        public BigDouble Precision { get { return underlying.GetProperty(Attributes.PRECISION, IdleEngine.GetOperationType.GET_OR_CREATE).ValueAsNumber(); } set { underlying.GetProperty(Attributes.PRECISION, IdleEngine.GetOperationType.GET_OR_CREATE).Set(value); } }
+        public BigDouble Resilience { get { return underlying.GetProperty(Attributes.RESILIENCE, IdleEngine.GetOperationType.GET_OR_CREATE).ValueAsNumber(); } set { underlying.GetProperty(Attributes.RESILIENCE, IdleEngine.GetOperationType.GET_OR_CREATE).Set(value); } }
+        public BigDouble CriticalHitDamageMultiplier { get { return underlying.GetProperty(Attributes.CRITICAL_DAMAGE_MULTIPLIER, IdleEngine.GetOperationType.GET_OR_CREATE).ValueAsNumber(); } set { underlying.GetProperty(Attributes.CRITICAL_DAMAGE_MULTIPLIER, IdleEngine.GetOperationType.GET_OR_CREATE).Set(value); } }
+        public BigDouble CriticalHitChance { get { return underlying.GetProperty(Attributes.CRITICAL_HIT_CHANCE, IdleEngine.GetOperationType.GET_OR_CREATE).ValueAsNumber(); } set { underlying.GetProperty(Attributes.CRITICAL_HIT_CHANCE, IdleEngine.GetOperationType.GET_OR_CREATE).Set(value); } }
+        public BigDouble Xp { get { return underlying.GetProperty(Attributes.XP, IdleEngine.GetOperationType.GET_OR_CREATE).ValueAsNumber(); } set { underlying.GetProperty(Attributes.XP, IdleEngine.GetOperationType.GET_OR_CREATE).Set(value); } }
+        public BigDouble Gold { get { return underlying.GetProperty(Attributes.GOLD, IdleEngine.GetOperationType.GET_OR_CREATE).ValueAsNumber(); } set { underlying.GetProperty(Attributes.GOLD, IdleEngine.GetOperationType.GET_OR_CREATE).Set(value); } }
         public IDictionary<string, BigDouble> ItemSlots
         {
             get { return underlying.GetProperty(Attributes.ITEM_SLOTS, IdleEngine.GetOperationType.GET_OR_CREATE).ValueAsMap().ToDictionary(x => x.Key, x => x.Value.ValueAsNumber()); }
             set { underlying.GetProperty(Attributes.ITEM_SLOTS, IdleEngine.GetOperationType.GET_OR_CREATE).Set(value); }
         }
-
         public void NotifyImmediately(string eventName, IDictionary<string, object> notificationContext = null, params object[] arguments)
         {
             ((EventSource<ListenerSubscription>)underlying).NotifyImmediately(eventName, notificationContext, arguments);
@@ -115,19 +156,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             return ((EventSource<ListenerSubscription>)underlying).Subscribe(subscriber, eventName, handlerName, ephemeral);
         }
 
-        public ValueContainer GetProperty(string property)
+        public ValueContainer GetProperty(string property, IdleEngine.GetOperationType operationType = IdleEngine.GetOperationType.GET_OR_NULL)
         {
-            return underlying.GetProperty(property);
+            return underlying.GetProperty(property, operationType);
         }
 
         public void Unsubscribe(ListenerSubscription subscription)
         {
             ((EventSource<ListenerSubscription>)underlying).Unsubscribe(subscription);
-        }
-
-        public void Unsubscribe(string subscriber, string eventName)
-        {
-            ((EventSource<ListenerSubscription>)underlying).Unsubscribe(subscriber, eventName);
         }
 
         public static implicit operator ValueContainer(Character character)
@@ -138,10 +174,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         private void UpdateActionMeter(IdleEngine engine, BigDouble time)
         {
             BigDouble actionMeter = underlying.GetProperty(Character.Attributes.ACTION_METER).ValueAsNumber() + time;
-            if (actionMeter >= engine.GetProperty("configuration.action_meter_required_to_act").ValueAsNumber())
+            if (actionMeter >= engine.GetProperty("configuration.action_meter_required_to_act", IdleEngine.GetOperationType.GET_OR_THROW).ValueAsNumber())
             {
+                engine.Log(UnityEngine.LogType.Log, () => String.Format("Character {0} is acting", underlying.Id), "character.combat");
                 actionMeter = 0;
-                underlying.NotifyImmediately(CharacterActedEvent.EventName, null, this);
+                this.Act(engine);
             }
             underlying.GetProperty(Character.Attributes.ACTION_METER).Set(actionMeter);
         }
@@ -188,27 +225,39 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             throw new NotImplementedException();
         }
 
+        public void Reset()
+        {
+            Statuses.Clear();
+            CurrentHealth = MaximumHealth;
+            ActionMeter = 0;
+        }
+
         public static class Attributes
         {
-            public const string ID = "id";
+            public const string ABILITIES = "abilities";
+            public const string ACCURACY = "accuracy";
             public const string ACTION = "action";
+            public const string ACTION_METER = "action_meter";
+            public const string ACTION_METER_SPEED = "action_meter_speed";
+            public const string CRITICAL_DAMAGE_MULTIPLIER = "critical_damage_multiplier";
+            public const string CRITICAL_HIT_CHANCE = "critical_hit_chance";
+            public const string CURRENT_HEALTH = "current_health";
+            public const string DAMAGE = "damage";
+            public const string DEFENSE = "defense";
+            public const string EVASION = "evasion";
+            public const string GOLD = "gold";
+            public const string ID = "id";
+            public const string ICON = "icon";
             public const string ITEM_SLOTS = "item_slots";
             public const string ITEMS = "items";
-            public const string ACTION_METER_SPEED = "action_meter_speed";
-            public const string PARTY = "party";
             public const string LEVEL = "level";
-            public const string CURRENT_HEALTH = "current_health";
             public const string MAXIMUM_HEALTH = "maximum_health";
-            public const string DAMAGE = "damage";
-            public const string ACTION_METER = "action_meter";
-            public const string ABILITIES = "abilities";
-            public const string STATUSES = "statuses";
-            public const string ACCURACY = "accuracy";
-            public const string EVASION = "evasion";
-            public const string DEFENSE = "defense";
+            public const string PARTY = "party";
             public const string PENETRATION = "penetration";
+            public const string PRECISION = "precision";
+            public const string RESILIENCE = "resilience";
+            public const string STATUSES = "statuses";
             public const string TARGETABLE = "targetable";
-            public const string ICON = "icon";
             public const string XP = "xp";
         }
 

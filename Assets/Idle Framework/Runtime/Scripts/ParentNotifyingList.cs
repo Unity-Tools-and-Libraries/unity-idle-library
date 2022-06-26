@@ -60,6 +60,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                 item.Path = String.Join(".", parent.Path, underlying.Count - 1);
             }
             parent.NotifyImmediately(ChildValueChangedEvent.EventName, parent, item.Path, null, item.ValueAsRaw());
+            if (parent.Parent != null)
+            {
+                parent.Parent.NotifyImmediately(ChildValueChangedEvent.EventName, parent, null, item.ValueAsRaw(), parent.Parent, "set");
+            }
         }
 
         public void Clear()

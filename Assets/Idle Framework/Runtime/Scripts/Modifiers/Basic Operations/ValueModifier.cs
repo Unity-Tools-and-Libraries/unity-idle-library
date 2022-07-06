@@ -1,94 +1,77 @@
-﻿using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine;
-using io.github.thisisnozaku.idle.framework.Events;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static io.github.thisisnozaku.idle.framework.ValueContainer.Context;
-
-namespace io.github.thisisnozaku.idle.framework.Modifiers.Values
+namespace io.github.thisisnozaku.idle.framework.Modifiers
 {
-    /*
-     * A ContainerModifier which only modifies the calculated value of the target container.
-     */
-    public abstract class ValueModifier : ContainerModifier
+    public class ValueModifier : ContainerModifier
     {
-        public event Action CacheChanged;
-        protected object cachedValue;
+        private string Id;
         private string expression;
-        public string[] Dependencies { get; }
-        public Delegate[] CachedChangeListeners { get
+        private string checkExpression;
+        private string description;
+        public ValueModifier(string id, string description, string operationExpression, ScriptingContext context, string canApplyCheckExpression = "", int priority = 0) : base(id, description, context, priority)
+        {
+            if(!operationExpression.StartsWith("return"))
             {
-                return CacheChanged != null ? CacheChanged.GetInvocationList() : new Delegate[] { };
-            } 
-        }
-        protected ValueModifier(string id, string source, string expression, string[] dependencies, bool staticValue = false, ContextGenerator contextGenerator = null, int priority = 0) : base(id, source, contextGenerator: contextGenerator, priority: priority)
-        {
-            this.expression = expression;
-            this.IsCached = dependencies == null || dependencies.Length == 0;
-            this.Dependencies = dependencies;
-        }
-
-        public override abstract object Apply(IdleEngine engine, ValueContainer container, object input);
-
-        public override void OnUpdate(IdleEngine engine, ValueContainer container)
-        {
-            
-        }
-
-        protected T EvaluateCalculationExpression<T>(IdleEngine engine, ValueContainer container)
-        {
-            if (cachedValue != null)
-            {
-                return (T)cachedValue;
+                throw new ArgumentException("Expression must start with return so that it returns a value.");
             }
-            var evaluatedExpression = engine.EvaluateExpression("return " + expression, this.GenerateContext(engine, container));
-            if (cachedValue == null)
-            {
-                cachedValue = evaluatedExpression;
-            }
-            return (T)ValueContainer.NormalizeValue(evaluatedExpression);
+            this.Id = id;
+            this.expression = operationExpression;
+            this.checkExpression = canApplyCheckExpression;
+            this.description = description;
         }
 
-        public override void OnAdd(IdleEngine engine, ValueContainer container)
+        public override object Apply(IdleEngine engine, ValueContainer container, object input)
         {
-            base.OnAdd(engine, container);
-            engine.Log(UnityEngine.LogType.Log, "Calling on-add of modifier " + Id, "engine.internal.modifier");
-            engine.RegisterMethod(Id + "CacheClear", CacheClear);
-            if (Dependencies != null)
+            object result = engine.EvaluateExpression(expression, new Dictionary<string, object>()
             {
-                foreach (var dependency in Dependencies)
+                { "value", input },
+                { "target", container }
+            });
+            if(result is ValueContainer)
+            {
+                var containerResult = result as ValueContainer;
+                switch (container.DataType)
                 {
-                    engine.Log(UnityEngine.LogType.Log, String.Format("Modifier {0} subscribing to dependency '{1}'", Id, dependency), "engine.internal.modifier");
-                    var targetPath = engine.EvaluateExpression(String.Format("return {0}.Path", dependency), GenerateContext(engine, container)) as string;
-                    engine.GetProperty(targetPath, IdleEngine.GetOperationType.GET_OR_CREATE).Subscribe(Id + "modifier dependency", ValueChangedEvent.EventName, Id + "CacheClear");
+                    case "string":
+                        return containerResult.AsString;
+                    case "number":
+                        return containerResult.AsNumber;
+                    case "bool":
+                        return container.AsBool;
+                    case "list":
+                        return container.AsList;
+                    case "map":
+                        return container.AsMap;
                 }
-            } else
-            {
-                engine.Log(UnityEngine.LogType.Log, "Modifier " + Id + " has no dependencies", "engine.internal.modifier");
+                
             }
+            return result;
         }
 
-        protected object CacheClear(IdleEngine engine, params object[] args)
+        public override bool CanApply(IdleEngine engine, ValueContainer container, object intermediateValue)
         {
-            engine.Log(LogType.Log, String.Format("Clearing cached value of modifier {0}", Id), "engine.internal.modifier");
-            cachedValue = null;
-            if(CacheChanged != null)
+            if (checkExpression == "")
             {
-                CacheChanged.Invoke();
+                return true;
             }
-            return null;
+            bool canApply = (bool)engine.EvaluateExpression(checkExpression, new Dictionary<string, object>(){
+                { "value", intermediateValue }
+            });
+            return canApply;
         }
 
-        public override void OnRemove(IdleEngine engine, ValueContainer container)
+        public override string ToString()
         {
-            base.OnRemove(engine, container);
+            return String.Format("{0} {1} ({2})", GetType().Name, Id, expression);
         }
 
         public static class DefaultPriorities
         {
-            public const int MULTIPLICATION = 1000;
-            public const int ADDITION = 2000;
+            public const int ADDITION = 1000;
+            public const int MULTIPLICATION = 2000;
         }
     }
 }

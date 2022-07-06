@@ -1,9 +1,11 @@
 ﻿using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine;
 using io.github.thisisnozaku.idle.framework.Events;
+using MoonSharp.Interpreter;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using UnityEngine.TestTools;
 
 namespace io.github.thisisnozaku.idle.framework.Tests.Engine
 {
@@ -29,11 +31,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
             {
                 { "foo", engine.CreateValueContainer("bar") }
             });
-            engine.RegisterMethod("update", (engine, ev) =>
+            engine.RegisterMethod("update", (ctx, args) =>
             {
-                return (BigDouble)ev[1] + BigDouble.One;
+                return DynValue.FromObject(ctx.GetScript(), args[0].ToObject<BigDouble>() + BigDouble.One);
             });
-            engine.CreateProperty("incrementingNumberValue", 0, updater: "update");
+            engine.CreateProperty("incrementingNumberValue", 0, updater: "update(current_number)");
         }
 
         [Test]
@@ -104,7 +106,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
                 return null;
             });
             engine.Start();
-            propertyReference.Subscribe("", ValueChangedEvent.EventName, "method");
+            propertyReference.Subscribe("", ValueChangedEvent.EventName, "method()");
             engine.Update(1f);
             Assert.AreEqual(2, listenerCalled);
         }
@@ -169,6 +171,51 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         public void PathContainingPropertiesSeparatedByPeriodsPassesValidation()
         {
             IdleEngine.ValidatePath("one.two.three");
+        }
+
+        [Test]
+        public void CreatingNewPropertyThatReplacesExistingGlobalLogsWarning()
+        {
+            engine.ConfigureLogging("*", UnityEngine.LogType.Warning);
+            LogAssert.Expect(UnityEngine.LogType.Warning, "[engine.internal.containers] A new container is being assigned to path 'globalBoolean', orphanining container #1");
+            engine.CreateProperty("globalBoolean");
+        }
+
+        [Test]
+        public void AssigningContainerToGlobalPropertyOrphansOriginalContainer()
+        {
+            engine.ConfigureLogging("*", UnityEngine.LogType.Warning);
+            LogAssert.Expect(UnityEngine.LogType.Warning, "[engine.internal.containers] A container is being assigned to path 'globalBoolean', orphanining container #1");
+            var otherContainer = engine.GetProperty("globalBooleanNoStartingValue");
+            var originalContainer = engine.GetProperty("globalBoolean");
+            engine.CreateProperty("globalBoolean", otherContainer);
+            Assert.AreEqual("globalBoolean", otherContainer.Path);
+            Assert.IsNull(originalContainer.Path);
+            Assert.AreEqual(otherContainer, engine.GetProperty("globalBoolean"));
+        }
+
+        [Test]
+        public void AssigningContainerToNestedPropertyOrphansOriginalContainer()
+        {
+            engine.ConfigureLogging("*", UnityEngine.LogType.Warning);
+            LogAssert.Expect(UnityEngine.LogType.Warning, "[engine.internal.containers] A container is being assigned to path 'globalMap.foo', orphanining container #8");
+            var otherContainer = engine.GetProperty("globalBooleanNoStartingValue");
+            var originalContainer = engine.GetProperty("globalMap.foo");
+            engine.CreateProperty("globalMap.foo", otherContainer);
+            Assert.AreEqual("globalMap.foo", otherContainer.Path);
+            Assert.IsNull(originalContainer.Path);
+            Assert.AreEqual(otherContainer, engine.GetProperty("globalMap.foo"));
+        }
+
+        [Test]
+        public void AssigningNullToGlobalPropertyOrphansOriginalContainer()
+        {
+            engine.ConfigureLogging("*", UnityEngine.LogType.Warning);
+            LogAssert.Expect(UnityEngine.LogType.Warning, "[engine.internal.containers] A container is being assigned to path 'globalBoolean', orphanining container #1");
+            var originalContainer = engine.GetProperty("globalBoolean");
+            engine.CreateProperty("globalBoolean", null);
+            Assert.IsNull(originalContainer.Path);
+            Assert.IsNull(engine.GetProperty("globalBoolean"));
         }
     }
 }

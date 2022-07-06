@@ -1,9 +1,7 @@
 using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Modifiers;
-using io.github.thisisnozaku.idle.framework.Modifiers.Values;
 using System;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitions.Upgrades
@@ -15,10 +13,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitio
             
         }
 
-        public override IDictionary<string, ContainerModifier> GenerateModifiers()
+        public override IDictionary<string, ContainerModifier> GenerateModifiers(IdleEngine engine)
         {
             return UpgradeTargetsAndEffects
-                .ToDictionary(u => u.Item1, u => (ContainerModifier)new AdditiveValueModifier(Id, Name, u.Item2));
+                .ToDictionary(u => u.Item1, u =>
+                {
+                    var target = engine.GetProperty(u.Item1);
+                    return (ContainerModifier)new ValueModifier(Id + u.Item1, Name, "return " + u.Item2, target, priority: ValueModifier.DefaultPriorities.MULTIPLICATION + 1);
+                });
         }
     }
 }

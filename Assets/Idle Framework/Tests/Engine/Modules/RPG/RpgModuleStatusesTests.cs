@@ -52,7 +52,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             engine.ApplyStatus(character, "status", 1);
             engine.GetProperty("character.statuses.status").Set(0);
             engine.Update(1);
-            Assert.False(engine.GetProperty("character.statused").ValueAsBool());
+            Assert.IsFalse(engine.GetProperty("character.statused").AsBool);
         }
     }
 }

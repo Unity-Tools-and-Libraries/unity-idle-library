@@ -6,16 +6,18 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using static io.github.thisisnozaku.idle.framework.ValueContainer;
+using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Combat;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 {
-    public class Character : EventSource<ListenerSubscription>, IUserDataType
+    public class Character : EventSource, IUserDataType, ScriptingContext
     {
         private ValueContainer underlying;
 
         internal Character(ValueContainer targetContainer)
         {
             this.underlying = targetContainer;
+            underlying.GetProperty("type", IdleEngine.GetOperationType.GET_OR_CREATE).Set("character");
             underlying.GetProperty(Attributes.ID, IdleEngine.GetOperationType.GET_OR_CREATE).Set(underlying.Id);
             if (underlying.GetProperty(Attributes.ABILITIES, IdleEngine.GetOperationType.GET_OR_CREATE).ValueAsList() == null)
             {
@@ -51,14 +53,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             }
             underlying.GetProperty(Attributes.ITEM_SLOTS, IdleEngine.GetOperationType.GET_OR_CREATE).Set(RpgModule.defaultItemSlots
                 .ToDictionary(x => x.Key, x => targetContainer.Engine.CreateValueContainer(x.Value)));
-            targetContainer.SetUpdater("CharacterUpdateMethod");
+            targetContainer.SetUpdater("return CharacterUpdateMethod(container, deltaTime)");
         }
 
-        public object Act(IdleEngine engine, params object[] args)
+        public object Act(IdleEngine engine)
         {
             var target = engine.GetRandomTarget(Party);
             engine.MakeAttack(this, target);
-            underlying.NotifyImmediately(CharacterActedEvent.EventName, null, this);
+            NotifyImmediately(CharacterActedEvent.EventName, new CharacterActedEvent(this));
             return null;
         }
         public string Id { get { return underlying.Id; } }
@@ -93,11 +95,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             BigDouble actualDamage = BigDouble.Min(attackDamage, CurrentHealth);
             CurrentHealth -= actualDamage;
             underlying.Engine.Log(UnityEngine.LogType.Log, () => String.Format("Dealing {0} damage to character {1}. Current health from {2} to {3}.", attackDamage, underlying.Id, startingHealth, CurrentHealth), "character.combat");
-            underlying.Engine.NotifyImmediately(CharacterDamagedEvent.EventName, underlying.Path, null, this, actualDamage);
+            attacker.NotifyImmediately(DamageInflictedEvent.EventName, new DamageInflictedEvent(attacker, attackDamage, this));
+            NotifyImmediately(DamageTakenEvent.EventName, new DamageTakenEvent(attacker, attackDamage, this));
             if (CurrentHealth == 0)
             {
                 underlying.Engine.Log(UnityEngine.LogType.Log, () => string.Format("Character {0} died", underlying.Id), "character.combat");
-                underlying.Engine.NotifyImmediately(CharacterDiedEvent.EventName, underlying.Path, null, this);
+                underlying.Engine.NotifyImmediately(CharacterDiedEvent.EventName, underlying.Path, new CharacterDiedEvent());
             }
             return actualDamage;
         }
@@ -135,14 +138,18 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             get { return underlying.GetProperty(Attributes.ITEM_SLOTS, IdleEngine.GetOperationType.GET_OR_CREATE).ValueAsMap().ToDictionary(x => x.Key, x => x.Value.ValueAsNumber()); }
             set { underlying.GetProperty(Attributes.ITEM_SLOTS, IdleEngine.GetOperationType.GET_OR_CREATE).Set(value); }
         }
-        public void NotifyImmediately(string eventName, IDictionary<string, object> notificationContext = null, params object[] arguments)
+        public void NotifyImmediately(string eventName)
         {
-            ((EventSource<ListenerSubscription>)underlying).NotifyImmediately(eventName, notificationContext, arguments);
+            underlying.NotifyImmediately(eventName, this);
+        }
+        public void NotifyImmediately(string eventName, ScriptingContext notificationContext)
+        {
+            underlying.NotifyImmediately(eventName, notificationContext);
         }
 
-        public void NotifyImmediately(string eventName, params object[] arguments)
+        public void NotifyImmediately(string eventName, string scriptingContext)
         {
-            NotifyImmediately(eventName, null, arguments);
+            underlying.NotifyImmediately(eventName, scriptingContext);
         }
 
         public void AddAbility(AbilityDefinition ability)
@@ -151,9 +158,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             underlying.GetProperty(Character.Attributes.ABILITIES).ValueAsList().Add(underlying.Engine.CreateValueContainer(ability.Id));
         }
 
-        public ListenerSubscription Subscribe(string subscriber, string eventName, string handlerName, bool ephemeral = false)
+        public ListenerSubscription Subscribe(string subscriber, string eventName, string handler, bool ephemeral = false)
         {
-            return ((EventSource<ListenerSubscription>)underlying).Subscribe(subscriber, eventName, handlerName, ephemeral);
+            return underlying.Subscribe(subscriber, eventName, handler, ephemeral);
         }
 
         public ValueContainer GetProperty(string property, IdleEngine.GetOperationType operationType = IdleEngine.GetOperationType.GET_OR_NULL)
@@ -163,7 +170,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
         public void Unsubscribe(ListenerSubscription subscription)
         {
-            ((EventSource<ListenerSubscription>)underlying).Unsubscribe(subscription);
+            underlying.Unsubscribe(subscription);
         }
 
         public static implicit operator ValueContainer(Character character)
@@ -180,7 +187,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 actionMeter = 0;
                 this.Act(engine);
             }
-            underlying.GetProperty(Character.Attributes.ACTION_METER).Set(actionMeter);
+            ActionMeter = actionMeter;
         }
 
         private void UpdateStatusDurations(IdleEngine engine, BigDouble time)
@@ -197,16 +204,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             }
         }
         [HandledEvent(typeof(ValueContainerWillUpdateEvent))]
-        public static object UpdateMethod(IdleEngine engine, params object[] args)
+        public static object UpdateMethod(IdleEngine engine, Character character, BigDouble deltaTime)
         {
-            var container = (args[0] as ValueContainer);
             if (engine.GetProperty(RpgModule.Properties.ActionPhase).ValueAsString() == "combat")
             {
-                var character = container.AsCharacter();
-                character.UpdateActionMeter(engine, (BigDouble)args[1]);
-                character.UpdateStatusDurations(engine, (BigDouble)args[1]);
+                character.UpdateActionMeter(engine, deltaTime);
+                character.UpdateStatusDurations(engine, deltaTime);
             }
-            return container.ValueAsMap();
+            return ((ValueContainer)character).AsMap;
         }
 
         public DynValue Index(Script script, DynValue index, bool isDirectIndexing)
@@ -230,6 +235,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             Statuses.Clear();
             CurrentHealth = MaximumHealth;
             ActionMeter = 0;
+        }
+
+        public Dictionary<string, object> GetScriptingContext(string contextType = null)
+        {
+            throw new NotImplementedException();
         }
 
         public static class Attributes

@@ -5,12 +5,23 @@ using UnityEngine;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 {
-    public class CharacterActedEvent
+    public class CharacterActedEvent : ScriptingContext
     {
         public const string EventName = "character_acted";
-        public static readonly List<Tuple<Type, String>> Arguments = new List<Tuple<Type, String>>()
+
+        private Character character;
+
+        public CharacterActedEvent(Character character)
         {
-            Tuple.Create(typeof(Character), "The character who is acting.")
-        };
+            this.character = character;
+        }
+
+        public Dictionary<string, object> GetScriptingContext(string contextType = null)
+        {
+            return new Dictionary<string, object>()
+            {
+                { "character", character }
+            };
+        }
     }
 }

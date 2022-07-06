@@ -27,6 +27,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitio
             this.EnableExpression = enableExpression;
         }
 
-        public abstract IDictionary<string, ContainerModifier> GenerateModifiers();
+        public abstract IDictionary<string, ContainerModifier> GenerateModifiers(IdleEngine engine);
     }
 }

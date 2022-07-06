@@ -68,7 +68,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
             Assert.False(listenerCalled);
             engine.RestoreFromSnapshot(new framework.Engine.IdleEngine.Snapshot(new Dictionary<string, ValueContainer.Snapshot>(), new List<ValueContainer.ListenerSubscription>()
             {
-                new ValueContainer.ListenerSubscription("", "", "event", "method", false)
+                new ValueContainer.ListenerSubscription("", "", "event", "method()", false)
             }));
             engine.NotifyImmediately("event");
             Assert.True(listenerCalled);

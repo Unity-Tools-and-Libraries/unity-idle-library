@@ -46,6 +46,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                     return DynValue.FromObject(script, c.AsList);
                 case "AsMap":
                     return DynValue.FromObject(script, c.AsMap);
+                case "ForceUpdate":
+                    return DynValue.NewCallback((ctx, args) =>
+                    {
+                        c.Update(c.Engine, 0);
+                        return DynValue.FromObject(script, c.ValueAsRaw());
+                    });
                 default:
                     return DynValue.FromObject(script, c.GetProperty(index.CastToString(), IdleEngine.GetOperationType.GET_OR_CREATE));
             }
@@ -142,9 +148,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             });
             public static DynValue Eq = DynValue.NewCallback((ctx, args) =>
             {
-                BigDouble lhv = args[0].ToObject<BigDouble>();
-                BigDouble rhv = args[1].ToObject<BigDouble>();
-                return DynValue.FromObject(ctx.GetScript(), lhv == rhv);
+                var lhv = ValueContainer.NormalizeValue(ValueContainer.Unwrap(args[0].ToObject()));
+                var rhv = ValueContainer.NormalizeValue(ValueContainer.Unwrap(args[1].ToObject()));
+                bool eq = object.Equals(lhv, rhv);
+                return DynValue.FromObject(ctx.GetScript(), eq);
             });
             public static DynValue Lt = DynValue.NewCallback((ctx, args) =>
             {

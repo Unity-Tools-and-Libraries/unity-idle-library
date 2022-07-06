@@ -1,3 +1,4 @@
+using MoonSharp.Interpreter;
 using NUnit.Framework;
 using System;
 using System.Collections;
@@ -16,27 +17,17 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
             engine.RegisterMethod("method", (ie, ev) => throw new System.Exception());
             Assert.Throws(typeof(Exception), () =>
             {
-                engine.InvokeMethod("method", null, null);
+                engine.EvaluateExpression("method()", "global");
             });
         }
 
         [Test]
         public void CallingUnknownMethodThrowsException()
         {
-            Assert.Throws(typeof(InvalidOperationException), () =>
+            Assert.Throws(typeof(ScriptRuntimeException), () =>
             {
-                engine.InvokeMethod("method", null, null);
+                engine.EvaluateExpression("method()");
             });
-        }
-
-        [Test]
-        public void UserMethodThatReturnsBoolWrapsInDynValue()
-        {
-            engine.RegisterMethod("boolMethod", (ie, args) =>
-            {
-                return true;
-            });
-            Assert.True((bool)engine.EvaluateExpression("return boolMethod()"));
         }
 
         [Test]

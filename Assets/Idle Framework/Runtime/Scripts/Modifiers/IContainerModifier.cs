@@ -14,8 +14,8 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
         object Apply(IdleEngine engine, ValueContainer container, object input);
         void OnAdd(IdleEngine engine, ValueContainer container);
         void OnRemove(IdleEngine engine, ValueContainer container);
-        void Trigger(IdleEngine engine, string eventName, IDictionary<string, object> context = null);
-        bool CanApply(object target);
+        void Trigger(IdleEngine engine, string eventName, ScriptingContext context = null);
+        bool CanApply(IdleEngine engine, ValueContainer container, object intermediateValue);
     }
 
     public class ContainerModifierComparer : IComparer<IContainerModifier>

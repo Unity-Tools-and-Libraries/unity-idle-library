@@ -65,7 +65,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             rng.SetNextValue(100);
             attacker.ActionMeter = 2;
             attacker.ActionMeter = 100000;
-            attacker.Subscribe("test", CharacterActedEvent.EventName, "listener");
+            attacker.Subscribe("test", CharacterActedEvent.EventName, "listener()");
             engine.Update(.5f);
             Assert.IsTrue(listenerCalled);
         }
@@ -94,13 +94,12 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             rng.SetNextValue(1);
             rng.SetNextValue(1000);
             int callCount = 0;
-            UserMethod listener = (ie, args) => {
+            engine.RegisterMethod("listener", (ie, args) => {
                 callCount++;
                 return null;
-            };
-            engine.RegisterMethod("listener", listener);
-            ((ValueContainer)defender).Subscribe("test", DamageTakenEvent.EventName, "listener");
-            ((ValueContainer)attacker).Subscribe("test", DamageInflictedEvent.EventName, "listener");
+            });
+            ((ValueContainer)defender).Subscribe("test", DamageTakenEvent.EventName, "listener()");
+            ((ValueContainer)attacker).Subscribe("test", DamageInflictedEvent.EventName, "listener()");
             engine.MakeAttack(attacker, defender);
             Assert.AreEqual(2, callCount);
         }
@@ -115,7 +114,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
                 attackMissed = true;
                 return null;
             });
-            attacker.Subscribe("test", AttackMissEvent.EventName, "handler");
+            attacker.Subscribe("test", AttackMissEvent.EventName, "handler()");
             engine.MakeAttack(attacker, defender);
             Assert.True(attackMissed);
         }

@@ -2,6 +2,7 @@
 using io.github.thisisnozaku.idle.framework.Definitions;
 using io.github.thisisnozaku.idle.framework.Engine.Modules;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg;
+using io.github.thisisnozaku.idle.framework.Engine.Scripting;
 using io.github.thisisnozaku.idle.framework.Events;
 using io.github.thisisnozaku.idle.framework.Modifiers;
 using MoonSharp.Interpreter;
@@ -15,21 +16,20 @@ using static io.github.thisisnozaku.idle.framework.ValueContainer;
 
 namespace io.github.thisisnozaku.idle.framework.Engine
 {
-    public partial class IdleEngine : RandomNumberSource, IDefinitionManager
+    public partial class IdleEngine : RandomNumberSource, IDefinitionManager, ScriptingContext
     {
         private MonoBehaviour gameObject;
         private System.Random random;
-        public delegate object UserMethod(IdleEngine engine, params object[] args);
         private static Regex PathRegex = new Regex("^[a-zA-Z_-][a-zA-Z0-9_-]*(\\.[a-zA-Z0-9_-]+)*$");
         private IDictionary<string, ValueContainer> references = new Dictionary<string, ValueContainer>();
+        private Dictionary<string, Func<ScriptingContext>> ScriptingContextResolvers = new Dictionary<string, Func<ScriptingContext>>();
         public bool IsReady { get; private set; }
         private readonly IDictionary<string, ValueContainer> globalProperties = new Dictionary<string, ValueContainer>();
         private readonly EventListeners listeners;
-        private Dictionary<string, UserMethod> methods = new Dictionary<string, UserMethod>();
         private DefinitionManager definitions = new DefinitionManager();
-        private ScriptingManagement scripting;
+        private ScriptingService scripting;
         private Queue<Tuple<string, string, IDictionary<string, object>, object[]>> NotificationQueue = new Queue<Tuple<string, string, IDictionary<string, object>, object[]>>();
-        public ScriptingManagement Scripting => scripting;
+        public ScriptingService Scripting => scripting;
 
         public static void ValidatePath(string path)
         {
@@ -48,8 +48,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         {
             this.gameObject = gameObject;
             random = new System.Random();
-            scripting = new ScriptingManagement(this);
+            scripting = new ScriptingService(this);
             listeners = new EventListeners(this);
+            ScriptingContextResolvers["global"] = () => this;
+
+            GlobalScriptingContext["getOrCreate"] = new CallbackFunction((ctx, args) =>
+            {
+                return DynValue.FromObject(ctx.GetScript(), GetProperty(args[0].CastToString(), GetOperationType.GET_OR_CREATE));
+            });
         }
 
         public void Start()
@@ -57,43 +63,38 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             Log(LogType.Log, () => "Starting engine", "engine.internal");
             IsReady = true;
             Broadcast(EngineReadyEvent.EventName, null);
-            if (gameObject != null)
-            {
-                gameObject.StartCoroutine(DispatchPendingNotifications());
-            }
         }
 
         // Event Management
-        public void Broadcast(string eventName, string target, params object[] args)
+        public void Broadcast(string eventName, string eventSource, ScriptingContext context = null)
         {
             Queue<ValueContainer> broadcastTargets = new Queue<ValueContainer>();
             Log(LogType.Log, () => "Broadcasting " + eventName, "engine.internal.events");
-            if (target == null)
+            if (eventSource == null)
             {
                 foreach (var global in globalProperties.Values)
                 {
                     broadcastTargets.Enqueue(global);
-                };
-                NotifyImmediately(eventName, null, null, args);
+                }
             }
             else
             {
-                var targetProperty = GetProperty(target);
+                var targetProperty = GetProperty(eventSource);
                 if (targetProperty != null)
                 {
                     broadcastTargets.Enqueue(targetProperty);
                 }
             }
-
+            listeners.Notify(eventName, null, this);
             ValueContainer next;
             while (broadcastTargets.Count() > 0)
             {
                 next = broadcastTargets.Dequeue();
-                if (next.Path == null || next.Path == "")
+                listeners.Notify(eventName, next.Path, next);
+                if (eventName == EngineReadyEvent.EventName)
                 {
-                    throw new InvalidOperationException();
+                    next.NotifyImmediately(eventName, context);
                 }
-                listeners.Notify(eventName, next.Path, args);
                 if (next.DataType == "map")
                 {
                     foreach (var child in next.ValueAsMap().Values)
@@ -110,13 +111,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                 }
             }
         }
-
-        public void NotifyImmediately(string eventName, string eventTarget = null, IDictionary<string, object> context = null, params object[] args)
+        public void NotifyImmediately(string eventName)
         {
-            listeners.Notify(eventName, eventTarget, context, args);
-            if (eventTarget != null && eventName != ValueChangedEvent.EventName)
+            NotifyImmediately(eventName, null, this);
+        }
+        public void NotifyImmediately(string eventName, string eventSource, ScriptingContext context)
+        {
+            listeners.Notify(eventName, eventSource, context);
+            if (eventSource != null && eventName != ValueChangedEvent.EventName)
             {
-                var sourceTokens = eventTarget.Split('.');
+                var sourceTokens = eventSource.Split('.');
                 for (int i = sourceTokens.Length - 1; i > 0; i--)
                 {
                     string targetPath = sourceTokens[0];
@@ -125,13 +129,18 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                         targetPath += "." + sourceTokens[t];
                     }
                     var targetContainer = GetProperty(targetPath, GetOperationType.GET_OR_THROW);
-                    if (targetContainer != null && targetContainer.Path != eventTarget)
+                    if (targetContainer != null && targetContainer.Path != eventSource)
                     {
-                        targetContainer.DoNotification(eventName, args);
+                        listeners.Notify(eventName, targetContainer.Path, context);
                     }
                 }
-                listeners.Notify(eventName, null, context, args);
+                listeners.Notify(eventName, null, context);
             }
+        }
+
+        public void NotifyImmediately(string eventName, string eventSource, string context)
+        {
+            NotifyImmediately(eventName, eventSource, ScriptingContextResolvers[context]());
         }
 
         internal void NotifyLater(string eventName, string eventTarget = null, IDictionary<string, object> context = null, params object[] args)
@@ -147,24 +156,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             listeners.Unsubscribe(subscription);
         }
 
-        public ListenerSubscription Subscribe(string subscriber, string eventName, string listenerName, string targetName = null, bool ephemeral = false)
+        public ListenerSubscription Subscribe(string subscriber, string eventName, string listener, string targetName = null, bool ephemeral = false)
         {
-            var subscription = listeners.Subscribe(targetName, subscriber, eventName, listenerName, ephemeral);
+            var subscription = listeners.Subscribe(targetName, subscriber, eventName, listener, ephemeral);
             if (eventName == EngineReadyEvent.EventName && IsReady)
             {
-                InvokeMethod(listenerName, null);
+                EvaluateExpression(listener);
             }
             return subscription;
-        }
-
-        public ListenerSubscription Subscribe(string subscriber, string eventName, UserMethod listener, string targetName = null, bool ephemeral = false)
-        {
-            var fullMethodName = NormalizeFullMethodName(listener);
-            if (!methods.ContainsKey(fullMethodName))
-            {
-                RegisterMethod(listener);
-            }
-            return Subscribe(subscriber, eventName, fullMethodName, targetName, ephemeral);
         }
 
         // Random Number
@@ -208,24 +207,39 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         public ValueContainer CreateProperty(string property, ValueContainer value)
         {
-            var existing = GetProperty(property);
-            if (existing != null)
-            {
-                Log(LogType.Warning, string.Format("A new container is being assigned to path '{0}', orphanining container #{1}", property, existing.Id), "engine.internal.containers");
-                existing.Parent = null;
-                existing.Path = null;
-            }
-            value.Path = property;
-            var pathTokens = property.Split('.');
+            return DoReplaceProperty(property, value, globalProperties);
+        }
+
+        private ValueContainer DoReplaceProperty(string path, ValueContainer container, IDictionary<string, ValueContainer> properties, ValueContainer parent = null)
+        {
+            var pathTokens = path.Split('.');
             if (pathTokens.Length > 1)
             {
-                value.Parent = GetProperty(string.Join(".", pathTokens.Take(pathTokens.Length - 1)), GetOperationType.GET_OR_CREATE);
+                var intermediateContainer = parent != null ? parent : GetProperty(pathTokens[0], GetOperationType.GET_OR_CREATE);
+                if (intermediateContainer.ValueAsMap() == null)
+                {
+                    intermediateContainer.Set(new Dictionary<string, ValueContainer>());
+                }
+                DoReplaceProperty(string.Join(".", pathTokens.Skip(1)), container, intermediateContainer.AsMap, intermediateContainer);
             }
             else
             {
-                globalProperties[property] = value;
+                ValueContainer existingContainer;
+                string fullPath = parent != null ? string.Join(".", parent.Path, path) : path;
+                if (properties.TryGetValue(path, out existingContainer))
+                {
+                    Log(LogType.Warning, string.Format("A container is being assigned to path '{0}', orphanining container #{1}", fullPath, existingContainer.Id), "engine.internal.containers");
+                    existingContainer.Parent = null;
+                    existingContainer.Path = null;
+                }
+                properties[path] = container;
+                if (container != null)
+                {
+                    container.Path = fullPath;
+                    container.Parent = parent;
+                }
             }
-            return value;
+            return container;
         }
 
         public ValueContainer CreateProperty(string property, bool value, string description = "", List<IContainerModifier> modifiers = null, string updater = null, string interceptor = null)
@@ -270,7 +284,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                 var path = string.Join(".", pathelements.Take(i + 1));
                 var newContainer = GetProperty(path, GetOperationType.GET_OR_CREATE);
                 newContainer.Parent = parent;
-                newContainer.Path = path;
+
+                if (i == 0)
+                {
+                    GlobalScriptingContext[pathelements[0]] = newContainer;
+                }
                 if (newContainer.ValueAsMap() == null)
                 {
                     newContainer.Set(new Dictionary<string, ValueContainer>());
@@ -304,6 +322,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             if (!globalExists)
             {
                 globalProperties[property] = container;
+                GlobalScriptingContext[property] = container;
+
             }
             container.Path = property;
             return container;
@@ -346,7 +366,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                     {
                         double startTime = Time.realtimeSinceStartupAsDouble;
                         var next = NotificationQueue.Dequeue();
-                        NotifyImmediately(next.Item1, next.Item2, next.Item3, next.Item4);
+                        //NotifyImmediately(next.Item1, next.Item2, next.Item3, next.Item4);
                         executionTime += Time.realtimeSinceStartupAsDouble - startTime;
                     }
                     yield return null;
@@ -399,38 +419,30 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             return vc;
         }
 
-        private Func<ScriptExecutionContext, CallbackArguments, DynValue> WrapMethod(string methodName)
+        private int evaluationDepth = 0;
+        private int maxEvaluationDepth = 10;
+
+        public object EvaluateExpression(string valueExpression, string contextToUse)
         {
-            return (ctx, args) =>
-            {
-                var methodOut = NormalizeValue(methods[methodName].Invoke(this, args.GetArray().Select(arg => ValueContainer.NormalizeValue(arg.ToObject())).ToArray()));
-                if (methodOut != null)
-                {
-                    if (methodOut is bool)
-                    {
-                        return DynValue.NewBoolean((bool)methodOut);
-                    }
-                    else if (methodOut is BigDouble || methodOut is string)
-                    {
-                        return DynValue.NewString(methodOut.ToString());
-                    }
-                    else if (Values.IsDictionary(methodOut.GetType()) || methodOut is ValueContainer)
-                    {
-                        return UserData.Create(methodOut);
-                    }
-                }
-                return DynValue.Nil;
-            };
+            ScriptingContext resolvedContext = ScriptingContextResolvers[contextToUse]();
+            return EvaluateExpression(valueExpression, resolvedContext.GetScriptingContext());
         }
 
         public object EvaluateExpression(string valueExpression, IDictionary<string, object> localContext = null)
         {
+            evaluationDepth++;
+            if(evaluationDepth > maxEvaluationDepth)
+            {
+                throw new InvalidOperationException(String.Format("Attempted to invoke too many evaluation operations (more than {0}). This may indicate an infinite loop!", maxEvaluationDepth));
+            }
             if (valueExpression == null)
             {
                 throw new ArgumentNullException("valueExpression");
             }
 
-            return NormalizeValue(Scripting.DoString(valueExpression, localContext).ToObject());
+            var output = NormalizeValue(Scripting.DoString(valueExpression, localContext).ToObject());
+            evaluationDepth--;
+            return output;
         }
 
         private string NextId()
@@ -482,37 +494,19 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             }
         }
 
-        public object InvokeMethod(string methodName, params object[] args)
+        public void RegisterMethod(string name, Delegate method)
         {
-            UserMethod method;
-            if (methods.TryGetValue(methodName, out method))
+            if (DynValue.FromObject(null, method).Type != DataType.ClrFunction)
             {
-                return method(this, args);
-            }
-            else
-            {
-                throw new InvalidOperationException("Couldn't find method " + methodName + ". Ensure that the method is registered before use.");
-            }
+                throw new InvalidOperationException();
+            };
+
+            GlobalScriptingContext[name] = method;
         }
 
-        public object InvokeMethod(UserMethod method, params object[] args)
+        public void RegisterMethod(string name, Func<ScriptExecutionContext, CallbackArguments, DynValue> method)
         {
-            return InvokeMethod(NormalizeFullMethodName(method), args);
-        }
-
-        public void RegisterMethod(UserMethod method)
-        {
-            RegisterMethod(NormalizeFullMethodName(method), method);
-        }
-
-        public void RegisterMethod(string name, UserMethod method)
-        {
-            if (methods.ContainsKey(name))
-            {
-                this.Log(LogType.Warning, "The method " + name + " is being registered again.", "engine.internal");
-            }
-            methods[name] = method;
-            //Scripting.Globals[name] = WrapMethod(name);
+            GlobalScriptingContext[name] = new CallbackFunction(method);
         }
 
         public T GetDefinition<T>(string typeName, string id) where T : IDefinition
@@ -642,11 +636,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             }
         }
 
-        internal void DoNotification(string eventName, string target, object[] args)
-        {
-            listeners.Notify(eventName, target, args);
-        }
-
         /*
          * Transform a definition into a dictionary containing the definition properties.
          */
@@ -670,197 +659,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             newModule.ConfigureEngine(this);
         }
 
-        internal IDictionary<string, object> GenerateGlobalContext()
-        {
-            var properties = new Dictionary<string, object>();
-            foreach (var global in globalProperties)
-            {
-                properties[global.Key] = global.Value;
-            }
-            foreach (var method in methods)
-            {
-                properties[method.Key] = WrapMethod(method.Key);
-            }
-            return properties;
-        }
-
-        public class ScriptingManagement
-        {
-            internal Script script = new Script();
-            public Table Globals => script.Globals;
-            private IdleEngine engine;
-            public ScriptingManagement(IdleEngine engine)
-            {
-                UserData.RegisterProxyType<ValueContainerScriptProxy, ValueContainer>(c => new ValueContainerScriptProxy(c));
-                UserData.RegisterType<BigDouble>();
-                SetScriptToClrCustomConversion(DataType.Number, typeof(BigDouble), (arg) =>
-                {
-                    return BigDouble.Parse(arg.CastToString());
-                });
-                SetScriptToClrCustomConversion(DataType.UserData, typeof(BigDouble), (arg) =>
-                {
-                    var obj = arg.ToObject();
-                    if (obj is ValueContainer)
-                    {
-                        return (obj as ValueContainer).ValueAsNumber();
-                    }
-                    else if (obj is BigDouble)
-                    {
-                        return (BigDouble)obj;
-                    }
-                    else
-                    {
-                        return null;
-                    }
-                });
-                SetScriptToClrCustomConversion(DataType.UserData, typeof(string), (arg) =>
-                {
-                    var obj = arg.ToObject();
-                    if (obj is ValueContainer)
-                    {
-                        return (obj as ValueContainer).ValueAsString();
-                    }
-                    else
-                    {
-                        return obj.ToString();
-                    }
-                });
-                SetScriptToClrCustomConversion(DataType.String, typeof(BigDouble), (arg) =>
-                {
-                    var converted = arg.CastToNumber();
-                    if (converted != null)
-                    {
-                        return new BigDouble(converted.Value);
-                    }
-                    return BigDouble.NaN;
-                });
-                SetClrToScriptCustomConversion(typeof(BigDouble), (script, arg) =>
-                {
-                    return UserData.Create(arg);
-                });
-                SetClrToScriptCustomConversion(typeof(ValueContainer), (script, arg) =>
-                {
-                    return UserData.Create(arg);
-                });
-                this.engine = engine;
-                GlobalIndexMethod = DynValue.NewCallback((ctx, args) =>
-                {
-                    string property = args[1].CastToString();
-                    object found = this.engine.GetProperty(property, GetOperationType.GET_OR_NULL);
-                    if (found != null)
-                    {
-                        return UserData.Create(found);
-                    }
-                    else
-                    {
-                        if (engine.methods.ContainsKey(property))
-                        {
-                            return DynValue.NewCallback((ctx, args) =>
-                            {
-                                object output = engine.methods[property].Invoke(engine, args.GetArray()
-                                    .Select(x => ValueContainer.NormalizeValue(x.ToObject())).ToArray()); ;
-                                if (output == null)
-                                {
-                                    return DynValue.Nil;
-                                }
-                                else
-                                {
-                                    return DynValue.FromObject(script, ValueContainer.NormalizeValue(output));
-                                }
-                            });
-                        }
-                        else if (ctx.CurrentGlobalEnv.Get(property) != DynValue.Nil)
-                        {
-
-                            return ctx.CurrentGlobalEnv.Get(property);
-                        }
-                        return DynValue.FromObject(script, engine.GetProperty(property, GetOperationType.GET_OR_CREATE));
-                    }
-                });
-                script.Globals["pow"] = DynValue.NewCallback((ctx, args) =>
-                {
-                    var baseValue = DynValueToBigDouble(args[0]);
-                    var exponentValue = DynValueToBigDouble(args[1]);
-                    return DynValue.FromObject(ctx.GetScript(), BigDouble.Pow(baseValue, exponentValue));
-                });
-                script.Globals["getOrCreate"] = DynValue.NewCallback((ctx, args) =>
-                {
-                    var propertyObject = DoString("return " + args[0].CastToString(), ctx.CurrentGlobalEnv).ToObject();
-                    string property;
-                    if (propertyObject is ValueContainer)
-                    {
-                        property = (propertyObject as ValueContainer).Path;
-                    }
-                    else
-                    {
-                        property = propertyObject.ToString();
-                    }
-
-                    return DynValue.FromObject(ctx.GetScript(), engine.GetProperty(property, GetOperationType.GET_OR_CREATE));
-                });
-            }
-
-            private static BigDouble DynValueToBigDouble(DynValue dynValue)
-            {
-                if (dynValue.CastToNumber().HasValue)
-                {
-                    return new BigDouble(dynValue.Number);
-                } else if (dynValue.UserData != null)
-                {
-                    var userData = dynValue.UserData.Object;
-                    if(userData is ValueContainer)
-                    {
-                        return (userData as ValueContainer).AsNumber;
-                    } else if(userData is BigDouble)
-                    {
-                        return (BigDouble)userData;
-                    }
-                }
-                throw new InvalidOperationException();
-            }
-
-            private DynValue GlobalIndexMethod;
-
-            public Table GenerateContextTable(IDictionary<string, object> contextVariables = null)
-            {
-                var contextTable = new Table(script);
-                foreach (var global in script.Globals.Pairs)
-                {
-                    contextTable.Set(global.Key, global.Value);
-                }
-                contextTable.MetaTable = new Table(script);
-                contextTable.MetaTable.Set("__index", GlobalIndexMethod);
-                if (contextVariables != null)
-                {
-                    foreach (var contextVariable in contextVariables)
-                    {
-                        contextTable.Set(contextVariable.Key, DynValue.FromObject(script, contextVariable.Value));
-                    }
-                }
-                return contextTable;
-            }
-
-            public void SetClrToScriptCustomConversion(Type clrType, Func<object, object, DynValue> converter)
-            {
-                Script.GlobalOptions.CustomConverters.SetClrToScriptCustomConversion(clrType, converter);
-            }
-
-            public void SetScriptToClrCustomConversion(DataType scriptDataType, Type clrDataType, Func<DynValue, object> converter)
-            {
-                Script.GlobalOptions.CustomConverters.SetScriptToClrCustomConversion(scriptDataType, clrDataType, converter);
-            }
-
-            public DynValue DoString(string expression, IDictionary<string, object> context = null)
-            {
-                return DoString(expression, GenerateContextTable(context));
-            }
-
-            public DynValue DoString(string expression, Table context = null)
-            {
-                return script.DoString(expression, context);
-            }
-        }
-
         private class EventListeners
         {
             public Dictionary<string, Dictionary<string, HashSet<ListenerSubscription>>> listeners = new Dictionary<string, Dictionary<string, HashSet<ListenerSubscription>>>();
@@ -871,7 +669,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                 this.engine = engine;
             }
 
-            internal void Notify(string eventName, string eventSource, IDictionary<string, object> context, object[] args)
+            internal void Notify(string eventName, string eventSource, ScriptingContext contextToUse)
             {
                 notificationCount++;
                 if (notificationCount > 100)
@@ -893,8 +691,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                         {
                             try
                             {
-                                engine.InvokeMethod(listener.MethodName, args);
-                            } catch (Exception ex)
+                                engine.EvaluateExpression(listener.MethodName, contextToUse.GetScriptingContext());
+                            }
+                            catch (Exception ex)
                             {
                                 engine.Log(LogType.Error, string.Format("Failed to invoke listner {0} for event {1} triggered from {2}: {3}", listener.MethodName, eventName, eventSource, ex));
                             }
@@ -902,11 +701,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                     }
                 }
                 notificationCount = 0;
-            }
-
-            internal void Notify(string eventName, string target, object[] args)
-            {
-                Notify(eventName, target, null, args);
             }
 
             internal ListenerSubscription Subscribe(string target, string subscriber, string eventName, string listenerName, bool ephemeral)
@@ -946,9 +740,26 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             }
         }
 
-        public static string NormalizeFullMethodName(UserMethod method)
+        private Dictionary<string, object> GlobalScriptingContext = new Dictionary<string, object>()
         {
-            return method.Method.DeclaringType.ToString() + method.Method.Name;
+            { "math", new Dictionary<string, object>() {
+                { "max", new CallbackFunction((ctx, args) => {
+                    return DynValue.FromObject(ctx.GetScript(), BigDouble.Max(ScriptingService.DynValueToBigDouble(args[0]), ScriptingService.DynValueToBigDouble(args[1])));
+                }) },
+                { "min", new CallbackFunction((ctx, args) => {
+                    return DynValue.FromObject(ctx.GetScript(), BigDouble.Min(ScriptingService.DynValueToBigDouble(args[0]), ScriptingService.DynValueToBigDouble(args[1])));
+                }) },
+                { "clamp", new CallbackFunction((ctx, args) => {
+                    BigDouble value = ScriptingService.DynValueToBigDouble(args[0]);
+                    BigDouble floor = ScriptingService.DynValueToBigDouble(args[1]);
+                    BigDouble ceiling = ScriptingService.DynValueToBigDouble(args[2]);
+                    return DynValue.FromObject(ctx.GetScript(), BigDouble.Max(floor, BigDouble.Min(ceiling, value)));
+                }) }
+            }}
+        };
+        public Dictionary<string, object> GetScriptingContext(string contextType = null)
+        {
+            return GlobalScriptingContext;
         }
     }
 }

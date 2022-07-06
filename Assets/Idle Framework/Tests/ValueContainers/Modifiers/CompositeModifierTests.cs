@@ -1,5 +1,6 @@
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework;
+using io.github.thisisnozaku.idle.framework.Engine;
 using io.github.thisisnozaku.idle.framework.Events;
 using io.github.thisisnozaku.idle.framework.Modifiers;
 using NUnit.Framework;
@@ -61,7 +62,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers
                 callCount++;
                 return null;
             });
-            target.NotifyImmediately("event", null, "", null);
+            target.NotifyImmediately("event");
             Assert.AreEqual(new BigDouble(1), new BigDouble(callCount));
         }
 
@@ -71,7 +72,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers
             {
             }
 
-            public override bool CanApply(object target)
+            public override bool CanApply(IdleEngine engine, ValueContainer container, object target)
             {
                 return true;
             }

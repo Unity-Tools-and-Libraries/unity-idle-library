@@ -27,8 +27,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             module.AddProducer(tier2);
             module.AddProducer(tier3);
 
-            module.AddUpgrade(new FlatProducerUpgradeDefinition("upgrade-one", "upgrade one", 100, "true", "true", Tuple.Create("producers.one.output_per_unit_per_second", 0.1.ToString())));
-            module.AddUpgrade(new MultiplierProducerUpgradeDefinition("upgrade-two", "upgrade two", 100, "true", "true", Tuple.Create("producers.two.output_per_unit_per_second", 1.5.ToString())));
+            module.AddUpgrade(new FlatProducerUpgradeDefinition("upgrade-one", "upgrade one", 100, "true", "true", Tuple.Create("producers.one.output_per_unit_per_second", "value + 0.1")));
+            module.AddUpgrade(new MultiplierProducerUpgradeDefinition("upgrade-two", "upgrade two", 100, "true", "true", Tuple.Create("producers.two.output_per_unit_per_second", "value * 2")));
 
             engine.AddModule(module);
 
@@ -57,33 +57,43 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         }
 
         [Test]
-        public void QuantityChangesOnUpdate()
+        public void PointsQuantityChangesOnUpdate()
         {
             engine.GetProperty("producers.one.quantity").Set(1);
-            Assert.AreEqual(new BigDouble(.1), engine.GetProperty("points.income").ValueAsNumber());
             engine.Update(1);
+            Assert.AreEqual(new BigDouble(.1), engine.GetProperty("points.income").ValueAsNumber());
             Assert.AreEqual(new BigDouble(.1), engine.GetProperty("points.quantity").ValueAsNumber());
         }
 
         [Test]
         public void UpgradeCanIncreaseOutputByAFlatAmount()
         {
-            engine.InvokeMethod(ClickerModule.BuyUpgrade, "upgrade-one");
+            engine.EvaluateExpression("BuyUpgrade(upgrade)", new Dictionary<string, object>()
+            {
+                { "upgrade", "upgrade-one" }
+            });
+            engine.Update(0);
             Assert.AreEqual(new BigDouble(0.2), engine.GetProperty(string.Join(".", "producers", tier1.Id, ProducerDefinition.PropertyNames.OUTPUT_PER_UNIT)).ValueAsNumber());
         }
 
         [Test]
         public void UpgradeCanIncreaseOutputByAMultiplier()
         {
-            engine.InvokeMethod(ClickerModule.BuyUpgrade, "upgrade-two");
-            Assert.AreEqual(new BigDouble(1.5), engine.GetProperty(string.Join(".", "producers", tier2.Id, ProducerDefinition.PropertyNames.OUTPUT_PER_UNIT)).ValueAsNumber());
+            engine.EvaluateExpression("BuyUpgrade(upgrade)", new Dictionary<string, object>()
+            {
+                { "upgrade", "upgrade-two" }
+            });
+            Assert.AreEqual(new BigDouble(2), engine.GetProperty(string.Join(".", "producers", tier2.Id, ProducerDefinition.PropertyNames.OUTPUT_PER_UNIT)).ValueAsNumber());
         }
 
         [Test]
         public void BuyingProducerSubtractsPoints()
         {
             engine.GetProperty("points.quantity").Set(15);
-            engine.InvokeMethod(ClickerModule.BuyProducer, "one");
+            engine.EvaluateExpression("BuyProducer(producer)", new Dictionary<string, object>()
+            {
+                { "producer", "one" }
+            });
             Assert.AreEqual(new BigDouble(0), engine.GetProperty("points.quantity").ValueAsNumber());
         }
 

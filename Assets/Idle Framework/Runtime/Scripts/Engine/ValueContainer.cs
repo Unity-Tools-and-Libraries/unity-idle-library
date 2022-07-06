@@ -1,25 +1,20 @@
 ﻿using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Events;
 using io.github.thisisnozaku.idle.framework.Modifiers;
-using MoonSharp.Interpreter;
-using MoonSharp.Interpreter.Interop;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using io.github.thisisnozaku.idle.framework.Engine;
-using static io.github.thisisnozaku.idle.framework.ValueContainer;
 using static io.github.thisisnozaku.idle.framework.Engine.IdleEngine;
-using io.github.thisisnozaku.idle.framework.Modifiers.Values;
 
 namespace io.github.thisisnozaku.idle.framework
 {
     /*
      * A value container holds a value.
      */
-    public class ValueContainer : EventSource<ListenerSubscription>
+    public class ValueContainer : EventSource, ScriptingContext
     {
         public delegate object UpdatingMethod(IdleEngine engine, float timeSinceLastUpdate, object previousValue, ValueContainer thisContainer, List<ContainerModifier> modifiersList);
 
@@ -34,7 +29,7 @@ namespace io.github.thisisnozaku.idle.framework
             {
                 IdleEngine.ValidatePath(value);
                 this.path = value;
-                if (this.value is IDictionary<string, ValueContainer>)
+                if (this.baseValue is IDictionary<string, ValueContainer>)
                 {
                     var children = new List<KeyValuePair<string, ValueContainer>>(ValueAsMap());
                     foreach (var child in children)
@@ -42,7 +37,7 @@ namespace io.github.thisisnozaku.idle.framework
                         child.Value.Path = String.Join(".", this.Path, child.Key);
                     }
                 }
-                else if (this.value is IList<ValueContainer>)
+                else if (this.baseValue is IList<ValueContainer>)
                 {
                     var children = new List<ValueContainer>(ValueAsList());
                     for (int i = 0; i < children.Count; i++)
@@ -50,7 +45,7 @@ namespace io.github.thisisnozaku.idle.framework
                         children[i].Path = String.Join(".", this.Path, i);
                     }
                 }
-                cachedParentValue = null;
+
             }
         }
         private object cachedFinalValue;
@@ -86,10 +81,9 @@ namespace io.github.thisisnozaku.idle.framework
                 ValueAsMap()[id] = value;
             }
         }
-        private ValueContainer cachedParentValue = null;
         public ValueContainer Parent { get; set; }
         // The value held by this container.
-        private object value;
+        private object baseValue;
         private string type;
         // Method which updates the contained value each tick, if specified.
         private string updatingMethod;
@@ -168,6 +162,15 @@ namespace io.github.thisisnozaku.idle.framework
             setInternal(startingValue, "create");
         }
 
+        public static object Unwrap(object arg)
+        {
+            if(arg is ValueContainer)
+            {
+                return (arg as ValueContainer).cachedFinalValue;
+            }
+            return arg;
+        }
+
         internal static string DetermineType(object value)
         {
             if (value is IDictionary<string, ValueContainer> || value is IDictionary<string, ValueContainer.Snapshot>)
@@ -203,13 +206,14 @@ namespace io.github.thisisnozaku.idle.framework
             return updatingMethod;
         }
 
-        private T applyModifiers<T>(T previousValue)
+        private T calculateCachedValue<T>(T previousValue)
         {
             foreach (var modifier in modifiers)
             {
-                if (previousValue != null && modifier.CanApply(previousValue))
+                if (modifier.CanApply(Engine, this, previousValue))
                 {
                     previousValue = (T)modifier.Apply(Engine, this, previousValue);
+                    ScriptingContext["value"] = previousValue;
                 }
             }
             Engine.Log(LogType.Log, String.Format("Caching calculated value in @{0}", Path), "engine.internal.container.cache");
@@ -237,7 +241,7 @@ namespace io.github.thisisnozaku.idle.framework
                 Engine.Log(LogType.Log, () => string.Format("Using cached value of @{0} as bool", Path), "engine.internal.container");
                 return CoerceToBool(cachedFinalValue);
             }
-            return applyModifiers(CoerceToBool(value));
+            return CoerceToBool(calculateCachedValue(baseValue));
         }
 
         public BigDouble AsNumber => ValueAsNumber();
@@ -250,7 +254,7 @@ namespace io.github.thisisnozaku.idle.framework
                 Engine.Log(LogType.Log, () => string.Format("Using cached value of @{0} as number", Path), "engine.internal.container");
                 return CoerceToNumber(cachedFinalValue);
             }
-            return applyModifiers(CoerceToNumber(value));
+            return CoerceToNumber(calculateCachedValue(baseValue));
         }
         public string AsString => ValueAsString();
         public string ValueAsString()
@@ -261,7 +265,7 @@ namespace io.github.thisisnozaku.idle.framework
                 Engine.Log(LogType.Log, () => string.Format("Using cached value of @{0} as string", Path), "engine.internal.container");
                 return CoerceToString(cachedFinalValue);
             }
-            return applyModifiers(CoerceToString(value));
+            return CoerceToString(calculateCachedValue(baseValue));
         }
         public IDictionary<string, ValueContainer> AsMap => ValueAsMap();
         public IDictionary<string, ValueContainer> ValueAsMap()
@@ -272,7 +276,7 @@ namespace io.github.thisisnozaku.idle.framework
                 Engine.Log(LogType.Log, () => string.Format("Using cached value of @{0} as map", Path), "engine.internal.container");
                 return CoerceToMap(cachedFinalValue);
             }
-            return applyModifiers(CoerceToMap(value));
+            return CoerceToMap(calculateCachedValue(baseValue));
         }
         public IList<ValueContainer> AsList => ValueAsList();
 
@@ -284,12 +288,12 @@ namespace io.github.thisisnozaku.idle.framework
                 Engine.Log(LogType.Log, () => string.Format("Using cached value of @{0} as list", Path), "engine.internal.container");
                 return CoerceToList(cachedFinalValue);
             }
-            return applyModifiers(CoerceToList(value));
+            return CoerceToList(calculateCachedValue(baseValue));
         }
 
         public object ValueAsRaw()
         {
-            return value;
+            return baseValue;
         }
 
         public ValueContainer GetProperty(string path, GetOperationType operationType = GetOperationType.GET_OR_NULL)
@@ -314,7 +318,7 @@ namespace io.github.thisisnozaku.idle.framework
                 }
                 return Parent;
             }
-            else if (DetermineType(value) == "map")
+            else if (DetermineType(baseValue) == "map")
             {
                 var thisMap = this.ValueAsMap();
                 if (!thisMap.TryGetValue(tokens[0], out child))
@@ -335,7 +339,7 @@ namespace io.github.thisisnozaku.idle.framework
                     }
                 }
             }
-            else if (DetermineType(value) == "list")
+            else if (DetermineType(baseValue) == "list")
             {
                 var thisList = ValueAsList();
                 int parsedIndex = int.Parse(tokens[0]);
@@ -352,11 +356,14 @@ namespace io.github.thisisnozaku.idle.framework
                         throw new InvalidOperationException(String.Format("Tried to get a container @{0} but it doesn't exist.", string.Join(".", Path, tokens[0])));
                     case GetOperationType.GET_OR_CREATE:
                         child = Engine.CreateValueContainer(parent: this);
-                        child.Path = String.Join(".", Path, tokens[0]);
+                        if (Path != null)
+                        {
+                            child.Path = String.Join(".", Path, tokens[0]);
+                        }
                         break;
                 }
-
             }
+
             if (tokens.Length == 1)
             {
                 return child;
@@ -374,7 +381,7 @@ namespace io.github.thisisnozaku.idle.framework
             if (this.updatingMethod != null)
             {
                 // TODO: Normalize
-                var updateOut = engine.InvokeMethod(this.updatingMethod, this, new BigDouble(deltaTime), this.value);
+                var updateOut = engine.EvaluateExpression(this.updatingMethod, GetUpdateScriptingContext(deltaTime));
                 bool outputIsValid = false;
                 if (updateOut is int)
                 {
@@ -409,30 +416,24 @@ namespace io.github.thisisnozaku.idle.framework
                     throw new InvalidOperationException(string.Format("Type returned from updating function was {0}, which is not valid.", updateOut.GetType().ToString()));
                 }
             }
-            if (Values.IsDictionary(this.value))
+            if (Values.IsDictionary(this.baseValue))
             {
-                foreach (var child in (IDictionary<string, ValueContainer>)this.value)
+                var children = ((IDictionary<string, ValueContainer>)this.baseValue).ToArray();
+                foreach (var child in children)
                 {
                     child.Value.Update(engine, deltaTime);
                 }
             }
-            else if (this.value is IList<ValueContainer>)
+            else if (this.baseValue is IList<ValueContainer>)
             {
-                foreach (var child in (IList<ValueContainer>)this.value)
+                var children = ((IList<ValueContainer>)this.baseValue).ToArray();
+                foreach (var child in children)
                 {
                     child.Update(engine, deltaTime);
                 }
             }
-            bool allModifiersCached = true;
-            foreach (var modifier in modifiers)
-            {
-                allModifiersCached = allModifiersCached && modifier.IsCached;
-            }
-            if (!allModifiersCached)
-            {
-                ClearCachedValue();
-            }
-            NotifyImmediately(ValueContainerUpdatedEvent.EventName, this);
+            NotifyImmediately(ValueContainerUpdatedEvent.EventName, (ScriptingContext)this);
+            calculateCachedValue(this.baseValue);
             var endTime = Time.realtimeSinceStartupAsDouble;
             var executionDifference = endTime - startTime;
             engine.Log(LogType.Log, string.Format("Update for #{0} took {1} seconds.", Id, executionDifference), "engine.internal.timing.container");
@@ -440,7 +441,7 @@ namespace io.github.thisisnozaku.idle.framework
 
         private object setInternal(object newValue, string reason)
         {
-            var old = this.value;
+            var old = this.baseValue;
             if (newValue is IDictionary<string, ValueContainer> && !(newValue is ParentNotifyingDictionary))
             {
                 newValue = new ParentNotifyingDictionary(this, newValue as IDictionary<string, ValueContainer>);
@@ -450,26 +451,24 @@ namespace io.github.thisisnozaku.idle.framework
                 newValue = new ParentNotifyingList(this, newValue as IList<ValueContainer>);
             }
             
-            this.value = NormalizeValue(this.interceptorMethod != null ? Engine.InvokeMethod(this.interceptorMethod, this, this.value, newValue, reason) : newValue);
-            if (old != this.value || reason == "restored")
+            this.baseValue = NormalizeValue(this.interceptorMethod != null ? Engine.EvaluateExpression(this.interceptorMethod) : newValue);
+            
+            calculateCachedValue(this.baseValue);
+            if (old != this.baseValue || reason == "restored")
             {
-                NotifyChange(old, this.value, reason);
-                if (cachedFinalValue != null)
-                {
-                    Engine.Log(LogType.Log, String.Format("Clearing cached value in @{0} due to base value being set", Path), "engine.internal.container.cache");
-                    ClearCachedValue();
-                }
-                type = DetermineType(value);
+                NotifyChange(old, this.baseValue, reason);
+                type = DetermineType(baseValue);
             }
-            return this.value;
+            return this.baseValue;
         }
 
         private void NotifyChange(object oldValue, object newValue, string reason)
         {
-            NotifyImmediately(ValueChangedEvent.EventName, this, oldValue, newValue, reason);
+            NotifyImmediately(ValueChangedEvent.EventName, new ValueChangedEvent(this, oldValue, newValue, reason));
+            //NotifyImmediately(ValueChangedEvent.EventName, this, oldValue, newValue, reason);
             if (Parent != null)
             {
-                Parent.NotifyImmediately(ChildValueChangedEvent.EventName, this, oldValue, newValue, Parent, reason);
+                Parent.NotifyImmediately(ChildValueChangedEvent.EventName, new ChildValueChangedEvent(this, Path, oldValue, newValue, reason));
             }
         }
         public object Set(object newValue)
@@ -526,30 +525,18 @@ namespace io.github.thisisnozaku.idle.framework
         private void SetCachedValue(object value)
         {
             cachedFinalValue = value;
+            ScriptingContext["this"] = this;
+            ScriptingContext["parent"] = Parent;
+            ScriptingContext["value"] = value;
         }
 
         public void SetModifiers(List<IContainerModifier> modifiers)
         {
-            if (this.modifiers != null)
-            {
-                foreach (var modifier in this.modifiers)
-                {
-                    var valueMod = modifier as ValueModifier;
-                    if (valueMod != null)
-                    {
-                        valueMod.CacheChanged -= DependencyCacheInvalidated;
-                    }
-                }
-            }
             this.modifiers = modifiers != null ? new SortedSet<IContainerModifier>(modifiers, new ContainerModifierComparer()) : new SortedSet<IContainerModifier>(new ContainerModifierComparer());
             foreach (var modifier in this.modifiers)
             {
                 modifier.OnAdd(Engine, this);
                 var valueMod = modifier as ValueModifier;
-                if (valueMod != null)
-                {
-                    valueMod.CacheChanged += DependencyCacheInvalidated;
-                }
             }
             if (cachedFinalValue != null)
             {
@@ -558,27 +545,27 @@ namespace io.github.thisisnozaku.idle.framework
             ClearCachedValue();
         }
 
-        internal void DoNotification(string eventName, params object[] args)
-        {
-            Engine.DoNotification(eventName, Path, args);
-        }
-
-        public void Broadcast(string eventName, params object[] args)
+        public void Broadcast(string eventName)
         {
             Engine.Log(LogType.Log, "Broadcasting " + eventName + " from #" + Id + ".", "engine.internal.container");
-            Engine.Broadcast(eventName, Path, args);
+            Engine.Broadcast(eventName, Path, (ScriptingContext)this);
         }
 
-        public void NotifyImmediately(string eventName, IDictionary<string, object> notificationContext = null, params object[] args)
+        public void NotifyImmediately(string eventName)
+        {
+            NotifyImmediately(eventName, (ScriptingContext)this);
+        }
+
+        public void NotifyImmediately(string eventName, ScriptingContext notificationContext)
         {
             if (eventName == EngineReadyEvent.EventName)
             {
-                Engine.NotifyLater(ValueChangedEvent.EventName, Path, null, this, null, this.value);
+                Engine.NotifyLater(ValueChangedEvent.EventName, Path, null, this, null, this.baseValue);
             }
             else
             {
                 Engine.Log(LogType.Log, () => string.Format("[event.{0}] Notifying {1}@{2}.", eventName, Id, Path), "engine.internal.container");
-                Engine.NotifyImmediately(eventName, Path, notificationContext, args);
+                Engine.NotifyImmediately(eventName, Path, notificationContext);
                 foreach (var modifier in modifiers)
                 {
                     modifier.Trigger(Engine, eventName, notificationContext);
@@ -586,31 +573,21 @@ namespace io.github.thisisnozaku.idle.framework
             }
         }
 
-        public void NotifyImmediately(string eventName, params object[] args)
+        public void NotifyImmediately(string eventName, string contextName)
         {
-            NotifyImmediately(eventName, null, args);
+            Engine.NotifyImmediately(eventName, Path, contextName);
         }
 
-        public ValueContainer SetUpdater(string p)
+        public ValueContainer SetUpdater(string updater)
         {
-            updatingMethod = p;
+            updatingMethod = updater;
             return this;
         }
 
-        public ValueContainer SetUpdater(UserMethod listener)
+        public ValueContainer SetInterceptor(string interceptor)
         {
-            return SetUpdater(NormalizeFullMethodName(listener));
-        }
-
-        public ValueContainer SetInterceptor(string name)
-        {
-            interceptorMethod = name;
+            interceptorMethod = interceptor;
             return this;
-        }
-
-        public ValueContainer SetInterceptor(UserMethod interceptor)
-        {
-            return SetInterceptor(interceptor.Method.DeclaringType.ToString() + interceptor.Method.Name); // FIXME: Standardized way to generate this name.
         }
 
         public static implicit operator BigDouble(ValueContainer container)
@@ -630,7 +607,7 @@ namespace io.github.thisisnozaku.idle.framework
 
         public override string ToString()
         {
-            string valueString = value != null ? value.ToString() : "null";
+            string valueString = baseValue != null ? baseValue.ToString() : "null";
             return string.Format("Reference #{4} @{0}:{1} (containing {2}{3})", Path, this.Description != "" ? " " + this.Description : "", type, type != "map" && type != "list" ? " " + valueString : "", Id);
         }
 
@@ -640,14 +617,10 @@ namespace io.github.thisisnozaku.idle.framework
             if (this.modifiers.Add(modifier))
             {
                 var valueMod = modifier as ValueModifier;
-                if (valueMod != null)
-                {
-                    valueMod.CacheChanged += DependencyCacheInvalidated;
-                }
                 modifier.OnAdd(Engine, this);
-                NotifyChange(old, this.ValueAsRaw(), "modifier");
-                Engine.Log(LogType.Log, String.Format("Clearing cached value in @{0} due to change in modifiers", Path), "engine.internal.container.cache");
-                cachedFinalValue = null;
+                calculateCachedValue(this.baseValue);
+                NotifyChange(old, cachedFinalValue, "modifier");
+                Engine.Log(LogType.Log, String.Format("Recalculated cached value in @{0} due to change in modifiers", Path), "engine.internal.container.cache");
             }
 
             return this;
@@ -655,7 +628,7 @@ namespace io.github.thisisnozaku.idle.framework
 
         public ValueContainer RemoveModifier(IContainerModifier modifier)
         {
-            var old = this.ValueAsRaw();
+            var old = cachedFinalValue;
             bool removed = this.modifiers.Remove(modifier);
             if (removed)
             {
@@ -663,38 +636,32 @@ namespace io.github.thisisnozaku.idle.framework
             }
             NotifyChange(old, this.ValueAsRaw(), "modifier");
             Engine.Log(LogType.Log, String.Format("Clearing cached value in @{0} due to change in modifiers", Path), "engine.internal.container.cache");
-            cachedFinalValue = null;
+            calculateCachedValue(this.baseValue);
             return this;
         }
 
-        public ListenerSubscription Subscribe(string subscriberDescription, string eventName, string eventHandlerName, bool ephemeral = false)
+        public ListenerSubscription Subscribe(string subscriberDescription, string eventName, string eventHandler, bool ephemeral = false)
         {
-            var listener = InternalSubscribe(subscriberDescription, eventName, eventHandlerName, ephemeral);
+            var listener = InternalSubscribe(subscriberDescription, eventName, eventHandler, ephemeral);
             if (eventName == ValueChangedEvent.EventName || eventName == EngineReadyEvent.EventName)
             {
                 if (Engine.IsReady)
                 {
-                    DoListenerInvocation(listener, eventName, this, this.value, this.value);
+                    DoListenerInvocation(listener, new ValueChangedEvent(this, cachedFinalValue, cachedFinalValue, null));
                 }
             }
             return listener;
         }
 
-        public ListenerSubscription Subscribe(string subscriberDescription, string eventName, UserMethod eventHandler, bool ephemeral = false)
+        private ListenerSubscription InternalSubscribe(string subscriberDescription, string eventName, string eventhandler, bool ephemeral = false)
         {
-            Engine.RegisterMethod(eventHandler);
-            return Subscribe(subscriberDescription, eventName, NormalizeFullMethodName(eventHandler), ephemeral);
+            return Engine.Subscribe(subscriberDescription, eventName, eventhandler, Path, ephemeral);
         }
 
-        private ListenerSubscription InternalSubscribe(string subscriberDescription, string eventName, string eventhandlerMethodName, bool ephemeral = false)
-        {
-            return Engine.Subscribe(subscriberDescription, eventName, eventhandlerMethodName, Path, ephemeral);
-        }
-
-        private void DoListenerInvocation(ListenerSubscription listener, string eventName, params object[] args)
+        private void DoListenerInvocation(ListenerSubscription listener, ScriptingContext context)
         {
             Engine.Log(LogType.Log, "Invoking listener " + listener + " from #" + Id + ".", "engine.internal.container");
-            Engine.InvokeMethod(listener.MethodName, args);
+            Engine.EvaluateExpression(listener.MethodName, context.GetScriptingContext());
             /*
             try
             {
@@ -858,7 +825,7 @@ namespace io.github.thisisnozaku.idle.framework
                 case "map":
                     {
                         var deserialized = snapshot.Value as IDictionary<string, Snapshot>;
-                        var map = Values.IsDictionary(value) ? AsMap : new Dictionary<string, ValueContainer>() ;
+                        var map = Values.IsDictionary(baseValue) ? AsMap : new Dictionary<string, ValueContainer>() ;
                         map = (IDictionary<string, ValueContainer>)setInternal(map, "restored");
                         foreach (var child in deserialized)
                         {
@@ -874,7 +841,7 @@ namespace io.github.thisisnozaku.idle.framework
                 case "list":
                     {
                         var deserialized = snapshot.Value as IList<Snapshot>;
-                        IList<ValueContainer> list = value is IList<ValueContainer> ? AsList : new List<ValueContainer>();
+                        IList<ValueContainer> list = baseValue is IList<ValueContainer> ? AsList : new List<ValueContainer>();
                         list = (IList<ValueContainer>)setInternal(list, "restored");
                         foreach (var child in deserialized)
                         {
@@ -1047,9 +1014,25 @@ namespace io.github.thisisnozaku.idle.framework
         {
             if (!Ephemeral)
             {
-                return new Snapshot(Path, value, updatingMethod);
+                return new Snapshot(Path, baseValue, updatingMethod);
             }
             return null;
+        }
+        private Dictionary<string, object> ScriptingContext = new Dictionary<string, object>();
+        public Dictionary<string, object> GetScriptingContext(string contextType = null)
+        {
+            return ScriptingContext;
+        }
+
+        private Dictionary<string, object> GetUpdateScriptingContext(BigDouble deltaTime)
+        {
+            var @base = new Dictionary<string, object>(GetScriptingContext());
+
+            @base["container"] = this;
+            @base["deltaTime"] = deltaTime;
+            @base["previousValue"] = calculateCachedValue(this.baseValue);
+            return @base;
+
         }
 
         public class ListenerSubscription // TODO: Move to own file
@@ -1087,30 +1070,6 @@ namespace io.github.thisisnozaku.idle.framework
             }
         }
 
-        public static class Context
-        {
-            public delegate IDictionary<string, object> ContextGenerator(IdleEngine engine, ValueContainer container);
-
-            public static readonly ContextGenerator DefaultGenerator = (ie, vc) =>
-            {
-                return new Dictionary<string, object>()
-                {
-                    { "this", vc }
-                };
-            };
-            public static readonly ContextGenerator ParentGenerator = (ie, vc) =>
-            {
-                return new Dictionary<string, object>()
-                {
-                    { "this", vc.Parent }
-                };
-            };
-            public static readonly ContextGenerator GlobalContextGenerator = (ie, vc) =>
-            {
-                return ie.GenerateGlobalContext();
-            };
-        }
-
         public string DataType
         {
             get
@@ -1121,9 +1080,13 @@ namespace io.github.thisisnozaku.idle.framework
                 }
                 else
                 {
-                    return ValueContainer.DetermineType(value);
+                    return ValueContainer.DetermineType(baseValue);
                 }
             }
+        }
+
+        internal class Context
+        {
         }
     }
 }

@@ -63,7 +63,8 @@ namespace io.github.thisisnozaku.idle.framework
                 {
                     value.Path = String.Join(".", parent.Path, key);
                 }
-                parent.NotifyImmediately(ChildValueChangedEvent.EventName, parent, value.Path, previous != null ? previous.ValueAsRaw() : null, value.ValueAsRaw());
+                NotifyParentOfChildChange(value.Path, previous != null ? previous.ValueAsRaw() : null, value.ValueAsRaw());
+                //parent.NotifyImmediately(ChildValueChangedEvent.EventName, parent, value.Path, );
             }
         }
 
@@ -119,7 +120,7 @@ namespace io.github.thisisnozaku.idle.framework
             var removed = underlying.Remove(key);
             if (removed)
             {
-                parent.NotifyImmediately(ChildValueChangedEvent.EventName, parent, previous != null ? previous.ValueAsRaw() : null);
+                NotifyParentOfChildChange(string.Join(".", parent.Path, key), previous != null ? previous.ValueAsRaw() : null, null);
             }
             return removed;
         }
@@ -180,6 +181,11 @@ namespace io.github.thisisnozaku.idle.framework
         IEnumerator IEnumerable.GetEnumerator()
         {
             return ((IEnumerable)underlying).GetEnumerator();
+        }
+
+        private void NotifyParentOfChildChange(string path, object oldValue, object newValue)
+        {
+            parent.NotifyImmediately(ChildValueChangedEvent.EventName, new ChildValueChangedEvent(parent, path, oldValue, newValue, "set"));
         }
     }
 }

@@ -20,9 +20,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
         IDictionary<string, object> IDefinition.Properties => this.properties;
 
-        public override bool CanApply(object target)
+        public override bool CanApply(IdleEngine engine, ValueContainer container, object target)
         {
-            return target.GetType() == typeof(Character);
+            var type = container.GetProperty("type");
+            return type != null && type.AsString == "character";
         }
 
         public abstract class Builder<T>

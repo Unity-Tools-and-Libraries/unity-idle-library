@@ -1,4 +1,5 @@
 using BreakInfinity;
+using MoonSharp.Interpreter;
 using NUnit.Framework;
 using System.Collections;
 using System.Collections.Generic;
@@ -26,7 +27,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         public void PathEvaluatesToContainer()
         {
             engine.CreateProperty("foo.bar", 5);
-            Assert.AreEqual(typeof(ValueContainer), engine.EvaluateExpression("return foo.bar").GetType());
+            Assert.AreEqual(typeof(ValueContainer), engine.EvaluateExpression("return foo.bar", "global").GetType());
         }
 
         [Test]
@@ -34,11 +35,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         {
             engine.RegisterMethod("method", (a, c) =>
             {
-                return 1;
+                return DynValue.FromObject(a.GetScript(), BigDouble.One);
             });
             Assert.DoesNotThrow(() =>
             {
-                engine.EvaluateExpression("method()");
+                engine.EvaluateExpression("method()", "global");
             });
         }
 
@@ -51,7 +52,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
                 calls++;
                 return null;
             });
-            engine.EvaluateExpression("method()");
+            engine.EvaluateExpression("method()", "global");
             Assert.AreEqual(1, calls);
         }
 
@@ -62,12 +63,12 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
             engine.RegisterMethod("method", (a, c) =>
             {
                 calls++;
-                Assert.AreEqual(new BigDouble(1), c[0]);
-                Assert.AreEqual(new BigDouble(2), c[1]);
-                Assert.AreEqual(new BigDouble(3), c[2]);
+                Assert.AreEqual(new BigDouble(1), c[0].ToObject<BigDouble>());
+                Assert.AreEqual(new BigDouble(2), c[1].ToObject<BigDouble>());
+                Assert.AreEqual(new BigDouble(3), c[2].ToObject<BigDouble>());
                 return null;
             });
-            engine.EvaluateExpression("method(1, 2, 3)");
+            engine.EvaluateExpression("method(1, 2, 3)", "global");
             Assert.AreEqual(1, calls);
         }
 

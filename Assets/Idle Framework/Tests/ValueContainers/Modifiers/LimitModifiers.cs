@@ -10,7 +10,7 @@ public class LimitModifiers : RequiresEngineTests
     [Test]
     public void MaximumModifierReturnsValueIfInputIsHigher()
     {
-        var modifier = new MaximumValueContainer("", "", 5);
+        var modifier = new ValueModifier("", "", "return math.min(5, value)", engine);
         var output = modifier.Apply(engine, null, new BigDouble(10));
         Assert.AreEqual(new BigDouble(5), output);
     }
@@ -18,7 +18,7 @@ public class LimitModifiers : RequiresEngineTests
     [Test]
     public void MaximumModifierReturnsEvaluatedValueIfInputIsHigher()
     {
-        var modifier = new MaximumValueContainer("", "", "5");
+        var modifier = new ValueModifier("", "", "return math.min(5, value)", engine);
         var output = modifier.Apply(engine, null, new BigDouble(10));
         Assert.AreEqual(new BigDouble(5), output);
     }
@@ -26,7 +26,7 @@ public class LimitModifiers : RequiresEngineTests
     [Test]
     public void MinimumValueModifierReturnsFloorIfInputIsLess()
     {
-        var modifier = new MinimumValueModifier("", "", 5);
+        var modifier = new ValueModifier("", "", "return math.max(5, value)", engine);
         var output = modifier.Apply(engine, null, BigDouble.Zero);
         Assert.AreEqual(new BigDouble(5), output);
     }
@@ -34,7 +34,7 @@ public class LimitModifiers : RequiresEngineTests
     [Test]
     public void MinimumValueModifierReturnsEvaluatedValueIfInputIsLess()
     {
-        var modifier = new MinimumValueModifier("", "", "5");
+        var modifier = new ValueModifier("", "", "return math.max(5, value)", engine);
         var output = modifier.Apply(engine, null, BigDouble.Zero);
         Assert.AreEqual(new BigDouble(5), output);
     }
@@ -42,7 +42,7 @@ public class LimitModifiers : RequiresEngineTests
     [Test]
     public void ClampModifierReturnsFloorIfInputIsLess()
     {
-        var modifier = new ClampValueModifier("", "", 5, 10);
+        var modifier = new ValueModifier("", "", "return math.clamp(value, 5, 10)", engine);
         var output = modifier.Apply(engine, null, BigDouble.Zero);
         Assert.AreEqual(new BigDouble(5), output);
     }
@@ -50,31 +50,7 @@ public class LimitModifiers : RequiresEngineTests
     [Test]
     public void ClampModifierReturnsCeilingIfInputIsMore()
     {
-        var modifier = new ClampValueModifier("", "", 5, 10);
-        var output = modifier.Apply(engine, null, new BigDouble(15));
-        Assert.AreEqual(new BigDouble(10), output);
-    }
-    
-    [Test]
-    public void ClampFloorCanBeStringExpression()
-    {
-        var modifier = new ClampValueModifier("", "", "return 5", 10);
-        var output = modifier.Apply(engine, null, new BigDouble(15));
-        Assert.AreEqual(new BigDouble(10), output);
-    }
-
-    [Test]
-    public void ClampCeilingCanBeStringExpression()
-    {
-        var modifier = new ClampValueModifier("", "", 5, "return 10");
-        var output = modifier.Apply(engine, null, new BigDouble(15));
-        Assert.AreEqual(new BigDouble(10), output);
-    }
-
-    [Test]
-    public void ClampCeilingAndFloorCanBeStringExpressionsAtTheSameTime()
-    {
-        var modifier = new ClampValueModifier("", "", "return 5", "return 10");
+        var modifier = new ValueModifier("", "", "return math.clamp(value, 5, 10)", engine);
         var output = modifier.Apply(engine, null, new BigDouble(15));
         Assert.AreEqual(new BigDouble(10), output);
     }

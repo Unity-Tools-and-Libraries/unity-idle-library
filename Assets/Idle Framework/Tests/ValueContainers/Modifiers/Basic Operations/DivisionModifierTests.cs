@@ -1,23 +1,18 @@
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Modifiers;
-using io.github.thisisnozaku.idle.framework.Modifiers.Values;
 using NUnit.Framework;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using static io.github.thisisnozaku.idle.framework.ValueContainer;
 
 namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers.BasicOperations
 {
     public class DivisionModifierTests: RequiresEngineTests
     {
         [Test]
-        public void MultiplicativeModifierAddsToSetValue()
+        public void DivisionModifierCanDivideBySetValue()
         {
             engine.Start();
-            var vc = engine.CreateProperty("path", null as string, "", new System.Collections.Generic.List<IContainerModifier>()
+            var vc = engine.CreateProperty("path", 0, "", new System.Collections.Generic.List<IContainerModifier>()
             {
-                new DivisionValueModifier("", "", 2)
+                new ValueModifier("", "", "return value / 2", new ContainerScriptingContextHolder(engine, "path"))
             });
             vc.Set(10);
             Assert.AreEqual(new BigDouble(5), vc.ValueAsNumber());
@@ -27,14 +22,15 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Modifiers.BasicOperations
         public void DivisionModifierCanHaveDynamicValue()
         {
             engine.Start();
-            var vc = engine.CreateProperty("path", null as string, "", new System.Collections.Generic.List<IContainerModifier>()
+            var vc = engine.CreateProperty("path", 0, "", new System.Collections.Generic.List<IContainerModifier>()
             {
-                new DivisionValueModifier("", "", "foo.bar", new string[] { "foo.bar" }, contextGenerator: Context.GlobalContextGenerator)
+                new ValueModifier("", "", "return value / foo.bar", engine, "return foo != null")
             });
             engine.GetProperty("foo.bar", framework.Engine.IdleEngine.GetOperationType.GET_OR_CREATE).Set(2);
             vc.Set(10);
             Assert.AreEqual(new BigDouble(5), vc.ValueAsNumber());
             engine.GetProperty("foo.bar").Set(5);
+            engine.Update(0);
             Assert.AreEqual(new BigDouble(2), vc.ValueAsNumber());
         }
     }

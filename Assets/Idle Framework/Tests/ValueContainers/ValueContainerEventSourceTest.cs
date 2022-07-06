@@ -23,7 +23,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
             bool listenerCalled = false;
             engine.RegisterMethod("changed", (ie, args) =>
             {
-                var newValue = args[2];
+                var newValue = args[0].ToObject();
                 if (listenerCalled)
                 {
                     Assert.AreEqual(BigDouble.One, newValue);
@@ -36,7 +36,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
                 return null;
             });
             engine.Start();
-            valueReference.Subscribe("", ValueChangedEvent.EventName, "changed");
+            valueReference.Subscribe("", ValueChangedEvent.EventName, "changed(value)");
             valueReference.Set(BreakInfinity.BigDouble.One);
             Assert.IsTrue(listenerCalled);
         }
@@ -45,9 +45,9 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         public void CanSubscribeByEventNameSubscriberDescriptionAndMethodReference()
         {
             bool listenerCalled = false;
-            UserMethod changed = (ie, args) =>
+            engine.RegisterMethod("changed", (ie, args) =>
             {
-                var newValue = args[2];
+                var newValue = args[0].ToObject();
                 if (listenerCalled)
                 {
                     Assert.AreEqual(BigDouble.One, newValue);
@@ -58,10 +58,9 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
                 }
                 listenerCalled = true;
                 return null;
-            };
-            engine.RegisterMethod(changed);
+            });
             engine.Start();
-            valueReference.Subscribe("", ValueChangedEvent.EventName, changed);
+            valueReference.Subscribe("", ValueChangedEvent.EventName, "changed(value)");
             valueReference.Set(BreakInfinity.BigDouble.One);
             Assert.IsTrue(listenerCalled);
         }
@@ -70,18 +69,17 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
         public void BroadcastCallsNotificationOnContainerAndAllChildren()
         {
             int listenerCallCount = 0;
-            UserMethod changed = (ie, args) =>
+            engine.RegisterMethod("changed", (ie, args) =>
             {
                 listenerCallCount++;
                 return null;
-            };
-            engine.RegisterMethod(changed);
+            });
             engine.CreateProperty("one.two.three.four.five");
-            engine.GetProperty("one").Subscribe("", "event", changed);
-            engine.GetProperty("one.two").Subscribe("", "event", changed);
-            engine.GetProperty("one.two.three").Subscribe("", "event", changed);
-            engine.GetProperty("one.two.three.four").Subscribe("", "event", changed);
-            engine.GetProperty("one.two.three.four.five").Subscribe("", "event", changed);
+            engine.GetProperty("one").Subscribe("", "event", "changed()");
+            engine.GetProperty("one.two").Subscribe("", "event", "changed()");
+            engine.GetProperty("one.two.three").Subscribe("", "event", "changed()");
+            engine.GetProperty("one.two.three.four").Subscribe("", "event", "changed()");
+            engine.GetProperty("one.two.three.four.five").Subscribe("", "event", "changed()");
             engine.Start();
             engine.GetProperty("one.two.three").Broadcast("event");
             Assert.AreEqual(3, listenerCallCount);

@@ -18,7 +18,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
             bool called = false;
             engine.RegisterMethod("method", (ie, ev) => { called = true; return null; });
             engine.Start();
-            valueReference.Subscribe("", ValueChangedEvent.EventName, "method");
+            valueReference.Subscribe("", ValueChangedEvent.EventName, "method()");
             Assert.IsTrue(called);
         }
 
@@ -29,7 +29,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
             int calls = 0;
             engine.RegisterMethod("method", (ie, ev) =>
             {
-                var newValue = ev[2];
+                var newValue = ev[0].ToObject();
                 calls++;
                 if (calls == 1)
                 {
@@ -42,7 +42,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
                 return null;
             });
             engine.Start();
-            valueReference.Subscribe("", ValueChangedEvent.EventName, "method");
+            valueReference.Subscribe("", ValueChangedEvent.EventName, "method(value)");
             valueReference.Set(BigDouble.One);
             Assert.AreEqual(2, calls);
         }
@@ -61,7 +61,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.ValueContainers
             });
             engine.CreateProperty("path").Subscribe("event", "event", "method");
             engine.Start();
-            engine.GetProperty("path").NotifyImmediately("event", args: null);
+            engine.GetProperty("path").NotifyImmediately("event");
         }
     }
 }

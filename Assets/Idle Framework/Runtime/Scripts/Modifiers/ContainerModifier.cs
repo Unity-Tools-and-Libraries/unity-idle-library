@@ -3,14 +3,13 @@ using io.github.thisisnozaku.idle.framework.Engine;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using static io.github.thisisnozaku.idle.framework.ValueContainer.Context;
 
 namespace io.github.thisisnozaku.idle.framework.Modifiers
 {
     /*
      * Base class for an item which modifies the value output from a container, and/or modifies child values.
      */
-    public abstract class ContainerModifier : IContainerModifier
+    public abstract class ContainerModifier : IContainerModifier, ScriptingContext
     {
         public static readonly List<char> ALL_OPERATORS = new List<char>() { ADD_OPERATOR, SUBTRACT_OPERATOR, MULTIPLY_OPERATOR, DIVIDE_OPERATOR, ASSIGN_OPERATOR };
         public const char ADD_OPERATOR = '+';
@@ -26,14 +25,14 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
         [JsonProperty("properties")]
         public Dictionary<string, object> Properties { get; private set; }
         public bool IsCached { get; protected set; }
-        private ContextGenerator contextGenerator;
+        protected ScriptingContext scriptingContext;
 
-        public ContainerModifier(string id, string source, ContextGenerator contextGenerator = null, int priority = 0)
+        public ContainerModifier(string id, string source, ScriptingContext context = null, int priority = 0)
         {
             this.Id = id;
             this.Source = source;
             this.Order = priority;
-            this.contextGenerator = contextGenerator != null ? contextGenerator : ValueContainer.Context.DefaultGenerator;
+            scriptingContext = context;
             Properties = new Dictionary<string, object>();
         }
         /*
@@ -60,11 +59,14 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
         }
 
         public virtual void OnUpdate(IdleEngine engine, ValueContainer container) { }
-        public virtual void Trigger(IdleEngine engine, string eventName, IDictionary<string, object> context = null) { }
+        public virtual void Trigger(IdleEngine engine, string eventName, ScriptingContext context = null) { }
 
-        public virtual IDictionary<string, object> GenerateContext(IdleEngine engine, ValueContainer container)
+
+
+        public abstract bool CanApply(IdleEngine engine, ValueContainer container, object intermediateValue);
+        public override string ToString()
         {
-            return contextGenerator(engine, container);
+            return String.Format("{0} {1}", GetType().Name, Id);
         }
 
         public override bool Equals(object obj)
@@ -75,24 +77,27 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
                    Order == modifier.Order &&
                    EqualityComparer<Dictionary<string, object>>.Default.Equals(Properties, modifier.Properties) &&
                    IsCached == modifier.IsCached &&
-                   EqualityComparer<ContextGenerator>.Default.Equals(contextGenerator, modifier.contextGenerator);
+                   EqualityComparer<ScriptingContext>.Default.Equals(scriptingContext, modifier.scriptingContext);
         }
 
         public override int GetHashCode()
         {
-            int hashCode = 1199913225;
+            int hashCode = 146449135;
             hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Id);
             hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Source);
             hashCode = hashCode * -1521134295 + Order.GetHashCode();
             hashCode = hashCode * -1521134295 + EqualityComparer<Dictionary<string, object>>.Default.GetHashCode(Properties);
             hashCode = hashCode * -1521134295 + IsCached.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<ContextGenerator>.Default.GetHashCode(contextGenerator);
+            hashCode = hashCode * -1521134295 + EqualityComparer<ScriptingContext>.Default.GetHashCode(scriptingContext);
             return hashCode;
         }
-        public abstract bool CanApply(object target);
-        public override string ToString()
+
+        public Dictionary<string, object> GetScriptingContext(string contextType = null)
         {
-            return String.Format("{0} '{1}'", GetType().Name, Id);
+            return new Dictionary<string, object>()
+            {
+                { "this", this }
+            };
         }
     }
 }

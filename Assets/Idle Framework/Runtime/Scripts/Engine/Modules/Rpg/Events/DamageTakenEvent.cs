@@ -5,15 +5,29 @@ using System.Collections.Generic;
 using UnityEngine;
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Combat
 {
-    public static class DamageTakenEvent
+    public class DamageTakenEvent : ScriptingContext
     {
         public const string EventName = "damage_taken";
 
-        public static readonly List<Tuple<Type, String>> Arguments = new List<Tuple<Type, String>>()
+        private Character attacker;
+        private BigDouble damage;
+        private Character defender;
+
+        public DamageTakenEvent(Character attacker, BigDouble damage, Character defender)
         {
-            Tuple.Create(typeof(Character), "The damaged character."),
-            Tuple.Create(typeof(Character), "The character dealing the damage."),
-            Tuple.Create(typeof(BigDouble), "The amount of damage.")
-        };
+            this.attacker = attacker;
+            this.damage = damage;
+            this.defender = defender;
+        }
+
+        public Dictionary<string, object> GetScriptingContext(string contextType = null)
+        {
+            return new Dictionary<string, object>()
+            {
+                { "attacker", attacker },
+                {"defender", defender },
+                { "damage", damage }
+            };
+        }
     }
 }

@@ -46,7 +46,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                 }
                 underlying[index] = value;
                 value.Parent = parent;
-                parent.NotifyImmediately(ChildValueChangedEvent.EventName, parent, value.Path, previous != null ? previous.ValueAsRaw() : null, value.ValueAsRaw());
+
+                NotifyParentOfChildChange(string.Join(".", parent.Path, index), previous != null ? previous.ValueAsRaw() : null, value.ValueAsRaw());
             }
         }
 
@@ -59,10 +60,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             {
                 item.Path = String.Join(".", parent.Path, underlying.Count - 1);
             }
-            parent.NotifyImmediately(ChildValueChangedEvent.EventName, parent, item.Path, null, item.ValueAsRaw());
+            NotifyParentOfChildChange(item.Path, null, item.ValueAsRaw());
+            //parent.NotifyImmediately(ChildValueChangedEvent.EventName, parent, item.Path, null, item.ValueAsRaw());
             if (parent.Parent != null)
             {
-                parent.Parent.NotifyImmediately(ChildValueChangedEvent.EventName, parent, null, item.ValueAsRaw(), parent.Parent, "set");
+                //parent.Parent.NotifyImmediately(ChildValueChangedEvent.EventName, parent, null, item.ValueAsRaw(), parent.Parent, "set");
             }
         }
 
@@ -104,7 +106,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             AssertHasParent();
             var previous = underlying[index];
             ((IList<ValueContainer>)underlying).Insert(index, item);
-            parent.NotifyImmediately(ChildValueChangedEvent.EventName, parent, item.Path, previous.ValueAsRaw(), item.ValueAsRaw());
+            NotifyParentOfChildChange(string.Join(".", parent.Parent, index), previous != null ? previous.ValueAsRaw() : null, item.ValueAsRaw());
         }
 
         public bool Remove(ValueContainer item)
@@ -113,7 +115,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             bool removed = ((ICollection<ValueContainer>)underlying).Remove(item);
             if (removed)
             {
-                parent.NotifyImmediately(ChildValueChangedEvent.EventName, parent, item.Path, item, item.ValueAsRaw());
+                NotifyParentOfChildChange(item.Path, item.ValueAsRaw(), null);
+                //parent.NotifyImmediately(ChildValueChangedEvent.EventName, parent, item.Path, item, item.ValueAsRaw());
             }
             return removed;
         }
@@ -121,9 +124,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         public void RemoveAt(int index)
         {
             AssertHasParent();
-            var item = underlying[index];
+            var previous = underlying[index];
             ((IList<ValueContainer>)underlying).RemoveAt(index);
-            parent.NotifyImmediately(ChildValueChangedEvent.EventName, parent, item.Path, item, item.ValueAsRaw());
+            NotifyParentOfChildChange(string.Join(".", parent.Parent, index), previous != null ? previous.ValueAsRaw() : null, null);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -150,6 +153,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                     underlying[i].Path = string.Join(".", parent.Path, i);
                 }
             }
+        }
+
+        private void NotifyParentOfChildChange(string path, object oldValue, object newValue)
+        {
+            parent.NotifyImmediately(ChildValueChangedEvent.EventName, new ChildValueChangedEvent(parent, parent, oldValue, newValue, "set"));
         }
     }
 }

@@ -1,11 +1,7 @@
-using BreakInfinity;
 using System;
 using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Newtonsoft.Json;
-using io.github.thisisnozaku.idle.framework.Modifiers.Values;
 using io.github.thisisnozaku.idle.framework.Engine;
 
 namespace io.github.thisisnozaku.idle.framework.Modifiers
@@ -37,7 +33,7 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
 
                     try
                     {
-                        ValueContainer effectTarget = (engine.EvaluateExpression(string.Format("return getOrCreate('{0}')", effect.Key), context) as ValueContainer);
+                        ValueContainer effectTarget = (engine.EvaluateExpression(string.Format("return {0}", effect.Key), context) as ValueContainer);
                         ContainerModifier modifier = GenerateValueModifier(target.Engine, Id, effectTarget, effect.Value);
                         effectTarget.AddModifier(modifier);
                     }
@@ -74,8 +70,7 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
             }
         }
 
-        public override void Trigger(IdleEngine engine, string eventName, IDictionary<string, object> Context = null)
-        {
+        public override void Trigger(IdleEngine engine, string eventName, ScriptingContext Context = null)        {
             if (Events != null)
             {
                 List<string> actions;
@@ -83,7 +78,7 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
                 {
                     foreach (var action in actions)
                     {
-                        engine.EvaluateExpression(action, Context);
+                        engine.EvaluateExpression(action, Context.GetScriptingContext());
                     }
                 }
             }
@@ -98,19 +93,14 @@ namespace io.github.thisisnozaku.idle.framework.Modifiers
             {
                 throw new ArgumentException("Unknown operator " + modifierOperator);
             }
-            switch (modifierOperator)
+            switch(modifierOperator)
             {
-                case ContainerModifier.ADD_OPERATOR:
-                    return new AdditiveValueModifier(Id, this.Id, valueExpression);
-                case ContainerModifier.SUBTRACT_OPERATOR:
-                    return new SubtractiveValueModifier(Id, this.Id, valueExpression);
-                case ContainerModifier.MULTIPLY_OPERATOR:
-                    return new MultiplicativeValueModifier(Id, this.Id, valueExpression);
-                case ContainerModifier.DIVIDE_OPERATOR:
-                    return new DivisionValueModifier(Id, this.Id, valueExpression);
                 case ContainerModifier.ASSIGN_OPERATOR:
-                    return new SetValueModifier(Id, this.Id, valueExpression);
+                    return new ValueModifier(Id, this.Source, string.Format("return {0}", valueExpression), target);
+                case ContainerModifier.ADD_OPERATOR:
+                    return new ValueModifier(Id, this.Source, string.Format("return value + {0}", valueExpression), target);
             }
+            
             throw new InvalidOperationException();
         }
 

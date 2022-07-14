@@ -1,27 +1,16 @@
+using BreakInfinity;
+using io.github.thisisnozaku.idle.framework.Events;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
+namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Events
 {
-    public class AttackMissEvent : ScriptingContext
+    public class AttackMissEvent : AttackEvent
     {
         public const string EventName = "attack_missed";
-        private Character attacker;
-        private Character defender;
 
-        public AttackMissEvent(Character attacker, Character defender)
+        public AttackMissEvent(RpgCharacter attacker, RpgCharacter defender, BigDouble attackDamage) : base(attacker, defender, attackDamage)
         {
-            this.attacker = attacker;
-            this.defender = defender;
-        }
-
-        public Dictionary<string, object> GetScriptingContext(string contextType = null)
-        {
-            return new Dictionary<string, object>()
-            {
-                { "attacker", attacker },
-                { "defender", defender }
-            };
         }
     }
 }

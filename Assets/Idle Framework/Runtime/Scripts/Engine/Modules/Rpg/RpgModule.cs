@@ -1,4 +1,4 @@
-using io.github.thisisnozaku.idle.framework.Definitions;
+
 using io.github.thisisnozaku.idle.framework.Events;
 using MoonSharp.Interpreter;
 using System;
@@ -12,9 +12,13 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 {
     public class RpgModule : IModule
     {
-        public const string DEFAULT_XP_CALCULATION_METHOD = "return 10 * pow(2, character.level.AsNumber - 1)";
-        public const string DEFAULT_GOLD_CALCULATION_METHOD = "return 10 * pow(2, character.level.AsNumber - 1)";
-        public const string DEFAULT_MONSTER_SCALING_FUNCTION = "return pow(1.1, character.level.AsNumber - 1)";
+        private Dictionary<long, EncounterDefinition> encounters = new Dictionary<long, EncounterDefinition>();
+        private Dictionary<long, CreatureDefinition> creatures = new Dictionary<long, CreatureDefinition>();
+        private Dictionary<long, CharacterStatus> statuses = new Dictionary<long, CharacterStatus>();
+
+        public const string DEFAULT_XP_CALCULATION_METHOD = "return 10 * math.pow(2, character.level - 1)";
+        public const string DEFAULT_gold_calculation_script = "return 10 * math.pow(2, character.level - 1)";
+        public const string DEFAULT_MONSTER_SCALING_FUNCTION = "return base * math.pow(1.1, level - 1)";
         public static readonly Dictionary<string, int> defaultItemSlots = new Dictionary<string, int>()
             {
                 {"head", 1 },
@@ -28,143 +32,127 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 {"fingers", 1 },
             };
 
-        private string xpMethod = DEFAULT_XP_CALCULATION_METHOD;
-        private string goldMethod = DEFAULT_GOLD_CALCULATION_METHOD;
-
         private Dictionary<string, BigDouble> playerDefaultAttributes = new Dictionary<string, BigDouble>()
         {
-            { Character.Attributes.ACCURACY, 10 },
-            { Character.Attributes.ACTION_METER_SPEED, 0 },
-            { Character.Attributes.CRITICAL_DAMAGE_MULTIPLIER, 1.2 },
-            { Character.Attributes.CRITICAL_HIT_CHANCE, 10 },
-            { Character.Attributes.DAMAGE, 10 },
-            { Character.Attributes.DEFENSE, 10 },
-            { Character.Attributes.EVASION, 10 },
-            { Character.Attributes.MAXIMUM_HEALTH, 25 },
-            { Character.Attributes.PENETRATION, 10 },
-            { Character.Attributes.PRECISION, 10 },
-            { Character.Attributes.RESILIENCE, 0 }
+            { RpgCharacter.Attributes.ACCURACY, 10 },
+            { RpgCharacter.Attributes.ACTION_SPEED, 0 },
+            { RpgCharacter.Attributes.CRITICAL_DAMAGE_MULTIPLIER, 1.2 },
+            { RpgCharacter.Attributes.CRITICAL_HIT_CHANCE, 10 },
+            { RpgCharacter.Attributes.DAMAGE, 10 },
+            { RpgCharacter.Attributes.DEFENSE, 10 },
+            { RpgCharacter.Attributes.EVASION, 10 },
+            { RpgCharacter.Attributes.MAXIMUM_HEALTH, 25 },
+            { RpgCharacter.Attributes.PENETRATION, 10 },
+            { RpgCharacter.Attributes.PRECISION, 10 },
+            { RpgCharacter.Attributes.RESILIENCE, 0 }
         };
         // These are the base values for these attributes for creatures.
         // These values are multiplied by the creature properties and then by the level scaling function.
         private Dictionary<string, BigDouble> creatureBaseAttributes = new Dictionary<string, BigDouble>()
         {
-            { Character.Attributes.ACCURACY, 5 },
-            { Character.Attributes.ACTION_METER_SPEED, 0 },
-            { Character.Attributes.CRITICAL_DAMAGE_MULTIPLIER, 1.1 },
-            { Character.Attributes.CRITICAL_HIT_CHANCE, 2 },
-            { Character.Attributes.DAMAGE, 2 },
-            { Character.Attributes.DEFENSE, 5 },
-            { Character.Attributes.EVASION, 5 },
-            { Character.Attributes.MAXIMUM_HEALTH, 10 },
-            { Character.Attributes.PENETRATION, 5 },
-            { Character.Attributes.PRECISION, 5 },
-            { Character.Attributes.RESILIENCE, 0 }
+            { RpgCharacter.Attributes.ACCURACY, 5 },
+            { RpgCharacter.Attributes.ACTION_SPEED, 0 },
+            { RpgCharacter.Attributes.CRITICAL_DAMAGE_MULTIPLIER, 1.1 },
+            { RpgCharacter.Attributes.CRITICAL_HIT_CHANCE, 2 },
+            { RpgCharacter.Attributes.DAMAGE, 2 },
+            { RpgCharacter.Attributes.DEFENSE, 5 },
+            { RpgCharacter.Attributes.EVASION, 5 },
+            { RpgCharacter.Attributes.MAXIMUM_HEALTH, 10 },
+            { RpgCharacter.Attributes.PENETRATION, 5 },
+            { RpgCharacter.Attributes.PRECISION, 5 },
+            { RpgCharacter.Attributes.RESILIENCE, 0 }
         };
 
         public void ConfigureEngine(IdleEngine engine)
         {
-            UserData.RegisterType<Character>();
-            UserData.RegisterProxyType<ValueContainerScriptProxy, Character>(c => new ValueContainerScriptProxy(c));
-            engine.RegisterMethod("CharacterUpdateMethod", (ctx, args) => {
+            UserData.RegisterType<RpgCharacter>();
+            UserData.RegisterType<RpgEncounter>();
+            UserData.RegisterType<CreatureDefinition>();
 
-                return UserData.Create(Character.UpdateMethod(engine, args[0].ToObject<ValueContainer>().AsCharacter(), args[1].ToObject<BigDouble>()));
-                //return ;
-            });
-            engine.RegisterMethod("OnActionPhaseChanged", (ctx, args) => {
-                OnActionPhaseChanged(engine, args[0].ToObject(), args[1].ToObject(), args[2].CastToString());
-                return DynValue.Nil;
-            });
-            engine.RegisterMethod("OnEncounterEnded", (ctx, args) => {
-                OnEncounterEnded(engine);
-                return DynValue.Nil;
-            });
+            engine.GlobalProperties["actionPhase"] = "";
+            engine.GlobalProperties["stage"] = new BigDouble(1);
+            engine.SetConfiguration("action_meter_required_to_act", new BigDouble(2));
+            engine.SetConfiguration("characterItemSlots", defaultItemSlots);
+            if (engine.GetConfiguration<string>("xp_calculation_method") == null)
+            {
+                engine.SetConfiguration("xp_calculation_method", DEFAULT_XP_CALCULATION_METHOD);
+            }
+            if (engine.GetConfiguration<string>("gold_calculation_script") == null)
+            {
+                engine.SetConfiguration("gold_calculation_script", DEFAULT_gold_calculation_script);
+            }
+            if (engine.GetProperty<string>("on_creature_died") == null)
+            {
+                engine.GlobalProperties["on_creature_died"] = (Action<RpgCharacter>)(creature =>
+               {
+                   engine.GetPlayer().Xp += engine.Scripting.Evaluate("return calculateXpValue(creature)", new Dictionary<string, object>()
+                   {
+                        { "creature", DynValue.FromObject(null, creature).Clone(true) }
+                   }).ToObject<BigDouble>();
+                   engine.GetPlayer().Gold += engine.Scripting.Evaluate("return calculateGoldValue(creature)", new Dictionary<string, object>()
+                   {
+                        { "creature", DynValue.FromObject(null, creature).Clone(true) }
+                   }).ToObject<BigDouble>();
+                   if(!engine.GetCurrentEncounter().IsActive)
+                   {
+                       engine.Emit(EncounterEndedEvent.EventName, (ScriptingContext)null);
+                   }
+               });
+            }
+            if(engine.GetProperty("GenerateCreature") == null)
+            {
+                engine.GlobalProperties["GenerateCreature"] = (Func<CreatureDefinition, BigDouble, RpgCharacter>)((creature, level) => DefaultCreatureGenerator(engine, creature, level));
+            }
+            if(engine.GetProperty("ScaleCreatureAttributeScript") == null)
+            {
+                engine.GlobalProperties["ScaleCreatureAttributeScript"] = DEFAULT_MONSTER_SCALING_FUNCTION;
+            }
 
-            var actionPhase = engine.CreateProperty(Properties.ActionPhase, "");
-            actionPhase.Subscribe("internal", ValueChangedEvent.EventName, "OnActionPhaseChanged(value, previous, reason)", true);
-            engine.Subscribe("internal", EncounterEndedEvent.EventName, "OnEncounterEnded()", ephemeral: true);
-            engine.CreateProperty("level", 0);
-            engine.CreateProperty("configuration.action_meter_required_to_act", 2.5).SetEphemeral();
-            engine.CreateProperty("configuration.xp_calculation_method", xpMethod).SetEphemeral();
-            engine.CreateProperty("configuration.gold_calculation_method", goldMethod).SetEphemeral();
+            engine.GlobalProperties["calculateXpValue"] = (Func<RpgCharacter, BigDouble>)((character) => engine.Scripting.Evaluate(engine.GetConfiguration<string>("xp_calculation_method"), new Dictionary<string, object>()
+            {
+                { "character", character }
+            }).ToObject<BigDouble>());
+            engine.GlobalProperties["calculateGoldValue"] = (Func<RpgCharacter, BigDouble>)((character) => engine.Scripting.Evaluate(engine.GetConfiguration<string>("gold_calculation_script"), new Dictionary<string, object>()
+            {
+                { "character", character }
+            }).ToObject<BigDouble>());
+
+            engine.GetDefinitions()["encounters"] = encounters;
+            engine.GetDefinitions()["creatures"] = creatures;
+            engine.GetDefinitions()["statuses"] = statuses;
+
+
             SetDefaultAttributeConfiguration(engine);
 
-            engine.GeneratePlayer();
+            engine.GlobalProperties["startEncounter"] = (Func<EncounterDefinition, RpgEncounter>)engine.StartEncounter;
 
-            engine.Subscribe("rpgModule", CharacterDiedEvent.EventName, "OnCharacterDied()", ephemeral: true);
+            engine.GeneratePlayer();
         }
 
         private void SetDefaultAttributeConfiguration(IdleEngine engine)
         {
+            Dictionary<string, object> playerAttributes = (Dictionary<string, object>)(engine.GetConfiguration()["default_player_stats"] = new Dictionary<string, object>());
+            Dictionary<string, object> creatureAttributes = (Dictionary<string, object>)(engine.GetConfiguration()["base_creature_stats"] = new Dictionary<string, object>());
             foreach (var attribute in playerDefaultAttributes)
             {
-                engine.GetProperty(String.Join(".", "configuration.default_player_stats", attribute.Key), IdleEngine.GetOperationType.GET_OR_CREATE)
-                    .Set(attribute.Value);
+                playerAttributes[attribute.Key] = attribute.Value;
             }
             foreach (var attribute in creatureBaseAttributes)
             {
-                engine.GetProperty(String.Join(".", "configuration.base_creature_stats", attribute.Key), IdleEngine.GetOperationType.GET_OR_CREATE)
-                    .Set(attribute.Value);
+                creatureAttributes[attribute.Key] = attribute.Value;
             }
-        }
-
-        //public void 
-
-        public void SetXpCalculationMethod(string method)
-        {
-            xpMethod = method;
-        }
-
-        [HandledEvent(typeof(CharacterDiedEvent))]
-        public object OnCharacterDied(IdleEngine engine, params object[] args)
-        {
-            var killed = args[0] as Character;
-            if (killed.Party == 0)
-            {
-                engine.SetActionPhase("");
-            }
-            else
-            {
-                Character player = engine.GetProperty("player").AsCharacter();
-                player.Xp += engine.CalculateXpValue(args[0] as Character);
-
-                player.Gold += engine.CalculateGoldValue(args[0] as Character);
-
-                var currentEncounter = engine.GetCurrentEncounter();
-                if (currentEncounter != null)
-                {
-                    var allCreaturesDead = currentEncounter["creatures"].ValueAsList().All(c => !c.AsCharacter().IsAlive);
-                    if (allCreaturesDead)
-                    {
-                        engine.StartEncounter();
-                    }
-                }
-            }
-            return null;
         }
 
         public void AddCreature(CreatureDefinition creatureDefinition)
         {
-            foreach (var property in new string[] { Character.Attributes.ACCURACY, Character.Attributes.EVASION, Character.Attributes.MAXIMUM_HEALTH })
-            {
-                AssertHasProperty(creatureDefinition, property);
-            }
-            definitions["creature"][creatureDefinition.Id] = creatureDefinition;
-        }
-
-        private void AssertHasProperty(CreatureDefinition creatureDefinition, string property)
-        {
-            if (!creatureDefinition.Properties.ContainsKey(property))
-            {
-                throw new InvalidOperationException(string.Format("Creature with id {0} is missing required property {1}", creatureDefinition.Id, property));
-            }
+            creatures[creatureDefinition.Id] = creatureDefinition;
         }
 
         public void AddEncounter(EncounterDefinition encounterDefinition)
         {
             foreach (var option in encounterDefinition.CreatureOptions)
             {
-                if (!definitions["creature"].ContainsKey(option.Item1))
+                if (!creatures.ContainsKey(option.Item1))
                 {
                     throw new InvalidOperationException("Add a creature with id " + option.Item1 + " first!");
                 }
@@ -173,68 +161,69 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             {
                 throw new InvalidOperationException("Encounter needs at least one option.");
             }
-            definitions["encounter"][encounterDefinition.Id] = encounterDefinition;
+            encounters[encounterDefinition.Id] = encounterDefinition;
         }
 
-        public void AddItem(ItemDefinition item)
+        public void AddStatus(CharacterStatus status)
         {
-            definitions["item"][item.Id] = item;
+            statuses[status.Id] = status;
         }
 
-        private IDictionary<string, IDictionary<string, IDefinition>> definitions = new Dictionary<string, IDictionary<string, IDefinition>>()
-        {
-            { "status", new Dictionary<string, IDefinition>() },
-            { "creature", new Dictionary<string, IDefinition>() },
-            { "encounter", new Dictionary<string, IDefinition>() },
-            { "item", new Dictionary<string, IDefinition>() }
-        };
         public Dictionary<string, int> ItemSlots { get; set; } = defaultItemSlots;
-
-        public IDictionary<string, IDictionary<string, IDefinition>> GetDefinitions()
-        {
-            return definitions;
-        }
-
-        public void AddStatus(StatusDefinition statusDefinition)
-        {
-            definitions["status"].Add(statusDefinition.Id, statusDefinition);
-        }
 
         public void AssertReady()
         {
-            if (definitions["encounter"].Count == 0)
+            if (encounters.Count == 0)
             {
                 throw new InvalidOperationException("Need to define at least 1 encounter");
             }
-        }
-
-        private object OnEncounterEnded(IdleEngine engine, params object[] args)
-        {
-            OnCombatStarted(engine, args);
-            return null;
-        }
-
-        [HandledEvent(typeof(ValueChangedEvent))]
-        private void OnActionPhaseChanged(IdleEngine engine, object newValue, object oldValue, string reason)
-        {
-            if (object.Equals(oldValue, ""))
+            if (creatures.Count == 0)
             {
-                engine.GetPlayer().Reset();
-            }
-            else if (object.Equals(oldValue, "combat") && reason.ToString() != "restored")
-            {
-                OnCombatStarted(engine);
+                throw new InvalidOperationException("Need to define at least 1 creature");
             }
         }
 
-        private object OnCombatStarted(IdleEngine engine, params object[] args)
+        public RpgCharacter DefaultCreatureGenerator(IdleEngine engine, CreatureDefinition creatureDefinition, BigDouble level)
         {
-            var player = engine.GetProperty("player");
-            var playerMap = player.ValueAsMap();
-            var playerAction = playerMap[Character.Attributes.ACTION];
-            playerAction.Set(Character.Actions.FIGHT);
-            engine.StartEncounter();
-            return null;
+            var creature = new RpgCharacter(engine);
+            var context = new Dictionary<string, object>()
+            {
+                { "level", level }
+            };
+            creature.Party = 1;
+            context["base"] = creatureDefinition.Properties[RpgCharacter.Attributes.ACCURACY];
+            creature.Accuracy = engine.Scripting.Evaluate(engine.GlobalProperties["ScaleCreatureAttributeScript"] as string, context).ToObject<BigDouble>();
+
+            context["base"] = creatureDefinition.Properties[RpgCharacter.Attributes.ACTION_SPEED];
+            creature.ActionMeterSpeed = engine.Scripting.Evaluate(engine.GlobalProperties["ScaleCreatureAttributeScript"] as string, context).ToObject<BigDouble>();
+
+            context["base"] = creatureDefinition.Properties[RpgCharacter.Attributes.CRITICAL_DAMAGE_MULTIPLIER];
+            creature.CriticalHitDamageMultiplier = engine.Scripting.Evaluate(engine.GlobalProperties["ScaleCreatureAttributeScript"] as string, context).ToObject<BigDouble>();
+
+            context["base"] = creatureDefinition.Properties[RpgCharacter.Attributes.CRITICAL_HIT_CHANCE];
+            creature.CriticalHitChance = engine.Scripting.Evaluate(engine.GlobalProperties["ScaleCreatureAttributeScript"] as string, context).ToObject<BigDouble>();
+
+            context["base"] = creatureDefinition.Properties[RpgCharacter.Attributes.MAXIMUM_HEALTH];
+            creature.CurrentHealth = creature.MaximumHealth = engine.Scripting.Evaluate(engine.GlobalProperties["ScaleCreatureAttributeScript"] as string, context).ToObject<BigDouble>();
+
+            context["base"] = creatureDefinition.Properties[RpgCharacter.Attributes.PENETRATION];
+            creature.Penetration = engine.Scripting.Evaluate(engine.GlobalProperties["ScaleCreatureAttributeScript"] as string, context).ToObject<BigDouble>();
+
+            context["base"] = creatureDefinition.Properties[RpgCharacter.Attributes.PRECISION];
+            creature.Precision = engine.Scripting.Evaluate(engine.GlobalProperties["ScaleCreatureAttributeScript"] as string, context).ToObject<BigDouble>();
+
+            context["base"] = creatureDefinition.Properties[RpgCharacter.Attributes.PENETRATION];
+            creature.Penetration = engine.Scripting.Evaluate(engine.GlobalProperties["ScaleCreatureAttributeScript"] as string, context).ToObject<BigDouble>();
+
+            context["base"] = creatureDefinition.Properties[RpgCharacter.Attributes.RESILIENCE];
+            creature.Resilience = engine.Scripting.Evaluate(engine.GlobalProperties["ScaleCreatureAttributeScript"] as string, context).ToObject<BigDouble>();
+
+            creature.Level = level;
+
+            creature.Watch(CharacterDiedEvent.EventName, "creature death handler", "on_creature_died(died)");
+
+            return creature;
+            
         }
 
         public static class Properties
@@ -243,12 +232,26 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         }
     }
 
-    public static class EngineExtensionMethods
+    public static class RpgExtensionMethods
     {
-        private static Dictionary<ValueContainer, Character> WrappedCharacterCache = new Dictionary<ValueContainer, Character>();
-        public static AttackResultDescription MakeAttack(this IdleEngine engine, Character attacker, Character defender)
+        public static IDictionary<long, EncounterDefinition> GetEncounterDefinitions(this IdleEngine engine)
         {
-            BigDouble attackDamage = engine.CalculateAttackDamage(attacker, defender);
+            return engine.GetProperty<IDictionary<long, EncounterDefinition>>("definitions.encounters");
+        }
+
+        public static Dictionary<long, CharacterStatus> GetStatuses(this IdleEngine engine)
+        {
+            return (Dictionary<long, CharacterStatus>)engine.GetDefinitions()["statuses"];
+        }
+
+        public static Dictionary<long, CreatureDefinition> GetCreatures(this IdleEngine engine)
+        {
+            return (Dictionary<long, CreatureDefinition>)engine.GetDefinitions()["creatures"];
+        }
+
+        public static AttackResultDescription MakeAttack(this IdleEngine engine, RpgCharacter attacker, RpgCharacter defender)
+        {
+            BigDouble attackDamage = engine.CalculateAttackDamage(attacker, defender); // FIXME: Into configurable lua script
             var context = new Dictionary<string, object>()
             {
                 { "attacker", attacker },
@@ -264,16 +267,17 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 string attackResult = "hit";
                 if (criticalRoll <= criticalRollTarget)
                 {
-                    engine.Log(LogType.Log, () => String.Format("Character {0} critically hit character {1} with an attack: rolled {2}/{4} vs {3}/{5}", attacker.Id, defender.Id, attackRoll, attackRollTarget, criticalRoll, criticalRollTarget), "character.combat");
+                    //engine.Log(LogType.Log, () => String.Format("Character {0} critically hit character {1} with an attack: rolled {2}/{4} vs {3}/{5}", attacker.Id, defender.Id, attackRoll, attackRollTarget, criticalRoll, criticalRollTarget), "character.combat");
                     attackDamage = attackDamage * attacker.CriticalHitDamageMultiplier;
 
                     attackResult = "critical hit";
-                } else
-                {
-                    engine.Log(LogType.Log, () => String.Format("Character {0} hit character {1} with an attack: rolled {2}/{4} vs {3}/{5}", attacker.Id, defender.Id, attackRoll, attackRollTarget, criticalRoll, criticalRollTarget), "character.combat");
                 }
-                ((ValueContainer)attacker).NotifyImmediately(AttackHitEvent.EventName, new AttackHitEvent(attacker, defender, attackDamage));
-                ((ValueContainer)defender).NotifyImmediately(HitByAttackEvent.EventName, new HitByAttackEvent(attacker, defender, attackDamage));
+                else
+                {
+                    //engine.Log(LogType.Log, () => String.Format("Character {0} hit character {1} with an attack: rolled {2}/{4} vs {3}/{5}", attacker.Id, defender.Id, attackRoll, attackRollTarget, criticalRoll, criticalRollTarget), "character.combat");
+                }
+                //((PropertyMetadata)attacker).NotifyImmediately(AttackHitEvent.EventName, new AttackHitEvent(attacker, defender, attackDamage));
+                //((PropertyMetadata)defender).NotifyImmediately(HitByAttackEvent.EventName, new HitByAttackEvent(attacker, defender, attackDamage));
 
                 defender.InflictDamage(attackDamage, attacker);
 
@@ -281,98 +285,37 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             }
             else
             {
-                engine.Log(LogType.Log, () => String.Format("Character {0} missed character {1} with an attack: rolled {2} vs {3}", attacker.Id, defender.Id, attackRoll, attackRollTarget), "character.combat");
-                ((ValueContainer)attacker).NotifyImmediately(AttackMissEvent.EventName, new AttackMissEvent(attacker, defender));
+                //engine.Log(LogType.Log, () => String.Format("Character {0} missed character {1} with an attack: rolled {2} vs {3}", attacker.Id, defender.Id, attackRoll, attackRollTarget), "character.combat");
+                //((PropertyMetadata)attacker).NotifyImmediately(AttackMissEvent.EventName, new AttackMissEvent(attacker, defender));
 
-                ((ValueContainer)defender).NotifyImmediately(MissedByAttackEvent.EventName, new MissedByAttackEvent(attacker, defender));
+                //((PropertyMetadata)defender).NotifyImmediately(MissedByAttackEvent.EventName, new MissedByAttackEvent(attacker, defender));
                 return new AttackResultDescription(false, "miss");
             }
         }
 
-        public static BigDouble CalculateXpValue(this IdleEngine engine, Character character)
+        public static RpgEncounter GetCurrentEncounter(this IdleEngine engine)
         {
-            return (BigDouble)engine.EvaluateExpression(engine.GetProperty("configuration.xp_calculation_method").ValueAsString(), new Dictionary<string, object>()
-            {
-                { "character", character }
-            });
+            return engine.GlobalProperties["encounter"] as RpgEncounter;
         }
 
-        public static BigDouble CalculateGoldValue(this IdleEngine engine, Character character)
+        public static void SetActionPhase(this IdleEngine engine, string actionPhase)
         {
-            return (BigDouble)engine.EvaluateExpression(engine.GetProperty("configuration.gold_calculation_method").ValueAsString(), new Dictionary<string, object>()
-            {
-                { "character", character }
-            });
+            engine.GlobalProperties[RpgModule.Properties.ActionPhase] = actionPhase;
         }
 
-        public static IDictionary<string, ValueContainer> GetCurrentEncounter(this IdleEngine engine)
-        {
-            return engine.GetProperty("encounter").ValueAsMap();
-        }
-
-        public static string SetActionPhase(this IdleEngine engine, string actionPhase)
-        {
-            return engine.GetProperty(RpgModule.Properties.ActionPhase).Set(actionPhase);
-        }
-
-        public static BigDouble CalculateAttackDamage(this IdleEngine engine, Character attacker, Character defender)
+        public static BigDouble CalculateAttackDamage(this IdleEngine engine, RpgCharacter attacker, RpgCharacter defender)
         {
             BigDouble attackerDamage = attacker.Damage;
 
             return attackerDamage;
         }
 
-        public static Character AsCharacter(this ValueContainer targetContainer)
-        {
-            Character character;
-            if (!WrappedCharacterCache.TryGetValue(targetContainer, out character))
-            {
-                character = new Character(targetContainer);
-                WrappedCharacterCache[targetContainer] = character;
-            }
-            return character;
-        }
-
-        public static void ApplyStatus(this IdleEngine engine, Character character, string statusId, float duration)
-        {
-            var statusDefinition = engine.GetDefinition<StatusDefinition>("status", statusId);
-            if (statusDefinition == null)
-            {
-                throw new InvalidOperationException();
-            }
-            var characterStatuses = ((ValueContainer)character).GetProperty(Character.Attributes.STATUSES).ValueAsMap();
-            if (!characterStatuses.ContainsKey(statusId))
-            {
-                ((ValueContainer)character).AddModifier(statusDefinition);
-            }
-            ((ValueContainer)character).GetProperty(Character.Attributes.STATUSES + "." + statusId, IdleEngine.GetOperationType.GET_OR_CREATE).Set(duration);
-        }
-
-        public static void RemoveStatus(this IdleEngine engine, Character character, string statusId)
-        {
-            var statusDefinition = engine.GetDefinition<StatusDefinition>("status", statusId);
-            if (statusDefinition == null)
-            {
-                throw new InvalidOperationException();
-            }
-            var characterStatuses = ((ValueContainer)character).GetProperty(Character.Attributes.STATUSES).ValueAsMap();
-            if (characterStatuses.ContainsKey(statusId))
-            {
-                ((ValueContainer)character).RemoveModifier(statusDefinition);
-            }
-            characterStatuses[statusId].Set((string)null);
-        }
-
         private static EncounterDefinition GetRandomEncounter(this IdleEngine engine)
         {
-            var encounters = engine.GetDefinitions<EncounterDefinition>("encounter");
-            if (encounters != null)
-            {
-                var options = encounters.ToList();
-                int index = engine.RandomInt(options.Count);
-                return options[index];
-            }
-            throw new InvalidOperationException();
+            var encounters = engine.GetEncounterDefinitions().Values;
+            var options = encounters.ToList();
+            int index = engine.RandomInt(options.Count());
+            return options[index];
         }
 
         /*
@@ -380,127 +323,75 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
          * 
          * If an encounter definition is given, use that definition to generate the encounter. Otherwise, use a random one.
          */
-        public static void StartEncounter(this IdleEngine engine, EncounterDefinition encounter = null)
+        public static RpgEncounter StartEncounter(this IdleEngine engine, EncounterDefinition nextEncounter = null)
         {
-            var encounterCreatures = engine.CreateValueContainer(new List<ValueContainer>());
-            engine.GetProperty("encounter", IdleEngine.GetOperationType.GET_OR_CREATE).Set(new Dictionary<string, ValueContainer>()
+            RpgEncounter currentEncounter = (RpgEncounter)(engine.GlobalProperties["encounter"] = DynValue.FromObject(null, new RpgEncounter(engine)).ToObject<RpgEncounter>());
+            if (nextEncounter == null)
             {
-                { "creatures", encounterCreatures }
-            });
-            if (encounter == null)
-            {
-                encounter = engine.GetRandomEncounter();
+                nextEncounter = engine.GetRandomEncounter();
             }
-            foreach (var option in encounter.CreatureOptions)
+            foreach (var option in nextEncounter.CreatureOptions)
             {
-                var creatureDefinition = engine.GetDefinition<CreatureDefinition>("creature", option.Item1);
+                var creatureDefinition = engine.GetCreatures()[option.Item1];
                 if (creatureDefinition == null)
                 {
                     throw new InvalidOperationException();
                 }
-                var level = engine.GetProperty("level").ValueAsNumber() + option.Item2;
-                var creature = engine.GenerateCreature(creatureDefinition, level);
-                creature.GetProperty("id").Set(creature.Id);
-                creature.GetProperty(Character.Attributes.ACTION).Set(Character.Actions.FIGHT);
-                encounterCreatures.ValueAsList().Add(creature);
+                var level = (BigDouble)engine.GlobalProperties["stage"] + option.Item2;
+                var creature = engine.Scripting.Evaluate("return GenerateCreature(definition, level)", new Dictionary<string, object>()
+                {
+                    { "definition", creatureDefinition },
+                    { "level", level }
+                }).ToObject<RpgCharacter>();
+
+                currentEncounter.Creatures.Add(creature);
             }
-            engine.NotifyImmediately(EncounterStartedEvent.EventName, null, new EncounterStartedEvent());
+            engine.Emit(EncounterStartedEvent.EventName, new EncounterStartedEvent());
+            return currentEncounter;
         }
 
-        public static Character GetRandomTarget(this IdleEngine engine, BigDouble friendlyParty)
+        public static RpgCharacter GetRandomTarget(this IdleEngine engine, BigDouble friendlyParty)
         {
             if (friendlyParty == 0)
             {
-                var monsters = engine.GetProperty("encounter.creatures").ValueAsList();
+                var monsters = engine.GetCurrentEncounter().Creatures;
                 int index = engine.RandomInt(monsters.Count);
-                return monsters[index].AsCharacter();
+                return monsters[index];
             }
             else
             {
-                return engine.GetProperty("player").AsCharacter();
+                return engine.GetPlayer();
             }
         }
 
-        public static Character GetPlayer(this IdleEngine engine)
+        public static RpgCharacter GetPlayer(this IdleEngine engine)
         {
-            return engine.GetProperty("player").AsCharacter();
+            return engine.GlobalProperties["player"] as RpgCharacter;
         }
 
-        private static Character GenerateCharacter(this IdleEngine engine)
+        public static RpgCharacter GeneratePlayer(this IdleEngine engine)
         {
-            var character = engine.CreateValueContainer(new Dictionary<string, ValueContainer>()).AsCharacter();
-            character.CriticalHitChance = 0;
-            character.Accuracy = 0;
-            character.Evasion = 0;
-            character.Defense = 0;
-            character.Penetration = 0;
-            character.Resilience = 0;
-            return character;
-        }
+            var player = new RpgCharacter(engine);
+            player.Party = 0;
+            player.Accuracy = engine.GetProperty<BigDouble>("configuration.default_player_stats.accuracy");
+            player.CriticalHitChance = engine.GetProperty<BigDouble>("configuration.default_player_stats.critical_hit_chance");
+            player.CriticalHitDamageMultiplier = engine.GetProperty<BigDouble>("configuration.default_player_stats.critical_damage_multiplier");
+            player.CurrentHealth = player.MaximumHealth = engine.GetProperty<BigDouble>("configuration.default_player_stats.maximum_health");
+            player.Damage = engine.GetProperty<BigDouble>("configuration.default_player_stats.damage");
+            player.Defense = engine.GetProperty<BigDouble>("configuration.default_player_stats.defense");
+            player.Evasion = engine.GetProperty<BigDouble>("configuration.default_player_stats.evasion");
+            player.Penetration = engine.GetProperty<BigDouble>("configuration.default_player_stats.penetration");
+            player.Precision = engine.GetProperty<BigDouble>("configuration.default_player_stats.precision");
+            player.Resilience = engine.GetProperty<BigDouble>("configuration.default_player_stats.resilience");
 
-        public static Character GenerateCreature(this IdleEngine engine, CreatureDefinition creatureDefinition, BigDouble level)
-        {
-            var character = engine.GenerateCharacter();
-            character.Accuracy = engine.GetProperty("configuration.base_creature_stats.accuracy").AsNumber * (BigDouble)engine.EvaluateExpression("return " + creatureDefinition.Properties[Character.Attributes.ACCURACY] as string);
-            character.CriticalHitChance = engine.GetProperty("configuration.base_creature_stats.critical_hit_chance").AsNumber * (BigDouble)engine.EvaluateExpression("return " + creatureDefinition.Properties[Character.Attributes.CRITICAL_HIT_CHANCE] as string);
-            character.CriticalHitDamageMultiplier = engine.GetProperty("configuration.base_creature_stats.critical_damage_multiplier").AsNumber * (BigDouble)engine.EvaluateExpression("return " + creatureDefinition.Properties[Character.Attributes.CRITICAL_DAMAGE_MULTIPLIER] as string);
-            character.CurrentHealth = character.MaximumHealth = engine.GetProperty("configuration.base_creature_stats.maximum_health").AsNumber * (BigDouble)engine.EvaluateExpression("return " + creatureDefinition.Properties[Character.Attributes.MAXIMUM_HEALTH] as string);
-            character.Damage = engine.GetProperty("configuration.base_creature_stats.damage").AsNumber * (BigDouble)engine.EvaluateExpression("return " + creatureDefinition.Properties[Character.Attributes.DAMAGE] as string);
-            character.Defense = engine.GetProperty("configuration.base_creature_stats.defense").AsNumber * (BigDouble)engine.EvaluateExpression("return " + creatureDefinition.Properties[Character.Attributes.DEFENSE] as string);
-            character.Evasion = engine.GetProperty("configuration.base_creature_stats.evasion").AsNumber * (BigDouble)engine.EvaluateExpression("return " + creatureDefinition.Properties[Character.Attributes.EVASION] as string);
-            character.Penetration = engine.GetProperty("configuration.base_creature_stats.penetration").AsNumber * (BigDouble)engine.EvaluateExpression("return " + creatureDefinition.Properties[Character.Attributes.PENETRATION] as string);
-            character.Precision = engine.GetProperty("configuration.base_creature_stats.precision").AsNumber * (BigDouble)engine.EvaluateExpression("return " + creatureDefinition.Properties[Character.Attributes.PRECISION] as string);
-            character.Resilience = engine.GetProperty("configuration.base_creature_stats.resilience").AsNumber * (BigDouble)engine.EvaluateExpression("return " + creatureDefinition.Properties[Character.Attributes.RESILIENCE] as string);
+            player.Xp = 0;
+            player.Gold = 0;
 
-            character.Icon = creatureDefinition.Properties[Character.Attributes.ICON] as string;
-            character.Party = 1;
-            return character;
-        }
+            engine.GlobalProperties["player"] = player;
 
-        public static Character GeneratePlayer(this IdleEngine engine)
-        {
-            var character = engine.GenerateCharacter();
-            character.Party = 0;
-            character.Accuracy = engine.GetProperty("configuration.default_player_stats.accuracy").AsNumber;
-            character.CriticalHitChance = engine.GetProperty("configuration.default_player_stats.critical_hit_chance").AsNumber;
-            character.CriticalHitDamageMultiplier = engine.GetProperty("configuration.default_player_stats.critical_damage_multiplier").AsNumber;
-            character.CurrentHealth = character.MaximumHealth = engine.GetProperty("configuration.default_player_stats.maximum_health").AsNumber;
-            character.Damage = engine.GetProperty("configuration.default_player_stats.damage").AsNumber;
-            character.Defense = engine.GetProperty("configuration.default_player_stats.defense").AsNumber;
-            character.Evasion = engine.GetProperty("configuration.default_player_stats.evasion").AsNumber;
-            character.Penetration = engine.GetProperty("configuration.default_player_stats.penetration").AsNumber;
-            character.Precision = engine.GetProperty("configuration.default_player_stats.precision").AsNumber;
-            character.Resilience = engine.GetProperty("configuration.default_player_stats.resilience").AsNumber;
+            player.Watch(CharacterDiedEvent.EventName, "begin resurrecting", "died.action = 'REINCARNATING'");
 
-            character.Xp = 0;
-            character.Gold = 0;
-
-            character.GetProperty("known_powers", IdleEngine.GetOperationType.GET_OR_CREATE).Set(new Dictionary<string, ValueContainer>());
-
-            engine.CreateProperty("player", (ValueContainer)character);
-            return character;
-        }
-
-        public static bool InActiveEncounter(this IdleEngine engine)
-        {
-            var encounter = engine.GetProperty("encounter");
-            return encounter != null && EncounterIsActive(encounter.ValueAsMap(), engine.GetProperty("player").ValueAsMap());
-        }
-
-        private static bool EncounterIsActive(IDictionary<string, ValueContainer> encounter, IDictionary<string, ValueContainer> player)
-        {
-            if (encounter == null)
-            {
-                return false;
-            }
-            var monsters = encounter["creatures"].ValueAsList();
-            bool anyMonsterAlive = false;
-            foreach (var monster in monsters)
-            {
-                anyMonsterAlive = anyMonsterAlive || !monster.AsCharacter().IsAlive;
-            }
-            bool playerAlive = player[Character.Attributes.CURRENT_HEALTH].ValueAsNumber() > 0;
-            return anyMonsterAlive && playerAlive;
+            return player;
         }
     }
 }

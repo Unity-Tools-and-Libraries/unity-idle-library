@@ -1,15 +1,12 @@
-using io.github.thisisnozaku.idle.framework;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-public static class AttackMissedEvent
+using BreakInfinity;
+namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Events
 {
-    public const string EventName = "attack_missed";
-    public static readonly List<Tuple<Type, String>> Arguments = new List<Tuple<Type, String>>()
+    public class AttackMissedEvent : AttackEvent
+    {
+        public const string EventName = "attack_missed";
+
+        public AttackMissedEvent(RpgCharacter attacker, RpgCharacter defender, BigDouble attackDamage) : base(attacker, defender, attackDamage)
         {
-            Tuple.Create(typeof(ValueContainer), "The attacking character."),
-            Tuple.Create(typeof(string), "The attack failure reason message."),
-        };
+        }
+    }
 }

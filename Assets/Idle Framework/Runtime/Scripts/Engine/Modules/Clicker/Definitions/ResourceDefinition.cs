@@ -1,11 +1,11 @@
-using io.github.thisisnozaku.idle.framework.Definitions;
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitions
 {
-    public class ResourceDefinition : IDefinition
+    public class ResourceDefinition
     {
         public string Id { get; }
         public string Name { get; }

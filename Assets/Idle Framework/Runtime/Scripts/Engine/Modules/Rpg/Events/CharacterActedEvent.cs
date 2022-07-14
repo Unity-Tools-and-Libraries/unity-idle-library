@@ -1,3 +1,4 @@
+using io.github.thisisnozaku.idle.framework.Events;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,14 +10,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
     {
         public const string EventName = "character_acted";
 
-        private Character character;
+        private RpgCharacter character;
 
-        public CharacterActedEvent(Character character)
+        public CharacterActedEvent(RpgCharacter character)
         {
             this.character = character;
         }
 
-        public Dictionary<string, object> GetScriptingContext(string contextType = null)
+        public Dictionary<string, object> GetScriptingProperties()
         {
             return new Dictionary<string, object>()
             {

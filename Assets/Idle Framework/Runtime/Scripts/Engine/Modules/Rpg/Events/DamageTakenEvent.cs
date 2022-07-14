@@ -1,4 +1,5 @@
 using BreakInfinity;
+using io.github.thisisnozaku.idle.framework.Events;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,18 +10,18 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Combat
     {
         public const string EventName = "damage_taken";
 
-        private Character attacker;
+        private RpgCharacter attacker;
         private BigDouble damage;
-        private Character defender;
+        private RpgCharacter defender;
 
-        public DamageTakenEvent(Character attacker, BigDouble damage, Character defender)
+        public DamageTakenEvent(RpgCharacter attacker, BigDouble damage, RpgCharacter defender)
         {
             this.attacker = attacker;
             this.damage = damage;
             this.defender = defender;
         }
 
-        public Dictionary<string, object> GetScriptingContext(string contextType = null)
+        public Dictionary<string, object> GetScriptingProperties()
         {
             return new Dictionary<string, object>()
             {

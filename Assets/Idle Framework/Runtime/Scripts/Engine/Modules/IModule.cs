@@ -1,4 +1,4 @@
-using io.github.thisisnozaku.idle.framework.Definitions;
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,7 +8,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules
 {
     public interface IModule
     {
-        IDictionary<string, IDictionary<string, IDefinition>> GetDefinitions();
         void ConfigureEngine(IdleEngine engine);
         void AssertReady();
     }

@@ -9,14 +9,21 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
     public class CharacterDiedEvent : ScriptingContext
     {
         public const string EventName = "character_died";
-        public static readonly List<Tuple<Type, String>> Arguments = new List<Tuple<Type, String>>()
+        private RpgCharacter died;
+        private RpgCharacter killer;
+        public CharacterDiedEvent(RpgCharacter died, RpgCharacter killer = null)
         {
-            Tuple.Create(typeof(Character), "The dead character")
-        };
+            this.died = died;
+            this.killer = killer;
+        }
 
-        public Dictionary<string, object> GetScriptingContext(string contextType = null)
+        public Dictionary<string, object> GetScriptingProperties()
         {
-            throw new NotImplementedException();
+            return new Dictionary<string, object>()
+            {
+                { "died", died },
+                { "killer", killer }
+            };
         }
     }
 }

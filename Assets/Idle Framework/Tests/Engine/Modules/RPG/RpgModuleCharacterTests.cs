@@ -1,88 +1,237 @@
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg;
+using MoonSharp.Interpreter;
 using NUnit.Framework;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
-{
-    public class RpgModuleCharacterTests : RequiresEngineTests
+namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg {
+    public class RpgModuleCharacterTests : RpgModuleTestsBase
     {
-        private Character attacker, defender;
-        [SetUp]
-        public void Setup()
+        [Test]
+        public void OnUpdateActionMeterIncreasesInCombat()
         {
-            base.InitializeEngine();
-            
-            var module = new RpgModule();
+            Configure();
+            engine.SetActionPhase("combat");
+            engine.GetPlayer().Update(engine, 1);
+            Assert.AreEqual(new BigDouble(1), engine.GetPlayer().ActionMeter);
+        }
 
-            module.AddCreature(new CreatureDefinition.Builder().Build("1"));
-            module.AddEncounter(new EncounterDefinition("1", Tuple.Create("1", 1)));
+        [Test]
+        public void OnUpdateActsWhenActionMeterFull()
+        {
+            Configure();
 
-            engine.AddModule(module);
-            engine.CreateProperty("configuration.action_meter_required_to_act", 2);
+            random.SetNextValues(1, 1, 1, 1);
 
-            attacker = engine.CreateProperty("attacker", new Dictionary<string, ValueContainer>(), updater: "CharacterUpdateMethod").AsCharacter();
-            defender = engine.CreateProperty("defender", new Dictionary<string, ValueContainer>(), updater: "CharacterUpdateMethod").AsCharacter();
+            engine.SetActionPhase("combat");
+            engine.StartEncounter();
+            engine.Watch(CharacterActedEvent.EventName, "test", "triggered = true");
+            engine.GetPlayer().Update(engine, (float)((BigDouble)engine.GetProperty("configuration.action_meter_required_to_act")).ToDouble());
+            Assert.IsTrue(engine.Scripting.Evaluate("return triggered").Boolean);
+        }
 
-            defender.MaximumHealth = defender.CurrentHealth = 10;
-            attacker.Damage = 1;
+        [Test]
+        public void CharacterIsDeadWhenCurrentHealthIsZero()
+        {
+            Configure();
 
+            var player = engine.GetPlayer();
+            player.CurrentHealth = 0;
+            Assert.IsFalse(player.IsAlive);
+        }
+
+        [Test]
+        public void ApplyStatusAddsStatusOnCharacter()
+        {
+            rpgModule.AddStatus(new CharacterStatus.Builder().SetFlag("test").Build(engine, 1));
+
+            Configure();
+
+            engine.GetPlayer().AddStatus(engine.GetStatuses()[1], new BigDouble(1));
+
+            Assert.AreEqual(true, engine.GetPlayer().GetFlag("test"));
+        }
+
+        [Test]
+        public void RemoveStatusUndoesStatusEffectOnCharacter()
+        {
+            var status = new CharacterStatus.Builder().SetFlag("test", true).Build(engine, 1);
+            rpgModule.AddStatus(status);
+            Configure();
+
+            engine.GetPlayer().AddStatus(status, new BigDouble(1));
+            engine.GetPlayer().RemoveStatus(status);
+
+            Assert.IsFalse(engine.GetPlayer().GetFlag("test"));
+        }
+
+        [Test]
+        public void UpdateChangesRemainingDurationOfAppliedStatuses()
+        {
+            var status = new CharacterStatus.Builder().SetFlag("test", true).Build(engine, 1);
+            rpgModule.AddStatus(status);
+            Configure();
             engine.Start();
+            
+            engine.GetPlayer().AddStatus(status, new BigDouble(5));
+            engine.GlobalProperties[RpgModule.Properties.ActionPhase] = "combat";
+
+            engine.Update(1);
+            Assert.AreEqual(new BigDouble(5), engine.GetPlayer().Statuses[1].InitialTime);
+            Assert.AreEqual(new BigDouble(4), engine.GetPlayer().Statuses[1].RemainingTime);
         }
 
         [Test]
-        public void DoNotUpdateActionMeterWhenActionPhaseIsNotCombat()
+        public void UpdateReducingTimeTo0RemoveStatus()
         {
-            engine.Update(1f);
-            Assert.AreEqual(new BigDouble(0), attacker.ActionMeter);
-            Assert.AreEqual(new BigDouble(0), defender.ActionMeter);
+            var status = new CharacterStatus.Builder().SetFlag("test", true).Build(engine, 1);
+            rpgModule.AddStatus(status);
+            Configure();
+            
+            
+            engine.Start();
+            
+            engine.GetPlayer().AddStatus(status, new BigDouble(1));
+            engine.GlobalProperties[RpgModule.Properties.ActionPhase] = "combat";
+
+            engine.Update(1);
+            Assert.AreEqual(0, engine.GetPlayer().Statuses.Count);
         }
 
         [Test]
-        public void HasItemSlots()
+        public void AddItemAddsItemToCharacterIfSlotAvailale()
         {
-            Assert.AreEqual(new BigDouble(RpgModule.defaultItemSlots["head"]), attacker.ItemSlots["head"]);
-            Assert.AreEqual(new BigDouble(RpgModule.defaultItemSlots["neck"]), attacker.ItemSlots["neck"]);
-            Assert.AreEqual(new BigDouble(RpgModule.defaultItemSlots["body"]), attacker.ItemSlots["body"]);
-            Assert.AreEqual(new BigDouble(RpgModule.defaultItemSlots["back"]), attacker.ItemSlots["back"]);
-            Assert.AreEqual(new BigDouble(RpgModule.defaultItemSlots["arms"]), attacker.ItemSlots["arms"]);
-            Assert.AreEqual(new BigDouble(RpgModule.defaultItemSlots["hands"]), attacker.ItemSlots["hands"]);
-            Assert.AreEqual(new BigDouble(RpgModule.defaultItemSlots["legs"]), attacker.ItemSlots["legs"]);
-            Assert.AreEqual(new BigDouble(RpgModule.defaultItemSlots["feet"]), attacker.ItemSlots["feet"]);
-            Assert.AreEqual(new BigDouble(RpgModule.defaultItemSlots["fingers"]), attacker.ItemSlots["fingers"]);
+
+            Configure();
+
+            var item = new RpgItem(1, engine, new string[] { }, null);
+            Assert.IsTrue(engine.GetPlayer().AddItem(item));
         }
 
         [Test]
-        public void CanAddAnItemToACharacter()
+        public void AddStatusNotDefinedInEngineThrows()
         {
-            var item = engine.CreateValueContainer(new Dictionary<string, ValueContainer>()
+            Configure();
+            var status = new CharacterStatus.Builder().SetFlag("test", true).Build(engine, 1);
+            Assert.Throws<ArgumentNullException>(() =>
             {
-                { ItemInstance.Attributes.UsedSlots, engine.CreateValueContainer(new List<ValueContainer>()
-                {
-                    engine.CreateValueContainer("head")
-                }) }
-            }).AsItem();
-            attacker.AddItem(item);
-            Assert.AreEqual(item, attacker.GetItems("head")[0]);
+                engine.GetPlayer().AddStatus(null, 1);
+            });
+            Assert.Throws<InvalidOperationException>(() =>
+            {
+                engine.GetPlayer().AddStatus(status, 1);
+            });
         }
 
         [Test]
-        public void TryingToAddItemWithoutSpaceOnTargetFails()
+        public void AddItemToFullSlotFails()
         {
-            var item = engine.CreateValueContainer(new Dictionary<string, ValueContainer>()
+
+            Configure();
+
+            var item = new RpgItem(1, engine, new string[] { "head" }, null);
+            Assert.IsTrue(engine.GetPlayer().AddItem(item));
+            Assert.IsFalse(engine.GetPlayer().AddItem(item));
+        }
+
+        [Test]
+        public void WhenPlayerDiesPlayerActionChangedToResurrecting()
+        {
+            Configure();
+
+            engine.GetPlayer().Kill();
+            Assert.AreEqual(RpgCharacter.Actions.REINCARNATING, engine.GetPlayer().Action);
+        }
+
+        [Test]
+        public void CharacterResetRemovesStatuses()
+        {
+            var status = new CharacterStatus.Builder().SetFlag("test", true).Build(engine, 1);
+            rpgModule.AddStatus(status);
+            Configure();
+
+            engine.GetPlayer().AddStatus(status, new BigDouble(1));
+            engine.GetPlayer().MaximumHealth = 1;
+            engine.GetPlayer().Kill();
+            engine.GetPlayer().Reset();
+            Assert.AreEqual(0, engine.GetPlayer().Statuses.Count);
+            Assert.AreEqual(new BigDouble(1), engine.GetPlayer().CurrentHealth);
+        }
+
+        [Test]
+        public void WhenCreatureDiesPlayerEarnsXpAndGold()
+        {
+            Configure();
+
+            random.SetNextValues(1);
+
+            var encounter = engine.StartEncounter();
+
+            encounter.Creatures[0].Kill();
+
+            Assert.AreEqual(new BigDouble(10), engine.GetPlayer().Xp);
+            Assert.AreEqual(new BigDouble(10), engine.GetPlayer().Gold);
+        }
+
+        [Test]
+        public void CharactersCanAddAbilities()
+        {
+            Configure();
+
+            var ability = new AbilityDefinition(1, engine, "", new Dictionary<string, Tuple<string, string>>()
             {
-                { ItemInstance.Attributes.UsedSlots, engine.CreateValueContainer(new List<ValueContainer>()
-                {
-                    engine.CreateValueContainer("head")
-                }) }
-            }).AsItem();
-            attacker.AddItem(item);
-            Assert.False(attacker.AddItem(item));
-            Assert.AreEqual(item, attacker.GetItems("head")[0]);
-            Assert.AreEqual(1, attacker.GetItems("head").Count);
+                { "Accuracy", Tuple.Create("value * 2", "value / 2") }
+            });
+
+            engine.GetPlayer().AddAbility(ability);
+
+            Assert.AreEqual(new BigDouble(20), engine.GetPlayer().Accuracy);
+        }
+
+        [Test]
+        public void CharactersCanRemoveAbilities()
+        {
+            Configure();
+
+            var ability = new AbilityDefinition(1, engine, "", new Dictionary<string, Tuple<string, string>>()
+            {
+                { "Accuracy", Tuple.Create("value * 2", "value / 2") }
+            });
+
+            engine.GetPlayer().AddAbility(ability);
+            engine.GetPlayer().RemoveAbility(ability);
+
+            Assert.AreEqual(new BigDouble(10), engine.GetPlayer().Accuracy);
+        }
+
+        [Test]
+        public void DamageReducesCurrentHealth()
+        {
+            Configure();
+
+            engine.GetPlayer().Watch(CharacterDiedEvent.EventName, "test", "triggered = true");
+            engine.GetPlayer().CurrentHealth = 10;
+
+            engine.GetPlayer().InflictDamage(5, null);
+
+            Assert.AreEqual(new BigDouble(5), engine.GetPlayer().CurrentHealth);
+            
+        }
+
+        [Test]
+        public void WhenDamageWouldReduceHealthToOrBelowZeroKillTheCharacter()
+        {
+            Configure();
+
+            engine.GetPlayer().Watch(CharacterDiedEvent.EventName, "test", "triggered = true");
+            engine.GetPlayer().CurrentHealth = 1;
+
+            engine.GetPlayer().InflictDamage(1, null);
+            
+
+            Assert.IsTrue((bool)engine.GlobalProperties["triggered"]);
         }
     }
 }

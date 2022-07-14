@@ -1,24 +1,50 @@
 using BreakInfinity;
+using io.github.thisisnozaku.idle.framework.Engine.Persistence;
 using MoonSharp.Interpreter;
+using MoonSharp.Interpreter.Interop;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+
 namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
 {
     public class ScriptingService
     {
-        internal Script script;
         private IdleEngine engine;
+        private Table defaultMetatable;
+        private Dictionary<string, object> BuiltIns = new Dictionary<string, object>()
+        {
+            { "math", new Dictionary<string, object>() {
+                { "max", new CallbackFunction((ctx, args) => {
+                    return DynValue.FromObject(ctx.GetScript(), BigDouble.Max(ScriptingService.DynValueToBigDouble(args[0]), ScriptingService.DynValueToBigDouble(args[1])));
+                }) },
+                { "min", new CallbackFunction((ctx, args) => {
+                    return DynValue.FromObject(ctx.GetScript(), BigDouble.Min(ScriptingService.DynValueToBigDouble(args[0]), ScriptingService.DynValueToBigDouble(args[1])));
+                }) },
+                { "clamp", new CallbackFunction((ctx, args) => {
+                    BigDouble value = ScriptingService.DynValueToBigDouble(args[0]);
+                    BigDouble floor = ScriptingService.DynValueToBigDouble(args[1]);
+                    BigDouble ceiling = ScriptingService.DynValueToBigDouble(args[2]);
+                    return DynValue.FromObject(ctx.GetScript(), BigDouble.Max(floor, BigDouble.Min(ceiling, value)));
+                }) },
+                { "pow", new CallbackFunction((ctx, args) => {
+                    BigDouble lhv = ScriptingService.DynValueToBigDouble(args[0]);
+                    BigDouble rhv = ScriptingService.DynValueToBigDouble(args[1]);
+                    return DynValue.FromObject(ctx.GetScript(), BigDouble.Pow(lhv, rhv));
+                }) }
+            }}
+        };
+        internal Script script;
         public ScriptingService(IdleEngine engine)
         {
-            script = new Script(CoreModules.Preset_HardSandbox);
+            this.engine = engine;
+            script = new Script(CoreModules.Preset_HardSandbox ^ CoreModules.Math );
+
 
             UserData.RegisterType<IdleEngine>();
-            UserData.RegisterProxyType<ValueContainerScriptProxy, ValueContainer>(c => new ValueContainerScriptProxy(c));
             UserData.RegisterType<BigDouble>();
-            UserData.RegisterType<ParentNotifyingList>();
-            UserData.RegisterType<ParentNotifyingDictionary>();
+            UserData.RegisterType<WrappedDictionary>();
+
             SetScriptToClrCustomConversion(DataType.Number, typeof(BigDouble), (arg) =>
             {
                 return BigDouble.Parse(arg.CastToString());
@@ -26,30 +52,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             SetScriptToClrCustomConversion(DataType.UserData, typeof(BigDouble), (arg) =>
             {
                 var obj = arg.ToObject();
-                if (obj is ValueContainer)
-                {
-                    return (obj as ValueContainer).ValueAsNumber();
-                }
-                else if (obj is BigDouble)
+                if (obj is BigDouble)
                 {
                     return (BigDouble)obj;
                 }
-                else
-                {
-                    return null;
-                }
-            });
-            SetScriptToClrCustomConversion(DataType.UserData, typeof(string), (arg) =>
-            {
-                var obj = arg.ToObject();
-                if (obj is ValueContainer)
-                {
-                    return (obj as ValueContainer).ValueAsString();
-                }
-                else
-                {
-                    return obj.ToString();
-                }
+                return DynValue.FromObject(null, BigDouble.Zero);
             });
             SetScriptToClrCustomConversion(DataType.String, typeof(BigDouble), (arg) =>
             {
@@ -72,11 +79,50 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             {
                 return UserData.Create(arg);
             });
-            SetClrToScriptCustomConversion(typeof(ValueContainer), (script, arg) =>
+            SetClrToScriptCustomConversion(typeof(Dictionary<string, object>), (script, arg) =>
             {
-                return UserData.Create(arg);
+                return DynValue.FromObject(script, new WrappedDictionary(arg as Dictionary<string, object>));
             });
-            this.engine = engine;
+
+            ConfigureBuiltIns(engine);
+            EngineAwareIndexMethod = DynValue.NewCallback((Func<ScriptExecutionContext, CallbackArguments, DynValue>)((ctx, args) =>
+            {
+                string locationArg = args[1].CastToString();
+                object value;
+                if(!BuiltIns.TryGetValue(locationArg, out value))
+                {
+                    engine.GlobalProperties.TryGetValue(locationArg, out value);
+                }
+                return DynValue.FromObject(null, value);
+            }));
+            EngineAwareIndexSetMethod = DynValue.NewCallback((Func<ScriptExecutionContext, CallbackArguments, DynValue>)((ctx, args) =>
+            {
+                string locationArg = args[1].CastToString();
+                if (args[2].Type == DataType.Number)
+                {
+                    engine.GlobalProperties[locationArg] = new BigDouble(args[2].Number);
+                }
+                else
+                {
+                    engine.GlobalProperties[locationArg] = args[2].ToObject();
+                }
+
+                return DynValue.Nil;
+            }));
+
+            defaultMetatable = new Table(script);
+            defaultMetatable.Set("__index", EngineAwareIndexMethod);
+            defaultMetatable.Set("__newindex", EngineAwareIndexSetMethod);
+        }
+
+        private void ConfigureBuiltIns(IdleEngine engine)
+        {
+            BuiltIns["engine"] = engine;
+        }
+
+        public void RegisterBuiltIn(string name, object builtIn)
+        {
+            BuiltIns[name] = builtIn;
         }
 
         public static BigDouble DynValueToBigDouble(DynValue dynValue)
@@ -88,11 +134,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             else if (dynValue.UserData != null)
             {
                 var userData = dynValue.UserData.Object;
-                if (userData is ValueContainer)
-                {
-                    return (userData as ValueContainer).AsNumber;
-                }
-                else if (userData is BigDouble)
+                if (userData is BigDouble)
                 {
                     return (BigDouble)userData;
                 }
@@ -100,27 +142,26 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             throw new InvalidOperationException();
         }
 
-        private DynValue GlobalIndexMethod;
+        private DynValue EngineAwareIndexMethod;
+        private DynValue EngineAwareIndexSetMethod;
 
-        public Table GenerateContextTable(IDictionary<string, object> contextVariables = null)
+        public void SetupContext(IDictionary<string, object> contextVariables = null)
         {
-            var contextTable = new Table(script);
-            foreach (var global in engine.GetScriptingContext())
+            foreach(var global in engine.GlobalProperties)
             {
-                contextTable[global.Key] = global.Value;
+                script.Globals[global.Key] = global.Value;
             }
             if (contextVariables != null)
             {
                 foreach (var contextVariable in contextVariables)
                 {
-                    contextTable.Set(contextVariable.Key, DynValue.FromObject(script, contextVariable.Value));
+                    script.Globals[contextVariable.Key] = contextVariable.Value;
                 }
             }
-            contextTable["engine"] = engine;
-            return contextTable;
+            script.Globals.MetaTable = defaultMetatable;
         }
 
-        public void SetClrToScriptCustomConversion(Type clrType, Func<object, object, DynValue> converter)
+        public void SetClrToScriptCustomConversion(Type clrType, Func<Script, object, DynValue> converter)
         {
             Script.GlobalOptions.CustomConverters.SetClrToScriptCustomConversion(clrType, converter);
         }
@@ -130,14 +171,53 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             Script.GlobalOptions.CustomConverters.SetScriptToClrCustomConversion(scriptDataType, clrDataType, converter);
         }
 
-        public DynValue DoString(string expression, IDictionary<string, object> context = null)
+        public DynValue Evaluate(string script, IDictionary<string, object> localContext = null)
         {
-            return DoString(expression, GenerateContextTable(context));
+            if (script == null)
+            {
+                throw new ArgumentNullException("valueExpression");
+            }
+            SetupContext(localContext);
+            DynValue result = this.script.DoString(script);
+            if (result.Type == DataType.Number)
+            {
+                return DynValue.FromObject(null, new BigDouble(result.Number));
+            }
+            return result;
         }
 
-        public DynValue DoString(string expression, Table context = null)
+        public DynValue Evaluate(string valueExpression, KeyValuePair<string, object> localContext)
         {
-            return script.DoString(expression, context);
+            return Evaluate(valueExpression, new Dictionary<string, object>()
+            {
+                { localContext.Key, localContext.Value }
+            });
+        }
+
+        private class WrappedDictionary : IUserDataType
+        {
+            private Dictionary<string, object> underlying;
+            public WrappedDictionary(Dictionary<string, object> underlying)
+            {
+                this.underlying = underlying;
+            }
+            public DynValue Index(Script script, DynValue index, bool isDirectIndexing)
+            {
+                object value;
+                underlying.TryGetValue(index.CastToString(), out value);
+                return DynValue.FromObject(script, value);
+            }
+
+            public DynValue MetaIndex(Script script, string metaname)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool SetIndex(Script script, DynValue index, DynValue value, bool isDirectIndexing)
+            {
+                underlying[index.CastToString()] = value.ToObject();
+                return true;
+            }
         }
     }
 }

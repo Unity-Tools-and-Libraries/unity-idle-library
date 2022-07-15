@@ -56,7 +56,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
                 {
                     return (BigDouble)obj;
                 }
-                return DynValue.FromObject(null, BigDouble.Zero);
+                return null;
             });
             SetScriptToClrCustomConversion(DataType.String, typeof(BigDouble), (arg) =>
             {
@@ -118,11 +118,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
         private void ConfigureBuiltIns(IdleEngine engine)
         {
             BuiltIns["engine"] = engine;
-        }
-
-        public void RegisterBuiltIn(string name, object builtIn)
-        {
-            BuiltIns[name] = builtIn;
         }
 
         public static BigDouble DynValueToBigDouble(DynValue dynValue)

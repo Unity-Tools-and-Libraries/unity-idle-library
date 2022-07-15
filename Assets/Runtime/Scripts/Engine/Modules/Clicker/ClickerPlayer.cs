@@ -12,7 +12,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
         {
             this.Points = new PointsHolder();
             this.Producers = new Dictionary<long, Producer>();
-            this.Upgrades = new List<long>();
+            this.Upgrades = new Dictionary<long, Upgrade>();
+            foreach(var upgrade in engine.GetUpgrades())
+            {
+                Upgrades[upgrade.Key] = upgrade.Value;
+            }
             foreach(var producer in engine.GetProducers())
             {
                 Producers[producer.Key] = producer.Value;
@@ -21,11 +25,33 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 
         public PointsHolder Points { get; }
         public Dictionary<long, Producer> Producers { get; }
-        public List<long> Upgrades { get; }
+        public Dictionary<long, Upgrade> Upgrades { get; }
 
         protected override void CustomUpdate(IdleEngine engine, float deltaTime)
         {
             Points.Quantity += Points.TotalIncome * deltaTime;
+            foreach(var p in Producers.Values)
+            {
+                p.IsUnlocked = engine.Scripting.Evaluate(p.UnlockExpression, new Dictionary<string, object>()
+                {
+                    { "producer", p }
+                }).Boolean;
+                p.IsEnabled = engine.Scripting.Evaluate(p.EnableExpression, new Dictionary<string, object>()
+                {
+                    { "producer", p }
+                }).Boolean;
+            }
+            foreach (var u in Upgrades.Values)
+            {
+                u.IsUnlocked = engine.Scripting.Evaluate(u.UnlockExpression, new Dictionary<string, object>()
+                {
+                    { "upgrade", u }
+                }).Boolean;
+                u.IsEnabled = engine.Scripting.Evaluate(u.EnableExpression, new Dictionary<string, object>()
+                {
+                    { "upgrade", u }
+                }).Boolean;
+            }
         }
         /*
          * Attempt to spend the given amount of points. Returns true if successful.
@@ -60,10 +86,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             {
                 { "target", upgrade }
             }).ToObject<BigDouble>();
-            if (!Upgrades.Contains(id) &&SpendPoints(cost))
+            if (!GetModifiers().Contains(upgrade.Id) && SpendPoints(cost))
             {
                 AddModifier(upgrade);
-                this.Upgrades.Add(upgrade.Id);
             }
         }
     }

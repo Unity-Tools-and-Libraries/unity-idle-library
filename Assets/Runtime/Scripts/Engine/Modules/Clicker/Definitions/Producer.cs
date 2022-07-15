@@ -1,12 +1,13 @@
 using BreakInfinity;
 
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitions;
+using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Events;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 {
-    public class Producer : Entity, IBuyable
+    public class Producer : Entity, IBuyable, Definitions.IUnlockable, IEnableable
     {
         public long Id { get; }
         public string Name { get; }
@@ -23,10 +24,34 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             this.Name = name;
             this.CostExpression = string.Format("return {0}", baseCost);
             this.UnitOutput = outputPerSecond;
-            this.UnlockExpression = unlockExpression;
-            this.EnableExpression = enableExpression;
+            this.UnlockExpression = unlockExpression != null ? unlockExpression : "return true";
+            this.EnableExpression = enableExpression != null ? enableExpression : "return true";
         }
         public IDictionary<string, object> Properties { get; set; }
+        private bool isUnlocked;
+        private bool isEnabled;
+        public bool IsUnlocked { get
+            {
+                return isUnlocked;
+            } set { 
+                if(value != isUnlocked)
+                {
+                    var changeEvent = new IsUnlockedChangeEvent(this);
+                    Emit(IsUnlockedChangeEvent.EventName, changeEvent);
+                    Engine.Emit(IsUnlockedChangeEvent.EventName, changeEvent);
+                }
+                isUnlocked = value;
+            } 
+        }
+        public bool IsEnabled { get
+            {
+                return isEnabled;
+            } set {
+                var changeEvent = new IsEnabledChangedEvent(this);
+                Emit(IsEnabledChangedEvent.EventName, changeEvent);
+                Engine.Emit(IsEnabledChangedEvent.EventName, changeEvent);
+            } 
+        }
 
         public static class PropertyNames
         {

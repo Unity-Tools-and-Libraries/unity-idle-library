@@ -1,12 +1,9 @@
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine;
-using io.github.thisisnozaku.idle.framework.Engine.Persistence;
 using MoonSharp.Interpreter;
 using NUnit.Framework;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
 {
     public class ScriptingTests : TestsRequiringEngine

@@ -6,8 +6,6 @@ using MoonSharp.Interpreter;
 using NUnit.Framework;
 using System;
 using System.Linq;
-using System.Collections.Generic;
-using UnityEngine;
 
 namespace io.github.thisisnozaku.idle.framework.Tests.Engine
 {

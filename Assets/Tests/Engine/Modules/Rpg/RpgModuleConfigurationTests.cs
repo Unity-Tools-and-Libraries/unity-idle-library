@@ -1,11 +1,8 @@
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg;
-using MoonSharp.Interpreter;
 using NUnit.Framework;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 {

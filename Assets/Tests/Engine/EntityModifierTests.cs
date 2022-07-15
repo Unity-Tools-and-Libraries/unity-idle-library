@@ -3,9 +3,7 @@ using io.github.thisisnozaku.idle.framework.Engine;
 using MoonSharp.Interpreter;
 using NUnit.Framework;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 public class EntityModifierTests : TestsRequiringEngine
 {

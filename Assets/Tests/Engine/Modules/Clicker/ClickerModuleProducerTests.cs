@@ -2,13 +2,11 @@ using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitions;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Events;
-using MoonSharp.Interpreter;
 using NUnit.Framework;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker {
+namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
+{
     public class ClickerModuleProducerTests : ClickerModuleTestsBase
     {
         [Test]

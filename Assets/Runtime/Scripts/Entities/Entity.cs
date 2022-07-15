@@ -36,6 +36,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             this.Engine = engine;
             Flags = new Dictionary<string, bool>();
             this.eventListeners = new EventListeners(engine);
+            this.ExtraProperties = new Dictionary<string, object>();
         }
         /*
          * Generic method to add a modifier to this entity.
@@ -150,5 +151,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         {
             return Flags.ContainsKey(flag) && Flags[flag];
         }
+
+        [JsonProperty]
+        public Dictionary<string, object> ExtraProperties { get; set; }
+
     }
 }

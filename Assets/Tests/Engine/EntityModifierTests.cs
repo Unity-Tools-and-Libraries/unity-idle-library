@@ -89,20 +89,4 @@ public class EntityModifierTests : TestsRequiringEngine
         entity.AddModifier(modifier);
         Assert.AreEqual(new BigDouble(2), entity.Bar);
     }
-
-    public class TestEntity : Entity
-    {
-        public BigDouble foo = 1;
-        public BigDouble Bar { get; set; } = 1;
-        public TestEntity(IdleEngine engine) : base(engine)
-        {
-        }
-    }
-
-    public class TestModifier : EntityModifier<TestEntity>
-    {
-        public TestModifier(IdleEngine engine, long id, Dictionary<string, Tuple<string, string>> modifications) : base(engine, id, modifications)
-        {
-        }
-    }
 }

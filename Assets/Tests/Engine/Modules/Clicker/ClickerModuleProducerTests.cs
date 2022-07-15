@@ -1,6 +1,7 @@
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitions;
+using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Events;
 using MoonSharp.Interpreter;
 using NUnit.Framework;
 using System;
@@ -27,7 +28,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker {
             Configure();
 
             engine.Start();
-            engine.GetProducers()[1].Quantity = 1;
+            engine.GetPlayer().Producers[1].Quantity = 1;
             engine.Update(0f);
             Assert.AreEqual(new BigDouble(1), engine.Scripting.Evaluate("return player.producers[1].TotalOutput").ToObject<BigDouble>());
         }
@@ -44,6 +45,39 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker {
             engine.GetPlayer().AddModifier(upgrade);
 
             Assert.AreEqual(new BigDouble(2), engine.Scripting.Evaluate("return player.producers[1].OutputMultiplier").ToObject<BigDouble>());
+        }
+
+        [Test]
+        public void ProducerCalculatesUnlockStateOnUpdate()
+        {
+            Configure();
+
+            engine.Start();
+
+            Assert.IsFalse(engine.Scripting.Evaluate("return player.producers[1].IsUnlocked").Boolean);
+
+            engine.Update(1);
+
+            Assert.IsTrue(engine.Scripting.Evaluate("return player.producers[1].IsUnlocked").Boolean);
+        }
+
+        [Test]
+        public void WhenProducerUnlockStateChangesEventEmitted()
+        {
+            Configure();
+
+            engine.Start();
+
+            Assert.IsFalse(engine.GlobalProperties.ContainsKey("triggered"));
+            Assert.IsFalse(engine.GlobalProperties.ContainsKey("globaltriggered"));
+
+            engine.GetPlayer().Producers[1].Watch(IsUnlockedChangeEvent.EventName, "test", "triggered = true");
+            engine.Watch(IsUnlockedChangeEvent.EventName, "test", "globaltriggered = true");
+
+            engine.Update(1);
+
+            Assert.IsTrue((bool)engine.GlobalProperties["triggered"]);
+            Assert.IsTrue((bool)engine.GlobalProperties["globaltriggered"]);
         }
     }
 }

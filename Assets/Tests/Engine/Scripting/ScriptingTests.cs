@@ -133,7 +133,45 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
         public void BuiltInPowReturnsPower()
         {
             Assert.AreEqual(new BigDouble(5).Pow(2), engine.Scripting.Evaluate("return math.pow(5, 2)").ToObject<BigDouble>());
+        }
 
+        [Test]
+        public void StringToBigDoubleParsesTheString()
+        {
+            Assert.AreEqual(new BigDouble(10), engine.Scripting.Evaluate("return '10'").ToObject<BigDouble>());
+            Assert.IsTrue(BigDouble.IsNaN(engine.Scripting.Evaluate("return 'chungus'").ToObject<BigDouble>()));
+        }
+
+        [Test]
+        public void NilToBigDoubleReturns0()
+        {
+            Assert.AreEqual(BigDouble.Zero, engine.Scripting.Evaluate("return nil").ToObject<BigDouble>());
+        }
+
+        [Test]
+        public void UserDataToBigDoubleThrows()
+        {
+            Assert.Throws(typeof(ScriptRuntimeException), () =>
+            {
+                engine.Scripting.Evaluate("return value", new Dictionary<string, object>()
+                {
+                    { "value", new TestCustomType(engine) }
+                }).ToObject<BigDouble>();
+            });
+        }
+
+        [Test]
+        public void ContextCanBeASingleKeyValuePair()
+        {
+            Assert.IsTrue(engine.Scripting.Evaluate("return value", new KeyValuePair<string, object>("value", true)).Boolean);
+        }
+
+        [Test]
+        public void DoesntLikeNullScript()
+        {
+            Assert.Throws(typeof(ArgumentNullException), () => {
+                engine.Scripting.Evaluate(null);
+            });
         }
     }
 

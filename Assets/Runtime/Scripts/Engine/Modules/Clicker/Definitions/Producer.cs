@@ -2,6 +2,7 @@ using BreakInfinity;
 
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitions;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Events;
+using Newtonsoft.Json;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,17 +12,27 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
     {
         public string Name { get; }
         public string CostExpression { get; }
-        public BigDouble UnitOutput { get; }
+        [JsonProperty]
+        private string UnitOutputScript;
+        public BigDouble UnitOutput => Engine.Scripting.Evaluate(UnitOutputScript).ToObject<BigDouble>();
         public string UnlockExpression { get; }
         public string EnableExpression { get; }
         public BigDouble Quantity { get; set; } = 0;
         public BigDouble OutputMultiplier { get; set; } = 1;
-        public BigDouble TotalOutput => UnitOutput * Quantity * OutputMultiplier;
-        public Producer(IdleEngine engine, long id, string name, BigDouble baseCost, BigDouble outputPerSecond, string unlockExpression = null, string enableExpression = null) : base(engine, id)
+        public BigDouble TotalOutput => UnitOutput * OutputMultiplier * Quantity;
+        public Producer(IdleEngine engine, long id, string name, BigDouble baseCost, BigDouble unitOutput, string unlockExpression = null, string enableExpression = null) : base(engine, id)
         {
             this.Name = name;
             this.CostExpression = string.Format("return {0}", baseCost);
-            this.UnitOutput = outputPerSecond;
+            this.UnitOutputScript = "return " + unitOutput;
+            this.UnlockExpression = unlockExpression != null ? unlockExpression : "return true";
+            this.EnableExpression = enableExpression != null ? enableExpression : "return true";
+        }
+        public Producer(IdleEngine engine, long id, string name, BigDouble baseCost, string unitOutputScript, string unlockExpression = null, string enableExpression = null) : base(engine, id)
+        {
+            this.Name = name;
+            this.CostExpression = string.Format("return {0}", baseCost);
+            this.UnitOutputScript = unitOutputScript;
             this.UnlockExpression = unlockExpression != null ? unlockExpression : "return true";
             this.EnableExpression = enableExpression != null ? enableExpression : "return true";
         }

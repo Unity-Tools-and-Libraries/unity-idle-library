@@ -77,5 +77,18 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             Assert.IsTrue((bool)engine.GlobalProperties["triggered"]);
             Assert.IsTrue((bool)engine.GlobalProperties["globaltriggered"]);
         }
+
+        [Test]
+        public void CanSetProducerOutputScript()
+        {
+            module.AddProducer(new Producer(engine, 100, "", 1, "return multiplier"));
+            Configure();
+
+            engine.GlobalProperties["multiplier"] = 5;
+
+            engine.GetPlayer().Producers[100].Quantity = 1;
+
+            Assert.AreEqual(new BigDouble(5), engine.GetProducers()[100].TotalOutput);
+        }
     }
 }

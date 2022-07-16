@@ -90,5 +90,23 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
 
             Assert.AreEqual(new BigDouble(5), engine.GetProducers()[100].TotalOutput);
         }
+
+        [Test]
+        public void ModifierCanChangeOutputScript()
+        {
+            module.AddProducer(new Producer(engine, 100, "", 1, 1));
+            module.AddUpgrade(new Upgrade(engine, 200, "", 1, "return true", "return true", new Dictionary<string, Tuple<string, string>>()
+            {
+                { "producers[100].UnitOutputScript", Tuple.Create<string, string>("'return 100'", null) }
+            }));
+            Configure();
+
+            engine.GetPlayer().Producers[100].Quantity = 1;
+            Assert.AreEqual(new BigDouble(1), engine.GetProducers()[100].TotalOutput);
+            
+            engine.GetPlayer().AddModifier(engine.GetUpgrades()[200]);
+            Assert.AreEqual(new BigDouble(100), engine.GetProducers()[100].TotalOutput);
+
+        }
     }
 }

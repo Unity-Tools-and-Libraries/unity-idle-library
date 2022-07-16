@@ -12,8 +12,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
     {
         public string Name { get; }
         public string CostExpression { get; }
-        [JsonProperty]
-        private string UnitOutputScript;
+        public string UnitOutputScript;
         public BigDouble UnitOutput => Engine.Scripting.Evaluate(UnitOutputScript).ToObject<BigDouble>();
         public string UnlockExpression { get; }
         public string EnableExpression { get; }

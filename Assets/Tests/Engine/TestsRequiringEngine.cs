@@ -21,10 +21,11 @@ public abstract class TestsRequiringEngine
 
     public class TestEntity : Entity
     {
-        public BigDouble foo = 1;
+        public BigDouble foo;
         public BigDouble Bar { get; set; } = 1;
-        public TestEntity(IdleEngine engine) : base(engine)
+        public TestEntity(IdleEngine engine, long id, BigDouble foo = default(BigDouble)) : base(engine, id)
         {
+            this.foo = foo;
         }
     }
 

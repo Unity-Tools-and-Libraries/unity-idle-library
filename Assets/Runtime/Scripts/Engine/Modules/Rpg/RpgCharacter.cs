@@ -13,7 +13,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 {
     public class RpgCharacter : Entity
     {
-        public RpgCharacter(IdleEngine engine) : base(engine)
+        public RpgCharacter(IdleEngine engine, long id) : base(engine, id)
         {
             Statuses = new Dictionary<long, Duration>();
             ItemSlots = new Dictionary<string, RpgItem[]>();

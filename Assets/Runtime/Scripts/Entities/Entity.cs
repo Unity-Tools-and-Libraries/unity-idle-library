@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.Serialization;
 using UnityEngine;
 namespace io.github.thisisnozaku.idle.framework.Engine
 {
@@ -24,6 +25,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         private Dictionary<string, string> propertyCalculationScripts = new Dictionary<string, string>();
         [JsonProperty]
         private List<long> appliedModifiers = new List<long>();
+        public long Id { get; }
         /*
          * Return the list of the ids of all modifiers applied to this entity.
          * 
@@ -31,13 +33,27 @@ namespace io.github.thisisnozaku.idle.framework.Engine
          */
         public List<long> GetModifiers() => appliedModifiers;
 
-        public Entity(IdleEngine engine)
+        public Entity(IdleEngine engine, long id)
         {
             this.Engine = engine;
+            this.Id = id;
+            
             Flags = new Dictionary<string, bool>();
             this.eventListeners = new EventListeners(engine);
             this.ExtraProperties = new Dictionary<string, object>();
+            if (engine != null)
+            {
+                engine.RegisterEntity(this);
+            }
         }
+
+        [OnDeserialized]
+        public void OnDeserialization(StreamingContext ctx)
+        {
+            this.Engine = (IdleEngine)ctx.Context;
+            this.Engine.RegisterEntity(this);
+        }
+
         /*
          * Generic method to add a modifier to this entity.
          * 
@@ -85,7 +101,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                         {
                             object currentValue = fieldInfo.GetValue(this);
                             updateScriptContext["value"] = currentValue;
-                            fieldInfo.SetValue(this, Engine.Scripting.Evaluate(child.Value, updateScriptContext));
+                            fieldInfo.SetValue(this, Engine.Scripting.Evaluate(child.Value, updateScriptContext).ToObject());
                         };
                     }
 
@@ -96,7 +112,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                         {
                             object currentValue = propertyInfo.GetValue(this);
                             updateScriptContext["value"] = currentValue;
-                            propertyInfo.SetValue(this, Engine.Scripting.Evaluate(child.Value, updateScriptContext));
+                            propertyInfo.SetValue(this, Engine.Scripting.Evaluate(child.Value, updateScriptContext).ToObject());
                         };
                     }
                     if(!calculatedPropertySetters.ContainsKey(child.Key))
@@ -152,8 +168,30 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             return Flags.ContainsKey(flag) && Flags[flag];
         }
 
+        public override bool Equals(object obj)
+        {
+            return obj is Entity entity &&
+                   EqualityComparer<Dictionary<string, bool>>.Default.Equals(Flags, entity.Flags) &&
+                   EqualityComparer<Dictionary<string, string>>.Default.Equals(propertyCalculationScripts, entity.propertyCalculationScripts) &&
+                   EqualityComparer<List<long>>.Default.Equals(appliedModifiers, entity.appliedModifiers) &&
+                   Id == entity.Id &&
+                   EqualityComparer<Dictionary<string, object>>.Default.Equals(ExtraProperties, entity.ExtraProperties);
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 36677474;
+            hashCode = hashCode * -1521134295 + EqualityComparer<Dictionary<string, bool>>.Default.GetHashCode(Flags);
+            hashCode = hashCode * -1521134295 + EqualityComparer<Dictionary<string, string>>.Default.GetHashCode(propertyCalculationScripts);
+            hashCode = hashCode * -1521134295 + EqualityComparer<List<long>>.Default.GetHashCode(appliedModifiers);
+            hashCode = hashCode * -1521134295 + Id.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<Dictionary<string, object>>.Default.GetHashCode(ExtraProperties);
+            return hashCode;
+        }
+
         [JsonProperty]
         public Dictionary<string, object> ExtraProperties { get; set; }
+
 
     }
 }

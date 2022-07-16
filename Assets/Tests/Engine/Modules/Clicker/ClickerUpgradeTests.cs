@@ -12,12 +12,12 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void BuyingAnUpgradeAppliesIt()
         {
-            var upgrade = new Upgrade(engine, 1, "", 0, "return true", "return true", new Dictionary<string, System.Tuple<string, string>>());
+            var upgrade = new Upgrade(engine, engine.GetNextAvailableId(), "", 0, "return true", "return true", new Dictionary<string, System.Tuple<string, string>>());
             module.AddUpgrade(upgrade);
 
             Configure();
 
-            engine.Scripting.Evaluate("player.BuyUpgrade(1)");
+            engine.Scripting.Evaluate(string.Format("player.BuyUpgrade({0})", upgrade.Id));
             Assert.IsTrue(engine.GetPlayer().GetModifiers().Contains(upgrade.Id));
 
         }
@@ -39,7 +39,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void WhenUpgradeUnlockStateChangesEventEmitted()
         {
-            var upgrade = new Upgrade(engine, 1, "", 0, "return true", "return true", new Dictionary<string, System.Tuple<string, string>>());
+            var upgrade = new Upgrade(engine, engine.GetNextAvailableId(), "", 0, "return true", "return true", new Dictionary<string, System.Tuple<string, string>>());
             module.AddUpgrade(upgrade);
 
             Configure();
@@ -49,7 +49,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             Assert.IsFalse(engine.GlobalProperties.ContainsKey("triggered"));
             Assert.IsFalse(engine.GlobalProperties.ContainsKey("globaltriggered"));
 
-            engine.GetPlayer().Upgrades[1].Watch(IsUnlockedChangeEvent.EventName, "test", "triggered = true");
+            engine.GetPlayer().Upgrades[upgrade.Id].Watch(IsUnlockedChangeEvent.EventName, "test", "triggered = true");
             engine.Watch(IsUnlockedChangeEvent.EventName, "test", "globaltriggered = true");
 
             engine.Update(1);

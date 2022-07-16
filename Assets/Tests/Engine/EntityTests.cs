@@ -10,7 +10,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         [Test]
         public void EntityCanHaveArbitraryCustomPropertiesForScripting()
         {
-            var entity = new TestEntity(engine);
+            var entity = new TestEntity(engine, 1);
             entity.ExtraProperties["custom"] = 1;
             Assert.AreEqual(new BigDouble(1), engine.Scripting.Evaluate("return target.extraProperties.custom", new Dictionary<string, object>() {
                 { "target", entity }

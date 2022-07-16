@@ -8,6 +8,9 @@ using Newtonsoft.Json.Serialization;
 using io.github.thisisnozaku.idle.framework.Engine;
 using io.github.thisisnozaku.idle.framework.Events;
 using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Persistence
 {
@@ -25,21 +28,28 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Persistence
         [Test]
         public void CanSaveEntitiesInGlobalState()
         {
-            engine.GlobalProperties["foo"] = new TestCustomType(engine);
-            engine.GetProperty<TestCustomType>("foo").Bar = new BigDouble(1);
-            
-            var settings = new JsonSerializerSettings();
-            settings.TypeNameHandling = TypeNameHandling.All;
+            TestEntity before = new TestEntity(engine, 1);
+            before.ExtraProperties["extra"] = 5;
+            before.SetFlag("flag");
 
-            string snapshot = JsonConvert.SerializeObject(engine.GetSnapshot(), settings);
+            engine.GlobalProperties["foo"] = before;
+            engine.GetProperty<TestEntity>("foo").Bar = new BigDouble(1);
 
-            var loadSettings = new JsonLoadSettings();
+            string snapshot = engine.GetSerializedSnapshotString();
 
-            var before = engine.GlobalProperties["foo"];
+            engine = new IdleEngine();
 
-            engine.RestoreFromSnapshot(JsonConvert.DeserializeObject<EngineSnapshot>(snapshot, settings));
+            engine.DeserializeSnapshotString(snapshot);
 
-            Assert.AreEqual(before, engine.GlobalProperties["foo"]);
+            TestEntity after = engine.GlobalProperties["foo"] as TestEntity;
+            Assert.AreEqual(before.Id, after.Id);
+            Assert.AreEqual(before.foo, after.foo);
+            Assert.IsTrue(after.GetFlag("flag"));
+            Assert.AreEqual(before.GetFlag("flag"), after.GetFlag("flag"));
+            Assert.AreEqual(before.ExtraProperties["extra"], after.ExtraProperties["extra"]);
+
+            Assert.IsTrue(engine.Entities.ContainsKey(1));
+            Assert.AreEqual(1, engine.Entities.Count);
         }
 
         [Test]
@@ -59,11 +69,17 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Persistence
         }
 
         [Test]
-        public void CannotCallUpdateBeforeStart()
+        public void CannotCallUpdateBeforeStart() // FIXME: Move into correct test suite.
         {
             Assert.Throws(typeof(InvalidOperationException), () => {
                 engine.Update(1);
             });
+        }
+
+        [Test]
+        public void SavesUsedEntityIds()
+        {
+            
         }
     }
 }

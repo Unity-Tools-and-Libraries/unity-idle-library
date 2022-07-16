@@ -104,7 +104,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             Configure();
 
-            var item = new RpgItem(1, engine, new string[] { }, null);
+            var item = new RpgItem(engine.GetNextAvailableId(), engine, new string[] { }, null);
             Assert.IsTrue(engine.GetPlayer().AddItem(item));
         }
 
@@ -112,7 +112,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         public void AddStatusNotDefinedInEngineThrows()
         {
             Configure();
-            var status = new CharacterStatus.Builder().SetFlag("test", true).Build(engine, 1);
+            var status = new CharacterStatus.Builder().SetFlag("test", true).Build(engine, engine.GetNextAvailableId());
             Assert.Throws<ArgumentNullException>(() =>
             {
                 engine.GetPlayer().AddStatus(null, 1);
@@ -129,7 +129,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             Configure();
 
-            var item = new RpgItem(1, engine, new string[] { "head" }, null);
+            var item = new RpgItem(engine.GetNextAvailableId(), engine, new string[] { "head" }, null);
             Assert.IsTrue(engine.GetPlayer().AddItem(item));
             Assert.IsFalse(engine.GetPlayer().AddItem(item));
         }
@@ -178,7 +178,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         {
             Configure();
 
-            var ability = new AbilityDefinition(1, engine, "", new Dictionary<string, Tuple<string, string>>()
+            var ability = new AbilityDefinition(engine.GetNextAvailableId(), engine, "", new Dictionary<string, Tuple<string, string>>()
             {
                 { "Accuracy", Tuple.Create("value * 2", "value / 2") }
             });
@@ -193,7 +193,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         {
             Configure();
 
-            var ability = new AbilityDefinition(1, engine, "", new Dictionary<string, Tuple<string, string>>()
+            var ability = new AbilityDefinition(engine.GetNextAvailableId(), engine, "", new Dictionary<string, Tuple<string, string>>()
             {
                 { "Accuracy", Tuple.Create("value * 2", "value / 2") }
             });

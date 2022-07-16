@@ -12,8 +12,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
         public void setup()
         {
             base.InitializeEngine();
-
-            UserData.RegisterType<TestCustomType>();
         }
 
         [Test]
@@ -39,7 +37,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
         [Test]
         public void CanSubscribeToEventsEmittedByEntity()
         {
-            engine.GlobalProperties["foo"] = new TestCustomType(engine);
+            engine.GlobalProperties["foo"] = new TestEntity(engine, 1);
             engine.Scripting.Evaluate("foo.watch('event', 'test', 'triggered = true')");
             engine.Scripting.Evaluate("foo.emit('event')");
 
@@ -57,7 +55,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
         [Test]
         public void CanUnsubscribeFromPath()
         {
-            engine.GlobalProperties["foo"] = new TestCustomType(engine);
+            engine.GlobalProperties["foo"] = new TestEntity(engine, 1);
             engine.Scripting.Evaluate("foo.watch('event', 'test', 'triggered = true')");
             engine.Scripting.Evaluate("foo.stopWatching('event', 'test')");
             engine.Scripting.Evaluate("foo.emit('event')");
@@ -67,7 +65,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
         [Test]
         public void CanBroadcastEvent()
         {
-            engine.GlobalProperties["foo"] = new TestCustomType(engine);
+            engine.GlobalProperties["foo"] = new TestEntity(engine, 1);
             engine.Scripting.Evaluate("foo.watch('event', 'test', 'triggered = true')");
             engine.Scripting.Evaluate("foo.emit('event')");
             Assert.IsTrue((bool)engine.GlobalProperties["triggered"]);
@@ -77,23 +75,22 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
         public void CanCalculateValue()
         {
             engine.Start();
-            engine.GlobalProperties["foo"] = new TestCustomType(engine);
+            engine.GlobalProperties["foo"] = new TestEntity(engine, 1);
             engine.Scripting.Evaluate("foo.calculateChild('Bar', 'if value != nil then return value + 1 else return 1 end')");
             engine.Update(0);
-            Assert.AreEqual(new BigDouble(1), engine.Scripting.Evaluate("return foo.bar").ToObject<BigDouble>());
+            Assert.AreEqual(new BigDouble(2), engine.Scripting.Evaluate("return foo.bar").ToObject<BigDouble>());
         }
 
         [Test]
         public void CalculatorCalledEachUpdateCycle()
         {
-
             engine.Start();
-            engine.GlobalProperties["foo"] = new TestCustomType(engine);
+            engine.GlobalProperties["foo"] = new TestEntity(engine, 1, 0);
             engine.Scripting.Evaluate("foo.calculateChild('Bar', 'if value == nil then return 1 else return value + 1 end')");
             for (int i = 1; i <= 5; i++)
             {
                 engine.Update(0);
-                Assert.AreEqual(new BigDouble(i), engine.Scripting.Evaluate("return foo.bar").ToObject<BigDouble>());
+                Assert.AreEqual(new BigDouble(i + 1), engine.Scripting.Evaluate("return foo.bar").ToObject<BigDouble>());
             }
         }
 
@@ -152,7 +149,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
             {
                 engine.Scripting.Evaluate("return value", new Dictionary<string, object>()
                 {
-                    { "value", new TestCustomType(engine) }
+                    { "value", new TestEntity(engine, 1) }
                 }).ToObject<BigDouble>();
             });
         }
@@ -169,45 +166,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
             Assert.Throws(typeof(ArgumentNullException), () => {
                 engine.Scripting.Evaluate(null);
             });
-        }
-    }
-
-    public class TestCustomType : Entity
-    {
-        public TestCustomType(IdleEngine engine) : base(engine)
-        {
-        }
-
-        public object Bar{ get; set;}
-        public object Baz { get; set; }
-
-        public void AddCustomModifier(CustomModifier modifier)
-        {
-            this.AddModifier(modifier);
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is TestCustomType type &&
-                   EqualityComparer<object>.Default.Equals(Bar, type.Bar) &&
-                   EqualityComparer<object>.Default.Equals(Baz, type.Baz);
-        }
-    }
-
-    public class CustomModifier : EntityModifier<Entity>
-    {
-        public CustomModifier(IdleEngine engine, Dictionary<string, Tuple<string, string>> modifications) : base(engine, 1, modifications)
-        {
-        }
-
-        public override void Apply(framework.Engine.Entity target)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override void Unapply(framework.Engine.Entity target)
-        {
-            throw new System.NotImplementedException();
         }
     }
 }

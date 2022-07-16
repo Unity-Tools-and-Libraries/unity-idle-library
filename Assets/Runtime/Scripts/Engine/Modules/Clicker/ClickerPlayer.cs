@@ -1,6 +1,7 @@
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitions;
+using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Events;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,7 +9,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 {
     public class ClickerPlayer : Entity
     {
-        public ClickerPlayer(IdleEngine engine) : base(engine)
+        public ClickerPlayer(IdleEngine engine, long id) : base(engine, id)
         {
             this.Points = new PointsHolder();
             this.Producers = new Dictionary<long, Producer>();
@@ -76,6 +77,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             if(SpendPoints(cost))
             {
                 producerDefinition.Quantity += 1;
+                var boughtProducerEvent = new ProducerBoughtEvent(producerDefinition);
+                Emit(ProducerBoughtEvent.EventName, boughtProducerEvent);
+                Engine.Emit(ProducerBoughtEvent.EventName, boughtProducerEvent);
             }
         }
 
@@ -89,6 +93,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             if (!GetModifiers().Contains(upgrade.Id) && SpendPoints(cost))
             {
                 AddModifier(upgrade);
+                var upgradeBoughtEvent = new UpgradeBoughtEvent(upgrade);
+                Emit(UpgradeBoughtEvent.EventName, upgradeBoughtEvent);
+                Engine.Emit(UpgradeBoughtEvent.EventName, upgradeBoughtEvent);
             }
         }
     }

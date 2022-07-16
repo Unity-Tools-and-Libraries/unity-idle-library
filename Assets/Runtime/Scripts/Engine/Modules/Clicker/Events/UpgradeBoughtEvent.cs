@@ -1,24 +1,12 @@
-using io.github.thisisnozaku.idle.framework.Events;
-using System.Collections;
+using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitions;
 using System.Collections.Generic;
-using UnityEngine;
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Events
 {
-    public class UpgradeBoughtEvent : ScriptingContext
+    public class UpgradeBoughtEvent : EntityBoughtEvent<Upgrade>
     {
-        private string upgradeId;
-
-        public UpgradeBoughtEvent(string upgradeId)
+        public const string EventName = "UpgradeBought";
+        public UpgradeBoughtEvent(Upgrade bought) : base(bought)
         {
-            this.upgradeId = upgradeId;
-        }
-
-        public Dictionary<string, object> GetScriptingProperties()
-        {
-            return new Dictionary<string, object>()
-            {
-                { "upgrade", upgradeId }
-            };
         }
     }
 }

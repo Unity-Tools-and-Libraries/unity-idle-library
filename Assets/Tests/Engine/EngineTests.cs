@@ -35,16 +35,16 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         [Test]
         public void CanGetPropertyThroughFields()
         {
-            engine.GlobalProperties["foo"] = new TestCustomType(engine);
-            (engine.GlobalProperties["foo"] as TestCustomType).Bar = new BigDouble(1);
+            engine.GlobalProperties["foo"] = new TestEntity(engine, 1);
+            (engine.GlobalProperties["foo"] as TestEntity).Bar = new BigDouble(1);
             Assert.AreEqual(new BigDouble(1), engine.GetProperty<BigDouble>("foo.Bar"));
         }
 
         [Test]
         public void GetPropertyThatDoesntExistReturnsNull()
         {
-            engine.GlobalProperties["foo"] = new TestCustomType(engine);
-            (engine.GlobalProperties["foo"] as TestCustomType).Bar = new BigDouble(1);
+            engine.GlobalProperties["foo"] = new TestEntity(engine, 1);
+            (engine.GlobalProperties["foo"] as TestEntity).Bar = new BigDouble(1);
             Assert.AreEqual(default(BigDouble), engine.GetProperty<BigDouble>("foo.fum"));
         }
 
@@ -61,7 +61,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         [Test]
         public void CanTraverseFieldOfAnObject()
         {
-            engine.GlobalProperties["entity"] = new TestEntityWithField(engine);
+            engine.GlobalProperties["entity"] = new TestEntityWithField(engine, 1);
             Assert.AreEqual(1, engine.GetProperty("entity.foo"));
         }
         
@@ -90,8 +90,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         public void TraversingPropertiesGoesOverAnnoatedUserDataProperties()
         {
             UserData.RegisterType<TestEntityWithField>();
-            engine.GlobalProperties["foo"] = new TestEntityWithField(engine);
-            (engine.GlobalProperties["foo"] as TestEntityWithField).child = new TestEntityWithField(engine, 2);
+            engine.GlobalProperties["foo"] = new TestEntityWithField(engine, 1);
+            (engine.GlobalProperties["foo"] as TestEntityWithField).child = new TestEntityWithField(engine, 2, 2);
             Assert.IsTrue(engine.TraverseObjectGraph().Any(x =>
             {
                 object o = x.ToObject();
@@ -99,9 +99,19 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
             }));
         }
 
+        [Test]
+        public void NoTwoEntitiesCanHaveTheSameIds()
+        {
+            new TestEntityWithField(engine, 1);
+            Assert.Throws(typeof(InvalidOperationException), () =>
+            {
+                new TestEntityWithField(engine, 1);
+            });
+        }
+
         public class TestEntityWithField : Entity
         {
-            public TestEntityWithField(IdleEngine engine, int foo = 1) : base(engine)
+            public TestEntityWithField(IdleEngine engine, long id, int foo = 1) : base(engine, id)
             {
                 this.foo = foo;
             }

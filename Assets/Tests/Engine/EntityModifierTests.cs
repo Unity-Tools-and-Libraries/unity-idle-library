@@ -18,8 +18,8 @@ public class EntityModifierTests : TestsRequiringEngine
     [Test]
     public void EntityModifierCanSetAFlagOnAnEntity()
     {
-        var entity = new TestEntity(engine);
-        var modifier = new TestModifier(engine, 1, new Dictionary<string, Tuple<string, string>>()
+        var entity = new TestEntity(engine, 1);
+        var modifier = new TestModifier(engine, 2, new Dictionary<string, Tuple<string, string>>()
         {
             { "setFlag", Tuple.Create<string, string>("foo", null) }
         });
@@ -30,8 +30,8 @@ public class EntityModifierTests : TestsRequiringEngine
     [Test]
     public void EntityModifierWithoutUnapplyScriptDoesntUnapply()
     {
-        var entity = new TestEntity(engine);
-        var modifier = new TestModifier(engine, 1, new Dictionary<string, Tuple<string, string>>()
+        var entity = new TestEntity(engine, 1);
+        var modifier = new TestModifier(engine, 2, new Dictionary<string, Tuple<string, string>>()
         {
             { "setFlag", Tuple.Create<string, string>("foo", null) }
         });
@@ -44,8 +44,8 @@ public class EntityModifierTests : TestsRequiringEngine
     [Test]
     public void UnapplyModifierThatSetsFlagClearsFlag()
     {
-        var entity = new TestEntity(engine);
-        var modifier = new TestModifier(engine, 1, new Dictionary<string, Tuple<string, string>>()
+        var entity = new TestEntity(engine, 1);
+        var modifier = new TestModifier(engine, 2, new Dictionary<string, Tuple<string, string>>()
         {
             { "setFlag", Tuple.Create<string, string>("foo", "foo") }
         });
@@ -57,8 +57,8 @@ public class EntityModifierTests : TestsRequiringEngine
     [Test]
     public void EnityModifierCanClearAFlagOnAnEntity()
     {
-        var entity = new TestEntity(engine);
-        var modifier = new TestModifier(engine, 1, new Dictionary<string, Tuple<string, string>>()
+        var entity = new TestEntity(engine, 1);
+        var modifier = new TestModifier(engine, 2, new Dictionary<string, Tuple<string, string>>()
         {
             { "clearFlag", Tuple.Create<string, string>("foo", null) }
         });
@@ -69,20 +69,20 @@ public class EntityModifierTests : TestsRequiringEngine
     [Test]
     public void EntityModifierCanModifyAnEntityField()
     {
-        var entity = new TestEntity(engine);
-        var modifier = new TestModifier(engine, 1, new Dictionary<string, Tuple<string, string>>()
+        var entity = new TestEntity(engine, 1);
+        var modifier = new TestModifier(engine, 2, new Dictionary<string, Tuple<string, string>>()
         {
             { "foo", Tuple.Create<string, string>("value + 1", "value -1") }
         });
         entity.AddModifier(modifier);
-        Assert.AreEqual(new BigDouble(2), entity.foo);
+        Assert.AreEqual(new BigDouble(1), entity.foo);
     }
 
     [Test]
     public void EntityModifierCanModifyAnEntityProperty()
     {
-        var entity = new TestEntity(engine);
-        var modifier = new TestModifier(engine, 1, new Dictionary<string, Tuple<string, string>>()
+        var entity = new TestEntity(engine, 1);
+        var modifier = new TestModifier(engine, 2, new Dictionary<string, Tuple<string, string>>()
         {
             { "bar", Tuple.Create<string, string>("value + 1", "value -1") }
         });

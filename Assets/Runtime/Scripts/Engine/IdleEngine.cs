@@ -6,16 +6,19 @@ using io.github.thisisnozaku.idle.framework.Events;
 using MoonSharp.Interpreter;
 using Newtonsoft.Json;
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using Newtonsoft.Json.Serialization;
 
 namespace io.github.thisisnozaku.idle.framework.Engine
 {
     public partial class IdleEngine : ScriptingContext, IEventSource
     {
         private System.Random random;
+
         public bool IsReady { get; private set; }
         public Dictionary<string, object> GlobalProperties = new Dictionary<string, object>();
         private Dictionary<string, string> propertyCalculators = new Dictionary<string, string>();
@@ -27,6 +30,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         // Services
         public ScriptingService Scripting => scripting;
         public LoggingService Logging => logging;
+        public Dictionary<long, Entity> Entities = new Dictionary<long, Entity>();
 
         public void OverrideRandomNumberGenerator(System.Random rng)
         {
@@ -41,6 +45,19 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             listeners = new EventListeners(this);
             GlobalProperties["configuration"] = new Dictionary<string, object>();
             GlobalProperties["definitions"] = new Dictionary<string, object>();
+
+            SerializationSettings = new JsonSerializerSettings();
+            SerializationSettings.TypeNameHandling = TypeNameHandling.All;
+            SerializationSettings.Context = new System.Runtime.Serialization.StreamingContext(System.Runtime.Serialization.StreamingContextStates.All, this);
+        }
+
+        public void RegisterEntity(Entity entity)
+        {
+            if(Entities.ContainsKey(entity.Id))
+            {
+                throw new InvalidOperationException(String.Format("Attempting to use entity id {0}, which is already in use.", entity.Id));
+            }
+            Entities[entity.Id] = entity;
         }
 
         public void Start()
@@ -59,9 +76,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         public string GetSerializedSnapshotString()
         {
-            var settings = new JsonSerializerSettings();
-            settings.TypeNameHandling = TypeNameHandling.All;
-            return JsonConvert.SerializeObject(GetSnapshot(), settings);
+            return JsonConvert.SerializeObject(GetSnapshot(), SerializationSettings);
+        }
+
+        private JsonSerializerSettings SerializationSettings;
+
+        public void DeserializeSnapshotString(string snapshot)
+        {
+            RestoreFromSnapshot(JsonConvert.DeserializeObject<EngineSnapshot>(snapshot, SerializationSettings));
         }
 
         public void CalculateProperty(string property, string calculationScript)
@@ -76,12 +98,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             }
         }
 
-        public void DeserializeSnapshotString(string snapshot)
-        {
-            var settings = new JsonSerializerSettings();
-            settings.TypeNameHandling = TypeNameHandling.All;
-            RestoreFromSnapshot(JsonConvert.DeserializeObject<EngineSnapshot>(snapshot, settings));
-        }
+        
 
         /*
          * Convenience method to easily traverse the object graph of global properties.
@@ -294,6 +311,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                 }
                 yield return next;
             }
+        }
+
+        public long GetNextAvailableId()
+        {
+            return Entities.Count > 0 ? Entities.Keys.Max() + 1 : 1;
         }
 
         public void Update(float deltaTime)

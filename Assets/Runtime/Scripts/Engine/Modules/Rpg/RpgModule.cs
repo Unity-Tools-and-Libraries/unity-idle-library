@@ -187,7 +187,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
         public RpgCharacter DefaultCreatureGenerator(IdleEngine engine, CreatureDefinition creatureDefinition, BigDouble level)
         {
-            var creature = new RpgCharacter(engine);
+            var creature = new RpgCharacter(engine, engine.GetNextAvailableId());
             var context = new Dictionary<string, object>()
             {
                 { "level", level }
@@ -327,7 +327,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
          */
         public static RpgEncounter StartEncounter(this IdleEngine engine, EncounterDefinition nextEncounter = null)
         {
-            RpgEncounter currentEncounter = (RpgEncounter)(engine.GlobalProperties["encounter"] = DynValue.FromObject(null, new RpgEncounter(engine)).ToObject<RpgEncounter>());
+            RpgEncounter currentEncounter = (RpgEncounter)(engine.GlobalProperties["encounter"] = DynValue.FromObject(null, new RpgEncounter(engine, engine.GetNextAvailableId())).ToObject<RpgEncounter>());
             if (nextEncounter == null)
             {
                 nextEncounter = engine.GetRandomEncounter();
@@ -373,7 +373,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
         public static RpgCharacter GeneratePlayer(this IdleEngine engine)
         {
-            var player = new RpgCharacter(engine);
+            var player = new RpgCharacter(engine, engine.GetNextAvailableId());
             player.Party = 0;
             player.Accuracy = engine.GetProperty<BigDouble>("configuration.default_player_stats.accuracy");
             player.CriticalHitChance = engine.GetProperty<BigDouble>("configuration.default_player_stats.critical_hit_chance");

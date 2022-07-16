@@ -36,7 +36,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         {
             Configure();
 
-            var upgrade = new Upgrade(engine, 1, "", 1, "return true", "return true", new Dictionary<string, System.Tuple<string, string>>()
+            var upgrade = new Upgrade(engine, engine.GetNextAvailableId(), "", 1, "return true", "return true", new Dictionary<string, System.Tuple<string, string>>()
             {
                 { "producers[1].OutputMultiplier", Tuple.Create("value * 2", "value / 2") }
             });

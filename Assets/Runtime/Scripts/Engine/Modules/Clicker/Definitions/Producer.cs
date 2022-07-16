@@ -9,7 +9,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 {
     public class Producer : Entity, IBuyable, Definitions.IUnlockable, IEnableable
     {
-        public long Id { get; }
         public string Name { get; }
         public string CostExpression { get; }
         public BigDouble UnitOutput { get; }
@@ -18,9 +17,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
         public BigDouble Quantity { get; set; } = 0;
         public BigDouble OutputMultiplier { get; set; } = 1;
         public BigDouble TotalOutput => UnitOutput * Quantity * OutputMultiplier;
-        public Producer(IdleEngine engine, long Id, string name, BigDouble baseCost, BigDouble outputPerSecond, string unlockExpression = null, string enableExpression = null) : base(engine)
+        public Producer(IdleEngine engine, long id, string name, BigDouble baseCost, BigDouble outputPerSecond, string unlockExpression = null, string enableExpression = null) : base(engine, id)
         {
-            this.Id = Id;
             this.Name = name;
             this.CostExpression = string.Format("return {0}", baseCost);
             this.UnitOutput = outputPerSecond;

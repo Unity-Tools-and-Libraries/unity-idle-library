@@ -13,14 +13,18 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         public void AttackHitEventNeedsAttackerAndDefender()
         {
             Configure();
+
+            var attacker = new RpgCharacter(engine, engine.GetNextAvailableId());
+            var defender = new RpgCharacter(engine, engine.GetNextAvailableId());
+            
             Assert.Throws(typeof(ArgumentNullException), () => {
                 new AttackHitEvent(null, null, new BigDouble(1));
             });
             Assert.Throws(typeof(ArgumentNullException), () => {
-                new AttackHitEvent(new RpgCharacter(engine), null, new BigDouble(1));
+                new AttackHitEvent(attacker, null, new BigDouble(1));
             });
             Assert.DoesNotThrow(() => {
-                new AttackHitEvent(new RpgCharacter(engine), new RpgCharacter(engine), new BigDouble(1));
+                new AttackHitEvent(attacker, defender, new BigDouble(1));
             });
         }
     }

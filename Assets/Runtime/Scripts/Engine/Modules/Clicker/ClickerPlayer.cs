@@ -67,6 +67,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             return false;
         }
 
+        public bool CanAfford(IBuyable buyable)
+        {
+            BigDouble quantity = 1;
+            if(buyable is Producer)
+            {
+                quantity = Producers[(buyable as Producer).Id].Quantity;
+            }
+            return Points.Quantity >= Engine.CalculatePurchaseCost(buyable, quantity);
+        }
+
         public void BuyProducer(long id)
         {
             Producer producerDefinition = Engine.GetProducers()[id];

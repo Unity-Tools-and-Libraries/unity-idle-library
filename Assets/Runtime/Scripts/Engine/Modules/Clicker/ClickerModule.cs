@@ -57,12 +57,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             engine.Scripting.Evaluate("player.points.quantity = player.points.quantity + player.points.click_income");
         }
 
-        public static BigDouble CalculatePurchaseCost(IdleEngine engine, IBuyable buyable, BigDouble quantity)
-        {
-            return (engine.Scripting.Evaluate("return " + buyable.CostExpression).ToObject<BigDouble>() * new BigDouble(1.15).Pow(quantity)).Ceiling();
-        }
-
-
         public void AssertReady()
         {
 
@@ -76,21 +70,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 
     public static class ClickerEngineExtensionMethods
     {
-        public static BigDouble GetPoints(this IdleEngine engine)
-        {
-            return engine.GetProperty<BigDouble>("points.quantity");
-        }
-
-        public static void SetPoints(this IdleEngine engine, BigDouble value)
-        {
-            engine.GlobalProperties["points"] = value;
-        }
-
-        public static void ChangePoints(this IdleEngine engine, BigDouble quantityChange)
-        {
-            engine.SetPoints(engine.GetPoints() + quantityChange);
-        }
-
         public static IDictionary<long, Producer> GetProducers(this IdleEngine engine)
         {
             return engine.GetDefinitions()["producers"] as IDictionary<long, Producer>;
@@ -104,6 +83,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
         public static ClickerPlayer GetPlayer(this IdleEngine engine)
         {
             return engine.GlobalProperties["player"] as ClickerPlayer;
+        }
+
+        public static BigDouble CalculatePurchaseCost(this IdleEngine engine, IBuyable buyable, BigDouble quantity)
+        {
+            return (engine.Scripting.Evaluate("return " + buyable.CostExpression).ToObject<BigDouble>() * new BigDouble(1.15).Pow(quantity)).Ceiling();
         }
 
     }

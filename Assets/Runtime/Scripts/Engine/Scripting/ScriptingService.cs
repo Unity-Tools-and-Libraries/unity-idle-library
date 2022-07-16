@@ -35,6 +35,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             }}
         };
         internal Script script;
+        public Table Globals => script.Globals;
         public ScriptingService(IdleEngine engine)
         {
             this.engine = engine;

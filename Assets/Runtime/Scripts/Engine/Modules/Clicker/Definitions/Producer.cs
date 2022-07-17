@@ -44,6 +44,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             } set { 
                 if(value != isUnlocked)
                 {
+                    isUnlocked = value;
                     var changeEvent = new IsUnlockedChangeEvent(this);
                     Emit(IsUnlockedChangeEvent.EventName, changeEvent);
                     Engine.Emit(IsUnlockedChangeEvent.EventName, changeEvent);

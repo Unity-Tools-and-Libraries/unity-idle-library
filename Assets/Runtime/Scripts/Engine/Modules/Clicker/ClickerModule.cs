@@ -87,7 +87,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 
         public static BigDouble CalculatePurchaseCost(this IdleEngine engine, IBuyable buyable, BigDouble quantity)
         {
-            return (engine.Scripting.Evaluate("return " + buyable.CostExpression).ToObject<BigDouble>() * new BigDouble(1.15).Pow(quantity)).Ceiling();
+            return (engine.Scripting.Evaluate(buyable.CostExpression).ToObject<BigDouble>() * new BigDouble(1.15).Pow(quantity)).Ceiling();
         }
 
     }

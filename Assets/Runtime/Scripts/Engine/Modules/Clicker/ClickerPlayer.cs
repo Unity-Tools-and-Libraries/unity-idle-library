@@ -2,7 +2,8 @@ using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitions;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Events;
-using System.Collections;
+using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
@@ -90,6 +91,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 var boughtProducerEvent = new ProducerBoughtEvent(producerDefinition);
                 Emit(ProducerBoughtEvent.EventName, boughtProducerEvent);
                 Engine.Emit(ProducerBoughtEvent.EventName, boughtProducerEvent);
+                RecalculateIncome();
             }
         }
 
@@ -106,7 +108,13 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 var upgradeBoughtEvent = new UpgradeBoughtEvent(upgrade);
                 Emit(UpgradeBoughtEvent.EventName, upgradeBoughtEvent);
                 Engine.Emit(UpgradeBoughtEvent.EventName, upgradeBoughtEvent);
+                RecalculateIncome();
             }
+        }
+
+        private void RecalculateIncome()
+        {
+            Points.TotalIncome = Producers.Values.Aggregate(BigDouble.Zero, (total, p) => total + p.TotalOutput);
         }
     }
 }

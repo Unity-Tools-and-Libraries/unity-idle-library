@@ -85,9 +85,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             return engine.GlobalProperties["player"] as ClickerPlayer;
         }
 
-        public static BigDouble CalculatePurchaseCost(this IdleEngine engine, IBuyable buyable, BigDouble quantity)
+        public static BigDouble CalculatePurchaseCost(this IdleEngine engine, IBuyable buyable, BigDouble alreadyOwnedQuantity)
         {
-            return (engine.Scripting.Evaluate(buyable.CostExpression).ToObject<BigDouble>() * new BigDouble(1.15).Pow(quantity)).Ceiling();
+            return (engine.Scripting.Evaluate(buyable.CostExpression).ToObject<BigDouble>() * new BigDouble(1.15).Pow(alreadyOwnedQuantity - 1)).Ceiling();
         }
 
     }

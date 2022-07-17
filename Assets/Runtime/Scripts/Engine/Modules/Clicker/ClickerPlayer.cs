@@ -36,22 +36,26 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             {
                 p.IsUnlocked = engine.Scripting.Evaluate(p.UnlockExpression, new Dictionary<string, object>()
                 {
-                    { "producer", p }
+                    { "producer", p },
+                    { "target", this }
                 }).Boolean;
                 p.IsEnabled = engine.Scripting.Evaluate(p.EnableExpression, new Dictionary<string, object>()
                 {
-                    { "producer", p }
+                    { "producer", p },
+                    { "target", this }
                 }).Boolean;
             }
             foreach (var u in Upgrades.Values)
             {
                 u.IsUnlocked = engine.Scripting.Evaluate(u.UnlockExpression, new Dictionary<string, object>()
                 {
-                    { "upgrade", u }
+                    { "upgrade", u },
+                    { "target", this }
                 }).Boolean;
                 u.IsEnabled = engine.Scripting.Evaluate(u.EnableExpression, new Dictionary<string, object>()
                 {
-                    { "upgrade", u }
+                    { "upgrade", u },
+                    { "target", this }
                 }).Boolean;
             }
         }

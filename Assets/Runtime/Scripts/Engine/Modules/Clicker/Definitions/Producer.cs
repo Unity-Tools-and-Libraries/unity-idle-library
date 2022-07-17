@@ -55,9 +55,13 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             {
                 return isEnabled;
             } set {
-                var changeEvent = new IsEnabledChangedEvent(this);
-                Emit(IsEnabledChangedEvent.EventName, changeEvent);
-                Engine.Emit(IsEnabledChangedEvent.EventName, changeEvent);
+                if (value != isEnabled)
+                {
+                    isEnabled = value;
+                    var changeEvent = new IsEnabledChangedEvent(this);
+                    Emit(IsEnabledChangedEvent.EventName, changeEvent);
+                    Engine.Emit(IsEnabledChangedEvent.EventName, changeEvent);
+                }
             } 
         }
 

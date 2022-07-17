@@ -39,9 +39,13 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitio
             }
             set
             {
-                var changeEvent = new IsEnabledChangedEvent(this);
-                Emit(IsEnabledChangedEvent.EventName, changeEvent);
-                Engine.Emit(IsEnabledChangedEvent.EventName, changeEvent);
+                if (value != isEnabled)
+                {
+                    isEnabled = value;
+                    var changeEvent = new IsEnabledChangedEvent(this);
+                    Emit(IsEnabledChangedEvent.EventName, changeEvent);
+                    Engine.Emit(IsEnabledChangedEvent.EventName, changeEvent);
+                }
             }
         }
         public Upgrade(IdleEngine engine, long Id, string Name, BigDouble cost, string unlockExpression, string enableExpression, Dictionary<string, Tuple<string, string>> effects) : base(engine, Id, effects)

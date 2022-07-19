@@ -25,7 +25,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                 var toIterate = eventListenersBySubscriber.Values.Where(l => l != null).ToArray();
                 foreach (var listener in toIterate)
                 {
-                    engine.Scripting.Evaluate(listener, contextToUse);
+                    engine.Scripting.EvaluateString(listener, contextToUse);
                 }
             }
         }

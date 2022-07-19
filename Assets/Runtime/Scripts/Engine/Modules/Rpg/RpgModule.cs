@@ -66,8 +66,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             { RpgCharacter.Attributes.RESILIENCE, 0 }
         };
         private string AttackCalcuationScript =
-            "local accuracy = attacker.Accuracy" + "\n" +
-            "local evasion = defender.Evasion" + "\n" +
+            "local accuracy = attacker.AttackValue" + "\n" +
+            "local evasion = defender.DefenseValue" + "\n" +
             "local toHitRoll = engine.RandomInt(100) + 1" + "\n" +
             "if toHitRoll <= (accuracy - evasion) then" + "\n" +
             "    local critRoll = engine.RandomInt(1000)" + "\n" +
@@ -79,9 +79,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             "    return 'miss'" + "\n" +
             "end";
         private string defaultAttackHitScript =
-            "return {hit=true, description='hit', damageToTarget=attacker.damage - defender.defense}";
+            "return {hit=true, description='hit', damageToTarget=attacker.damageValue - defender.damageReductionValue}";
         private string defaultAttackMissScript = "return {hit=false, description='miss', damageToTarget=0}";
-        private string defaultAttackCriticalHitScript = "return {hit=true, description='critical hit', damageToTarget=(attacker.damage - defender.defense) * attacker.criticalHitDamageMultiplier}";
+        private string defaultAttackCriticalHitScript = "return {hit=true, description='critical hit', damageToTarget=(attacker.damageValue - defender.damageReductionValue) * attacker.criticalHitDamageMultiplier}";
 
         public void ConfigureEngine(IdleEngine engine)
         {
@@ -143,6 +143,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
             engine.GlobalProperties["DetermineAttackValueScript"] = "return self.Accuracy";
             engine.GlobalProperties["DetermineDefenseValueScript"] = "return self.Evasion";
+            engine.GlobalProperties["DetermineDamageValueScript"] = "return self.Damage";
+            engine.GlobalProperties["DetermineDamageReductionValueScript"] = "return self.Defense";
 
             engine.GetDefinitions()["encounters"] = encounters;
             engine.GetDefinitions()["creatures"] = creatures;
@@ -332,8 +334,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             {
                 throw new InvalidOperationException("Value returned from AttackCalculationScript was not a string!");
             }
-            BigDouble attackerAttackStat = attacker.GetAttackValue();
-            BigDouble defenderDefenseStat = attacker.GetDefenseValue();
             
             Dictionary<string, string> resultHandlerScripts = engine.GlobalProperties["AttackHandlerScripts"] as Dictionary<string, string>;
             AttackResultDescription attackResultDescription;
@@ -372,13 +372,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public static void SetActionPhase(this IdleEngine engine, string actionPhase)
         {
             engine.GlobalProperties[RpgModule.Properties.ActionPhase] = actionPhase;
-        }
-
-        public static BigDouble CalculateAttackDamage(this IdleEngine engine, RpgCharacter attacker, RpgCharacter defender)
-        {
-            BigDouble attackerDamage = attacker.Damage;
-
-            return attackerDamage;
         }
 
         private static EncounterDefinition GetRandomEncounter(this IdleEngine engine)

@@ -25,12 +25,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             OnEventTriggers = new Dictionary<string, List<string>>();
             DetermineAttackValueScript = (string)Engine.GlobalProperties["DetermineAttackValueScript"];
             DetermineDefenseValueScript = (string)Engine.GlobalProperties["DetermineDefenseValueScript"];
+            DetermineDamageValueScript = (string)Engine.GlobalProperties["DetermineDamageValueScript"];
+            DetermineDamageReductionValueScript = (string)Engine.GlobalProperties["DetermineDamageReductionValueScript"];
         }
         /*
          * The script called to determine the combat attack
          */
         public string DetermineAttackValueScript { get; set; }
         public string DetermineDefenseValueScript { get; set; }
+        public string DetermineDamageValueScript { get; set; }
+        public string DetermineDamageReductionValueScript { get; set; }
 
         public BigDouble Level { get; set; }
         public BigDouble CurrentHealth { get; set; }
@@ -353,16 +357,19 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         /*
          * Return the value used to determine if this character hits with an attack or not. Defaults to Accuracy, if not overridden.
          */
-        public BigDouble GetAttackValue()
-        {
-            return Engine.Scripting.EvaluateString(DetermineAttackValueScript, new KeyValuePair<string, object>("self", this)).ToObject<BigDouble>();
-        }
+        public BigDouble AttackValue => Engine.Scripting.EvaluateString(DetermineAttackValueScript, new KeyValuePair<string, object>("self", this)).ToObject<BigDouble>();
         /*
          * Return the value used to determine if this character avoids being hit with an attack or not. Defaults to Evasion, if not overridden.
          */
-        internal BigDouble GetDefenseValue()
-        {
-            return Engine.Scripting.EvaluateString(DetermineDefenseValueScript, new KeyValuePair<string, object>("self", this)).ToObject<BigDouble>();
-        }
+        public BigDouble DefenseValue => Engine.Scripting.EvaluateString(DetermineDefenseValueScript, new KeyValuePair<string, object>("self", this)).ToObject<BigDouble>();
+        /*
+         * Return the value used to determine the amount of damage this character does with an attack. Defaults to Damage, if not overriden.
+         */
+        public BigDouble DamageValue => Engine.Scripting.EvaluateString(DetermineDamageValueScript, new KeyValuePair<string, object>("self", this)).ToObject<BigDouble>();
+        /*
+         * Return the value used to determine the amount of damage this character does with an attack. Defaults to Damage, if not overriden.
+         */
+        public BigDouble DamageReductionValue => Engine.Scripting.EvaluateString(DetermineDamageReductionValueScript, new KeyValuePair<string, object>("self", this)).ToObject<BigDouble>();
+
     }
 }

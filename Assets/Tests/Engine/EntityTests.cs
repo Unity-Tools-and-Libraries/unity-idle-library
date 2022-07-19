@@ -35,5 +35,14 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
                 entity.Update(engine, 1);
             });
         }
+
+        [Test]
+        public void CanCalculateField()
+        {
+            var entity = new TestEntity(engine, 1);
+            entity.CalculateChild("foo", "return 1");
+            entity.Update(engine, 0);
+            Assert.AreEqual(new BigDouble(1), entity.foo);
+        }
     }
 }

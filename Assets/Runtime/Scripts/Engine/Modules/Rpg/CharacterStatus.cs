@@ -9,7 +9,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
      */
     public class CharacterStatus : RpgCharacterModifier
     {
-        protected CharacterStatus(IdleEngine engine, long id, string description, Dictionary<string, Tuple<string, string>> Modifications, Dictionary<string, List<string>> events) : base(engine, id, Modifications, events)
+        protected CharacterStatus(IdleEngine engine, long id, string description, Dictionary<string, Tuple<string, string>> Modifications, Dictionary<string, List<string>> events) : base(engine, id, description, Modifications, events)
         {
             
         }

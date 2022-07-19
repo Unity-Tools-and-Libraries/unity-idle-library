@@ -104,7 +104,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             Configure();
 
-            var item = new RpgItem(engine.GetNextAvailableId(), engine, new string[] { }, null, null);
+            var item = new RpgItem(engine.GetNextAvailableId(), engine, "", new string[] { }, null, null);
             Assert.IsTrue(engine.GetPlayer().AddItem(item));
         }
 
@@ -129,7 +129,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             Configure();
 
-            var item = new RpgItem(engine.GetNextAvailableId(), engine, new string[] { "head" }, null, null);
+            var item = new RpgItem(engine.GetNextAvailableId(), engine, "", new string[] { "head" }, null, null);
             Assert.IsTrue(engine.GetPlayer().AddItem(item));
             Assert.IsFalse(engine.GetPlayer().AddItem(item));
         }
@@ -137,7 +137,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         [Test]
         public void AddItemAppliesItsModifications()
         {
-            var item = new RpgItem(engine.GetNextAvailableId(), engine, new string[] { "head" }, new Dictionary<string, Tuple<string, string>>()
+            var item = new RpgItem(engine.GetNextAvailableId(), engine, "", new string[] { "head" }, new Dictionary<string, Tuple<string, string>>()
             {
                 { "Accuracy", Tuple.Create("value * 100", "value / 100") }
             }, null);

@@ -8,7 +8,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
      */
     public class CharacterAbility: RpgCharacterModifier
     {
-        protected CharacterAbility(IdleEngine engine, long id, string description, Dictionary<string, Tuple<string, string>> modifications, Dictionary<string, List<string>> eventTriggers = null) : base(engine, id, modifications, eventTriggers)
+        protected CharacterAbility(IdleEngine engine, long id, string description, Dictionary<string, Tuple<string, string>> modifications, Dictionary<string, List<string>> eventTriggers = null) : base(engine, id, description, modifications, eventTriggers)
         {
             
         }

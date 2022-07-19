@@ -38,7 +38,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         [Test]
         public void DefaultXpBasedOnLevel()
         {
-            var result = engine.Scripting.Evaluate("return 10 * math.pow(2, level - 1)", new Dictionary<string, object>()
+            var result = engine.Scripting.EvaluateString("return 10 * math.pow(2, level - 1)", new Dictionary<string, object>()
             {
                 { "level", 1 }
             });

@@ -17,12 +17,20 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         {
             Statuses = new Dictionary<long, Duration>();
             ItemSlots = new Dictionary<string, RpgItem[]>();
-            foreach(var defaultSlot in engine.GetConfiguration<Dictionary<string, int>>("characterItemSlots"))
+            foreach (var defaultSlot in engine.GetConfiguration<Dictionary<string, int>>("characterItemSlots"))
             {
                 ItemSlots[defaultSlot.Key] = new RpgItem[defaultSlot.Value];
             }
-            Abilities = new Dictionary<long, AbilityDefinition>();
+            Abilities = new Dictionary<long, CharacterAbility>();
+            OnEventTriggers = new Dictionary<string, List<string>>();
+            DetermineAttackValueScript = (string)Engine.GlobalProperties["DetermineAttackValueScript"];
+            DetermineDefenseValueScript = (string)Engine.GlobalProperties["DetermineDefenseValueScript"];
         }
+        /*
+         * The script called to determine the combat attack
+         */
+        public string DetermineAttackValueScript { get; set; }
+        public string DetermineDefenseValueScript { get; set; }
 
         public BigDouble Level { get; set; }
         public BigDouble CurrentHealth { get; set; }
@@ -44,11 +52,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public BigDouble CriticalHitChance { get; set; }
         public BigDouble Xp { get; set; }
         public BigDouble Gold { get; set; }
-        public Dictionary<long, AbilityDefinition> Abilities { get; set; }
+        public Dictionary<long, CharacterAbility> Abilities { get; set; }
         public Dictionary<string, RpgItem[]> ItemSlots { get; set; }
-        public IDictionary<long, Duration> Statuses { get; set; }
-
-        private List<EntityModifier<Entity>> modifiers = new List<EntityModifier<Entity>>();
+        public Dictionary<long, Duration> Statuses { get; set; }
+        public Dictionary<string, List<string>> OnEventTriggers { get; private set; }
 
         public void Act(IdleEngine engine)
         {
@@ -70,7 +77,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             if (CurrentHealth <= actualDamage)
             {
                 Kill(source);
-            } else
+            }
+            else
             {
                 CurrentHealth -= actualDamage;
             }
@@ -86,25 +94,52 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             Emit(DamageTakenEvent.EventName, damagedTaken);
             Engine.Emit(DamageTakenEvent.EventName, damagedTaken);
 
-            
+
             return actualDamage;
         }
 
-        public void AddAbility(AbilityDefinition ability)
+        public void AddAbility(CharacterAbility ability)
         {
-            if(!Abilities.ContainsKey(ability.Id))
+            if (!Abilities.ContainsKey(ability.Id))
             {
                 AddModifier(ability);
                 Abilities[ability.Id] = ability;
+                if (ability.EventTriggers != null)
+                {
+                    foreach (var @event in ability.EventTriggers)
+                    {
+                        List<string> triggers;
+                        if (!OnEventTriggers.TryGetValue(@event.Key, out triggers))
+                        {
+                            triggers = new List<string>();
+                            OnEventTriggers[@event.Key] = triggers;
+                        }
+                        triggers.AddRange(@event.Value);
+                    }
+                }
             }
         }
 
-        public void RemoveAbility(AbilityDefinition ability)
+        public void RemoveAbility(CharacterAbility ability)
         {
             if (Abilities.ContainsKey(ability.Id))
             {
                 RemoveModifier(ability);
                 Abilities.Remove(ability.Id);
+                if (ability.EventTriggers != null)
+                {
+                    foreach (var @event in ability.EventTriggers)
+                    {
+                        List<string> triggers;
+                        if (OnEventTriggers.TryGetValue(@event.Key, out triggers))
+                        {
+                            foreach (var effect in @event.Value)
+                            {
+                                triggers.Remove(effect);
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -121,16 +156,37 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             if (!Statuses.ContainsKey(status.Id))
             {
                 AddModifier(status);
+                foreach (var @event in status.EventTriggers)
+                {
+                    List<string> triggers;
+                    if (!OnEventTriggers.TryGetValue(@event.Key, out triggers))
+                    {
+                        triggers = new List<string>();
+                        OnEventTriggers[@event.Key] = triggers;
+                    }
+                    triggers.AddRange(@event.Value);
+                }
             }
             Statuses[status.Id] = new Duration(duration);
         }
 
-        public void RemoveStatus(CharacterStatus statusDefinition)
+        public void RemoveStatus(CharacterStatus status)
         {
-            if (Statuses.ContainsKey(statusDefinition.Id))
+            if (Statuses.ContainsKey(status.Id))
             {
-                RemoveModifier(statusDefinition);
-                Statuses.Remove(statusDefinition.Id);
+                RemoveModifier(status);
+                Statuses.Remove(status.Id);
+                foreach (var @event in status.EventTriggers)
+                {
+                    List<string> triggers;
+                    if (OnEventTriggers.TryGetValue(@event.Key, out triggers))
+                    {
+                        foreach (var effect in @event.Value)
+                        {
+                            OnEventTriggers[@event.Key].Remove(effect);
+                        }
+                    }
+                }
             }
         }
 
@@ -156,13 +212,58 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                     }
                 }
             }
+            if (item.EventTriggers != null)
+            {
+                foreach (var @event in item.EventTriggers)
+                {
+                    List<string> triggers;
+                    if (!OnEventTriggers.TryGetValue(@event.Key, out triggers))
+                    {
+                        triggers = new List<string>();
+                        OnEventTriggers[@event.Key] = triggers;
+                    }
+                    triggers.AddRange(@event.Value);
+                }
+            }
+            AddModifier(item);
+            return true;
+        }
+
+        public bool RemoveItem(RpgItem item)
+        {
+            foreach (var slot in item.UsedSlots)
+            {
+                for (int i = 0; i < ItemSlots[slot].Length; i++)
+                {
+                    if (ItemSlots[slot][i] == item)
+                    {
+                        ItemSlots[slot][i] = null;
+                    }
+                }
+            }
+            if (item.EventTriggers != null)
+            {
+                foreach (var @event in item.EventTriggers)
+                {
+                    List<string> triggers;
+                    if (OnEventTriggers.TryGetValue(@event.Key, out triggers))
+                    {
+                        foreach(var effect in @event.Value)
+                        {
+                            triggers.Remove(effect);
+                        }
+                    }
+                }
+            }
+            RemoveModifier(item);
             return true;
         }
 
 
+
         private void UpdateActionMeter(BigDouble time)
         {
-            
+
             BigDouble actionMeter = ActionMeter + time;
             if (actionMeter >= (BigDouble)Engine.GetConfiguration()["action_meter_required_to_act"])
             {
@@ -179,17 +280,18 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             foreach (var statusId in toUpdate)
             {
                 BigDouble currentTime = Statuses[statusId].RemainingTime - time;
-                
+
                 if (currentTime <= 0)
                 {
                     RemoveStatus(Engine.GetStatuses()[statusId]);
-                } else
+                }
+                else
                 {
                     Statuses[statusId].RemainingTime = currentTime;
                 }
             }
         }
-        
+
         protected override void CustomUpdate(IdleEngine engine, float deltaTime)
         {
             if ((string)engine.GetProperty(RpgModule.Properties.ActionPhase) == "combat")
@@ -211,7 +313,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             CurrentHealth = 0;
             var diedEvent = new CharacterDiedEvent(this, killer);
             Emit(CharacterDiedEvent.EventName, diedEvent);
-            Engine.Emit( CharacterDiedEvent.EventName, diedEvent);
+            Engine.Emit(CharacterDiedEvent.EventName, diedEvent);
         }
 
         public static class Attributes
@@ -246,6 +348,21 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         {
             public const string FIGHT = "FIGHT";
             public const string REINCARNATING = "REINCARNATING";
+        }
+
+        /*
+         * Return the value used to determine if this character hits with an attack or not. Defaults to Accuracy, if not overridden.
+         */
+        public BigDouble GetAttackValue()
+        {
+            return Engine.Scripting.EvaluateString(DetermineAttackValueScript, new KeyValuePair<string, object>("self", this)).ToObject<BigDouble>();
+        }
+        /*
+         * Return the value used to determine if this character avoids being hit with an attack or not. Defaults to Evasion, if not overridden.
+         */
+        internal BigDouble GetDefenseValue()
+        {
+            return Engine.Scripting.EvaluateString(DetermineDefenseValueScript, new KeyValuePair<string, object>("self", this)).ToObject<BigDouble>();
         }
     }
 }

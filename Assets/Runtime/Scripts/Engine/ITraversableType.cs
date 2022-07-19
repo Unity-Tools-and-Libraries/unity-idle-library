@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using System.Reflection;
 
-public interface ITraversable
+public interface ITraversableType
 {
     IEnumerable GetTraversableFields();
 }

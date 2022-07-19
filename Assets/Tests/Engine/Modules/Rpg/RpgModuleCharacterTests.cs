@@ -27,7 +27,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             engine.StartEncounter();
             engine.Watch(CharacterActedEvent.EventName, "test", "triggered = true");
             engine.GetPlayer().Update(engine, (float)((BigDouble)engine.GetProperty("configuration.action_meter_required_to_act")).ToDouble());
-            Assert.IsTrue(engine.Scripting.Evaluate("return triggered").Boolean);
+            Assert.IsTrue(engine.Scripting.EvaluateString("return triggered").Boolean);
         }
 
         [Test]
@@ -104,7 +104,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             Configure();
 
-            var item = new RpgItem(engine.GetNextAvailableId(), engine, new string[] { }, null);
+            var item = new RpgItem(engine.GetNextAvailableId(), engine, new string[] { }, null, null);
             Assert.IsTrue(engine.GetPlayer().AddItem(item));
         }
 
@@ -129,9 +129,26 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             Configure();
 
-            var item = new RpgItem(engine.GetNextAvailableId(), engine, new string[] { "head" }, null);
+            var item = new RpgItem(engine.GetNextAvailableId(), engine, new string[] { "head" }, null, null);
             Assert.IsTrue(engine.GetPlayer().AddItem(item));
             Assert.IsFalse(engine.GetPlayer().AddItem(item));
+        }
+
+        [Test]
+        public void AddItemAppliesItsModifications()
+        {
+            var item = new RpgItem(engine.GetNextAvailableId(), engine, new string[] { "head" }, new Dictionary<string, Tuple<string, string>>()
+            {
+                { "Accuracy", Tuple.Create("value * 100", "value / 100") }
+            }, null);
+
+            Configure();
+
+            var startingAccuracy = engine.GetPlayer().Accuracy;
+            engine.GetPlayer().AddItem(item);
+            Assert.AreEqual(startingAccuracy * 100, engine.GetPlayer().Accuracy);
+            engine.GetPlayer().RemoveItem(item);
+            Assert.AreEqual(startingAccuracy, engine.GetPlayer().Accuracy);
         }
 
         [Test]
@@ -178,10 +195,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         {
             Configure();
 
-            var ability = new AbilityDefinition(engine.GetNextAvailableId(), engine, "", new Dictionary<string, Tuple<string, string>>()
-            {
-                { "Accuracy", Tuple.Create("value * 2", "value / 2") }
-            });
+            var ability = new CharacterAbility.Builder().ChangeProperty("Accuracy", "value * 2", "value / 2").Build( engine, engine.GetNextAvailableId());
 
             engine.GetPlayer().AddAbility(ability);
 
@@ -193,10 +207,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         {
             Configure();
 
-            var ability = new AbilityDefinition(engine.GetNextAvailableId(), engine, "", new Dictionary<string, Tuple<string, string>>()
-            {
-                { "Accuracy", Tuple.Create("value * 2", "value / 2") }
-            });
+            var ability = new CharacterAbility.Builder().ChangeProperty("Accuracy", "value * 2", "value / 2").Build(engine, engine.GetNextAvailableId());
 
             engine.GetPlayer().AddAbility(ability);
             engine.GetPlayer().RemoveAbility(ability);

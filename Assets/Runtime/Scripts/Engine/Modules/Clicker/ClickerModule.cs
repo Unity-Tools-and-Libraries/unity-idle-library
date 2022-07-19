@@ -54,7 +54,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 
         private static void DoClick(IdleEngine engine)
         {
-            engine.Scripting.Evaluate("player.points.quantity = player.points.quantity + player.points.click_income");
+            engine.Scripting.EvaluateString("player.points.quantity = player.points.quantity + player.points.click_income");
         }
 
         public void AssertReady()
@@ -87,7 +87,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 
         public static BigDouble CalculatePurchaseCost(this IdleEngine engine, IBuyable buyable, BigDouble alreadyOwnedQuantity)
         {
-            return (engine.Scripting.Evaluate(buyable.CostExpression).ToObject<BigDouble>() * new BigDouble(1.15).Pow(alreadyOwnedQuantity - 1)).Ceiling();
+            return (engine.Scripting.EvaluateString(buyable.CostExpression).ToObject<BigDouble>() * new BigDouble(1.15).Pow(alreadyOwnedQuantity - 1)).Ceiling();
         }
 
     }

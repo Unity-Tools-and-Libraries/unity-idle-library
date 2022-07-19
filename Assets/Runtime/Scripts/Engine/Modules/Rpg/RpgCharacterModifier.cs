@@ -11,9 +11,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
      */
     public abstract class RpgCharacterModifier : EntityModifier<RpgCharacter>
     {
-        public RpgCharacterModifier(long id, IdleEngine engine, Dictionary<string, Tuple<string, string>> modifications, Dictionary<string, Tuple<string, string>> events = null) : base(engine, id, modifications)
+        public readonly Dictionary<string, List<string>> EventTriggers;
+        public RpgCharacterModifier(IdleEngine engine, long id, Dictionary<string, Tuple<string, string>> modifications, Dictionary<string, List<string>> events = null) : base(engine, id, modifications)
         {
-            
+            this.EventTriggers = events;
         }
     }
 }

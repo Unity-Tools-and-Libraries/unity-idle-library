@@ -1,9 +1,8 @@
 using io.github.thisisnozaku.idle.framework.Engine.Persistence;
 using io.github.thisisnozaku.idle.framework.Events;
-using MoonSharp.Interpreter;
-using MoonSharp.Interpreter.Interop;
 using Newtonsoft.Json;
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
@@ -14,7 +13,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
     /*
      * Base class for custom types.
      */
-    public abstract class Entity : IEventSource, IEngineAware
+    public abstract class Entity : IEventSource, IEngineAware, ITraversableType
     {
         [JsonIgnore]
         public IdleEngine Engine { get; private set; }
@@ -25,6 +24,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         private Dictionary<string, string> propertyCalculationScripts = new Dictionary<string, string>();
         [JsonProperty]
         private List<long> appliedModifiers = new List<long>();
+        private List<MemberInfo> traversableFields;
+
         public long Id { get; }
         /*
          * Return the list of the ids of all modifiers applied to this entity.
@@ -44,6 +45,23 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             if (engine != null)
             {
                 engine.RegisterEntity(this);
+            }
+            traversableFields = new List<MemberInfo>();
+            FieldInfo[] fields = GetType().GetFields();
+            foreach(var field in fields)
+            {
+                if(field.GetCustomAttribute<TraversableFieldOrProperty>() != null)
+                {
+                    traversableFields.Add(field);
+                }
+            }
+            PropertyInfo[] properties = GetType().GetProperties();
+            foreach (var property in properties)
+            {
+                if (property.GetCustomAttribute<TraversableFieldOrProperty>() != null)
+                {
+                    traversableFields.Add(property);
+                }
             }
         }
 
@@ -101,7 +119,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                         {
                             object currentValue = fieldInfo.GetValue(this);
                             updateScriptContext["value"] = currentValue;
-                            fieldInfo.SetValue(this, Engine.Scripting.Evaluate(child.Value, updateScriptContext).ToObject());
+                            fieldInfo.SetValue(this, Engine.Scripting.EvaluateString(child.Value, updateScriptContext).ToObject());
                         };
                     }
 
@@ -112,7 +130,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                         {
                             object currentValue = propertyInfo.GetValue(this);
                             updateScriptContext["value"] = currentValue;
-                            propertyInfo.SetValue(this, Engine.Scripting.Evaluate(child.Value, updateScriptContext).ToObject());
+                            propertyInfo.SetValue(this, Engine.Scripting.EvaluateString(child.Value, updateScriptContext).ToObject());
                         };
                     }
                     if(!calculatedPropertySetters.ContainsKey(child.Key))
@@ -139,12 +157,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         }
 
 
-        public void Emit(string eventName, IDictionary<string, object> contextToUse = null)
+        public virtual void Emit(string eventName, IDictionary<string, object> contextToUse = null)
         {
             eventListeners.Emit(eventName, contextToUse);
         }
 
-        public void Emit(string eventName, ScriptingContext contextToUse)
+        public virtual void Emit(string eventName, ScriptingContext contextToUse)
         {
             eventListeners.Emit(eventName, contextToUse);
         }
@@ -168,26 +186,19 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             return Flags.ContainsKey(flag) && Flags[flag];
         }
 
-        public override bool Equals(object obj)
+        public IEnumerable GetTraversableFields() => traversableFields.Select(f =>
         {
-            return obj is Entity entity &&
-                   EqualityComparer<Dictionary<string, bool>>.Default.Equals(Flags, entity.Flags) &&
-                   EqualityComparer<Dictionary<string, string>>.Default.Equals(propertyCalculationScripts, entity.propertyCalculationScripts) &&
-                   EqualityComparer<List<long>>.Default.Equals(appliedModifiers, entity.appliedModifiers) &&
-                   Id == entity.Id &&
-                   EqualityComparer<Dictionary<string, object>>.Default.Equals(ExtraProperties, entity.ExtraProperties);
-        }
-
-        public override int GetHashCode()
-        {
-            int hashCode = 36677474;
-            hashCode = hashCode * -1521134295 + EqualityComparer<Dictionary<string, bool>>.Default.GetHashCode(Flags);
-            hashCode = hashCode * -1521134295 + EqualityComparer<Dictionary<string, string>>.Default.GetHashCode(propertyCalculationScripts);
-            hashCode = hashCode * -1521134295 + EqualityComparer<List<long>>.Default.GetHashCode(appliedModifiers);
-            hashCode = hashCode * -1521134295 + Id.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<Dictionary<string, object>>.Default.GetHashCode(ExtraProperties);
-            return hashCode;
-        }
+            if(f is PropertyInfo)
+            {
+                return (f as PropertyInfo).GetValue(this);
+            } else if(f is FieldInfo)
+            {
+                return (f as FieldInfo).GetValue(this);
+            } else
+            {
+                throw new InvalidOperationException();
+            }
+        });
 
         [JsonProperty]
         public Dictionary<string, object> ExtraProperties { get; set; }

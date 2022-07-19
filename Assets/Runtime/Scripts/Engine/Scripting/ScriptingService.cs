@@ -45,6 +45,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             UserData.RegisterType<IdleEngine>();
             UserData.RegisterType<BigDouble>();
             UserData.RegisterType<WrappedDictionary>();
+            UserData.RegisterType<Type>();
 
             SetScriptToClrCustomConversion(DataType.Number, typeof(BigDouble), (arg) =>
             {
@@ -167,7 +168,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             Script.GlobalOptions.CustomConverters.SetScriptToClrCustomConversion(scriptDataType, clrDataType, converter);
         }
 
-        public DynValue Evaluate(string script, IDictionary<string, object> localContext = null)
+        public DynValue EvaluateString(string script, IDictionary<string, object> localContext = null)
         {
             if (script == null)
             {
@@ -182,15 +183,15 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             return result;
         }
 
-        public DynValue Evaluate(string valueExpression, KeyValuePair<string, object> localContext)
+        public DynValue EvaluateString(string valueExpression, KeyValuePair<string, object> localContext)
         {
-            return Evaluate(valueExpression, new Dictionary<string, object>()
+            return EvaluateString(valueExpression, new Dictionary<string, object>()
             {
                 { localContext.Key, localContext.Value }
             });
         }
 
-        private class WrappedDictionary : IUserDataType, ITraversable
+        private class WrappedDictionary : IUserDataType, ITraversableType
         {
             private Dictionary<string, object> underlying;
             public WrappedDictionary(Dictionary<string, object> underlying)

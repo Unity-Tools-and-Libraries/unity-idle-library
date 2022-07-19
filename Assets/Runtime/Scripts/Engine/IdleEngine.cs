@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using Newtonsoft.Json.Serialization;
+using BreakInfinity;
 
 namespace io.github.thisisnozaku.idle.framework.Engine
 {
@@ -207,14 +208,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             listeners.Watch(eventName, subscriber, handler);
             if (eventName == EngineReadyEvent.EventName && IsReady)
             {
-                Scripting.Evaluate(handler);
+                Scripting.EvaluateString(handler);
             }
         }
 
         // Random Number
-        public int RandomInt(int count)
+        public BigDouble RandomInt(int count)
         {
-            return random.Next(count);
+            return new BigDouble(random.Next(count));
         }
 
         private Dictionary<Type, List<Tuple<FieldInfo, PropertyInfo>>> typeTraversableFields = new Dictionary<Type, List<Tuple<FieldInfo, PropertyInfo>>>();
@@ -255,54 +256,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                         break;
                     case DataType.UserData:
                         var asObject = next.ToObject();
-                        if (asObject is ITraversable)
+                        if (asObject is ITraversableType)
                         {
-                            foreach(var value in (asObject as ITraversable).GetTraversableFields())
+                            foreach(var value in (asObject as ITraversableType).GetTraversableFields())
                             {
                                 var item = DynValue.FromObject(null, value);
                                 if (item.Type == DataType.UserData || item.Type == DataType.Table || item.Type == DataType.Tuple)
                                 {
                                     queue.Enqueue(item);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            List<Tuple<FieldInfo, PropertyInfo>> traversableFields;
-                            if (!typeTraversableFields.TryGetValue(asObject.GetType(), out traversableFields))
-                            {
-                                traversableFields = new List<Tuple<FieldInfo, PropertyInfo>>();
-                                var typeFields = asObject.GetType().GetFields();
-                                foreach (var field in typeFields)
-                                {
-                                    if (field.GetCustomAttribute<TraversableFieldOrProperty>() != null)
-                                    {
-                                        traversableFields.Add(Tuple.Create<FieldInfo, PropertyInfo>(field, null));
-                                    }
-                                }
-                                var typeProperties = asObject.GetType().GetProperties();
-                                foreach (var property in typeProperties)
-                                {
-                                    if (property.GetCustomAttribute<TraversableFieldOrProperty>() != null)
-                                    {
-                                        traversableFields.Add(Tuple.Create<FieldInfo, PropertyInfo>(null, property));
-                                    }
-                                }
-                                typeTraversableFields[asObject.GetType()] = traversableFields;
-                            }
-                            foreach (var item in traversableFields)
-                            {
-                                if (item.Item1 != null)
-                                {
-                                    queue.Enqueue(DynValue.FromObject(null, item.Item1.GetValue(asObject)));
-                                }
-                                else if (item.Item2 != null)
-                                {
-                                    queue.Enqueue(DynValue.FromObject(null, item.Item2.GetValue(asObject)));
-                                }
-                                else
-                                {
-                                    throw new InvalidOperationException();
                                 }
                             }
                         }
@@ -337,7 +298,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                 }
                 foreach (var calculator in propertyCalculators)
                 {
-                    GlobalProperties[calculator.Key] = scripting.Evaluate(calculator.Value, new Dictionary<string, object>()
+                    GlobalProperties[calculator.Key] = scripting.EvaluateString(calculator.Value, new Dictionary<string, object>()
                     {
                         { "value", GlobalProperties.ContainsKey(calculator.Key) ? GlobalProperties[calculator.Key] : null },
                         { "deltaTime", deltaTime }

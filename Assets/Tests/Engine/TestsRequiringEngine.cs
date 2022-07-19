@@ -21,7 +21,9 @@ public abstract class TestsRequiringEngine
 
     public class TestEntity : Entity
     {
+        [TraversableFieldOrProperty]
         public BigDouble foo;
+        [TraversableFieldOrProperty]
         public BigDouble Bar { get; set; } = 1;
         public TestEntity(IdleEngine engine, long id, BigDouble foo = default(BigDouble)) : base(engine, id)
         {

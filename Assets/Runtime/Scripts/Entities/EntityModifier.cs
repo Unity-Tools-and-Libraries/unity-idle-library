@@ -9,11 +9,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine
     /*
      * Abstract base class for things which "modify" entities, such as upgrades, special abilities, status effects, etc.
      */
-    public abstract class EntityModifier<T> : Entity where T: Entity
+    public abstract class EntityModifier<T> : Entity where T : Entity
     {
         private Dictionary<string, Tuple<string, string>> modifications;
 
-        protected EntityModifier(IdleEngine engine, long id, Dictionary<string, Tuple<string, string>> modifications): base(engine, id)
+        protected EntityModifier(IdleEngine engine, long id, Dictionary<string, Tuple<string, string>> modifications) : base(engine, id)
         {
             this.modifications = modifications;
             this.Id = id;
@@ -29,21 +29,17 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                 {
                     var context = new Dictionary<string, object>() { { "target", target } };
                     string toExecute;
-                    switch(effect.Key)
+                    if (effect.Key.EndsWith("setFlag") || effect.Key.EndsWith("clearFlag"))
                     {
-                        case "setFlag":
-                            toExecute = string.Format("target.SetFlag('{0}')", effect.Value.Item1);
-                            break;
-                        case "clearFlag":
-                            toExecute = string.Format("target.ClearFlag('{0}')", effect.Value.Item1);
-                            break;
-                        default:
-                            toExecute = string.Format("target.{0} = {1}", effect.Key, effect.Value.Item1);
-                            context["value"] = Engine.Scripting.Evaluate(string.Format("return target.{0}", effect.Key), context).ToObject();
-                            break;
+                        toExecute = string.Format("target.{1}('{0}')", effect.Value.Item1, effect.Key);
+                    }
+                    else
+                    {
+                        toExecute = string.Format("target.{0} = {1}", effect.Key, effect.Value.Item1);
+                        context["value"] = Engine.Scripting.EvaluateString(string.Format("return target.{0}", effect.Key), context).ToObject();
                     }
 
-                    Engine.Scripting.Evaluate(toExecute, context);
+                    Engine.Scripting.EvaluateString(toExecute, context);
                 }
             }
         }
@@ -53,7 +49,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             {
                 foreach (var effect in modifications)
                 {
-                    if(effect.Value.Item2 == null)
+                    if (effect.Value.Item2 == null)
                     {
                         continue;
                     }
@@ -69,16 +65,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                             break;
                         default:
                             toExecute = string.Format("target.{0} = {1}", effect.Key, effect.Value.Item2);
-                            context["value"] = Engine.Scripting.Evaluate(string.Format("return target.{0}", effect.Key), context).ToObject();
+                            context["value"] = Engine.Scripting.EvaluateString(string.Format("return target.{0}", effect.Key), context).ToObject();
                             break;
                     }
 
-                    Engine.Scripting.Evaluate(toExecute, context);
+                    Engine.Scripting.EvaluateString(toExecute, context);
                 }
             }
         }
 
-        public abstract class Builder<B> where B: EntityModifier<T>
+        public abstract class Builder<B> where B : EntityModifier<T>
         {
             protected Dictionary<string, Tuple<string, string>> modifications = new Dictionary<string, Tuple<string, string>>();
             public abstract B Build(IdleEngine engine, long id);

@@ -65,7 +65,22 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             eventListeners[subscriber] = handler;
         }
 
-        internal void Watch(string eventName, string subscriber, CallbackFunction callback)
+        public void Watch(string eventName, string subscriber, DynValue handler)
+        {
+            switch(handler.Type)
+            {
+                case DataType.ClrFunction:
+                    Watch(eventName, subscriber, handler.Callback);
+                    break;
+                case DataType.String:
+                    Watch(eventName, subscriber, handler.String);
+                    break;
+                default:
+                    throw new InvalidOperationException();
+            }
+        }
+
+        private void Watch(string eventName, string subscriber, CallbackFunction callback)
         {
             Dictionary<string, CallbackFunction> callbacks = null;
             if (!this.callbacks.TryGetValue(eventName, out callbacks))

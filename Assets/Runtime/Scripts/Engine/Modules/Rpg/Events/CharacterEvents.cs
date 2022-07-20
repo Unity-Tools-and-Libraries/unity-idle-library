@@ -27,31 +27,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         }
     }
 
-    public class CharacterDamagedEvent : ScriptingContext
-    {
-        public const string EventName = "character_damaged";
-        private RpgCharacter damagedCharacter;
-        private BigDouble damageInflicted;
-        private RpgCharacter attacker;
-
-        public CharacterDamagedEvent(RpgCharacter damagedCharacter, BigDouble damageInflicted, RpgCharacter attacker)
-        {
-            this.damagedCharacter = damagedCharacter;
-            this.damageInflicted = damageInflicted;
-            this.attacker = attacker;
-        }
-
-        public Dictionary<string, object> GetScriptingProperties()
-        {
-            return new Dictionary<string, object>()
-        {
-            { "attacker", attacker },
-            { "damage", damageInflicted },
-            { "defender", damagedCharacter }
-        };
-        }
-    }
-
     public class CharacterDiedEvent : ScriptingContext
     {
         public const string EventName = "character_died";
@@ -69,6 +44,58 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             {
                 { "died", died },
                 { "killer", killer }
+            };
+        }
+    }
+
+    public class DamageInflictedEvent : ScriptingContext
+    {
+        public const string EventName = "damage_inflicted";
+
+        private RpgCharacter attacker;
+        private BigDouble damage;
+        private RpgCharacter defender;
+
+        public DamageInflictedEvent(RpgCharacter attacker, BigDouble damage, RpgCharacter defender)
+        {
+            this.attacker = attacker;
+            this.damage = damage;
+            this.defender = defender;
+        }
+
+        public Dictionary<string, object> GetScriptingProperties()
+        {
+            return new Dictionary<string, object>()
+            {
+                { "attacker", attacker },
+                {"defender", defender },
+                { "damage", damage }
+            };
+        }
+    }
+
+    public class DamageTakenEvent : ScriptingContext
+    {
+        public const string EventName = "damage_taken";
+
+        private RpgCharacter attacker;
+        private BigDouble damage;
+        private RpgCharacter defender;
+
+        public DamageTakenEvent(RpgCharacter attacker, BigDouble damage, RpgCharacter defender)
+        {
+            this.attacker = attacker;
+            this.damage = damage;
+            this.defender = defender;
+        }
+
+        public Dictionary<string, object> GetScriptingProperties()
+        {
+            return new Dictionary<string, object>()
+            {
+                { "attacker", attacker },
+                {"defender", defender },
+                { "damage", damage }
             };
         }
     }

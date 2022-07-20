@@ -191,6 +191,17 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             });
         }
 
+        public DynValue ExecuteCallback(CallbackFunction callback, IDictionary<string, object> localContext = null)
+        {
+            SetupContext(localContext);
+            DynValue result = script.Call(DynValue.NewCallback(callback));
+            if (result.Type == DataType.Number)
+            {
+                return DynValue.FromObject(null, new BigDouble(result.Number));
+            }
+            return result;
+        }
+
         private class WrappedDictionary : IUserDataType, ITraversableType
         {
             private Dictionary<string, object> underlying;
@@ -221,5 +232,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
                 return underlying.Values;
             }
         }
+
+        
     }
 }

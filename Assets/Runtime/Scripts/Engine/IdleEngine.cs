@@ -19,7 +19,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine
     public partial class IdleEngine : ScriptingContext, IEventSource
     {
         private System.Random random;
-
         public bool IsReady { get; private set; }
         public Dictionary<string, object> GlobalProperties = new Dictionary<string, object>();
         private Dictionary<string, string> propertyCalculators = new Dictionary<string, string>();
@@ -203,12 +202,34 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         /*
          * Whenever an event of the specified type is received at the given path, run the script in listener. This subscription is identified by description.
          */
-        public void Watch(string eventName, string subscriber, string handler)
+        public void Watch(string eventName, string subscriber, string handlerScript)
         {
-            listeners.Watch(eventName, subscriber, handler);
+            listeners.Watch(eventName, subscriber, handlerScript);
             if (eventName == EngineReadyEvent.EventName && IsReady)
             {
-                Scripting.EvaluateString(handler);
+                Scripting.EvaluateString(handlerScript);
+            }
+        }
+
+        /*
+         * Whenever an event of the specified type is received at the given path, run the script in listener. This subscription is identified by description.
+         */
+        public void Watch(string eventName, string subscriber, DynValue handler)
+        {
+            switch(handler.Type)
+            {
+                case DataType.String:
+                    Watch(eventName, subscriber, handler.String);
+                    break;
+                case DataType.ClrFunction:
+                    listeners.Watch(eventName, subscriber, handler.Callback);
+                    if (eventName == EngineReadyEvent.EventName && IsReady)
+                    {
+                        Scripting.ExecuteCallback(handler.Callback);
+                    }
+                    break;
+                default:
+                    throw new ArgumentException("Handler must be a clr function or string wrapped in a DynValue.");
             }
         }
 

@@ -1,4 +1,6 @@
 ﻿using io.github.thisisnozaku.idle.framework.Events;
+using MoonSharp.Interpreter;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,8 +10,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine
     public class EventListeners : IEventSource
     {
         public Dictionary<string, Dictionary<string, string>> listeners = new Dictionary<string, Dictionary<string, string>>();
+        [JsonIgnore]
+        public Dictionary<string, Dictionary<string, CallbackFunction>> callbacks = new Dictionary<string, Dictionary<string, CallbackFunction>>();
         private IdleEngine engine;
-        private int notificationCount = 0;
         public EventListeners(IdleEngine engine)
         {
             this.engine = engine;
@@ -20,12 +23,28 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         public void Emit(string eventName, IDictionary<string, object> contextToUse)
         {
             Dictionary<string, string> eventListenersBySubscriber = null;
-            if (listeners.TryGetValue(eventName, out eventListenersBySubscriber))
+            Dictionary<string, CallbackFunction> callbacksBySubscriber = null;
+            listeners.TryGetValue(eventName, out eventListenersBySubscriber);
+            callbacks.TryGetValue(eventName, out callbacksBySubscriber);
+            if(eventListenersBySubscriber != null)
             {
-                var toIterate = eventListenersBySubscriber.Values.Where(l => l != null).ToArray();
-                foreach (var listener in toIterate)
+                foreach(var subscription in eventListenersBySubscriber)
                 {
-                    engine.Scripting.EvaluateString(listener, contextToUse);
+                    if (subscription.Value != null)
+                    {
+                        if (callbacksBySubscriber != null && callbacksBySubscriber.ContainsKey(subscription.Key))
+                        {
+                            throw new InvalidOperationException(String.Format("Subscriber '{0}' for event '{1}' had both a callback and a script to handle it, which is not supported.", subscription.Key, eventName));
+                        }
+                        engine.Scripting.EvaluateString(subscription.Value, contextToUse);
+                    }
+                }
+            }
+            if(callbacksBySubscriber != null)
+            {
+                foreach(var subscription in callbacksBySubscriber)
+                {
+                    engine.Scripting.ExecuteCallback(subscription.Value, contextToUse);
                 }
             }
         }
@@ -46,14 +65,30 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             eventListeners[subscriber] = handler;
         }
 
+        internal void Watch(string eventName, string subscriber, CallbackFunction callback)
+        {
+            Dictionary<string, CallbackFunction> callbacks = null;
+            if (!this.callbacks.TryGetValue(eventName, out callbacks))
+            {
+                callbacks = new Dictionary<string, CallbackFunction>();
+                this.callbacks[eventName] = callbacks;
+            }
+            callbacks[subscriber] = callback;
+        }
+
         public void StopWatching(string eventName, string subscriber)
         {
             Dictionary<string, string> eventListeners = null;
-            if (!listeners.TryGetValue(eventName, out eventListeners))
+            if (listeners.TryGetValue(eventName, out eventListeners))
             {
-                listeners[eventName] = eventListeners = new Dictionary<string, string>();
+                eventListeners[subscriber] = null;
             }
-            eventListeners[subscriber] = null;
+            
+            Dictionary<string, CallbackFunction> callbacks;
+            if(this.callbacks.TryGetValue(eventName, out callbacks))
+            {
+                callbacks[subscriber] = null;
+            }
         }
     }
 }

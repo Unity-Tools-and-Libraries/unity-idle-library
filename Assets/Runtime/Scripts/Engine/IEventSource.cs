@@ -1,4 +1,5 @@
 ﻿using io.github.thisisnozaku.idle.framework.Events;
+using MoonSharp.Interpreter;
 using System.Collections.Generic;
 
 namespace io.github.thisisnozaku.idle.framework.Engine
@@ -20,9 +21,15 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         /*
          * Watch this source, executing the given handler script when the specified event occurs.
          * 
-         * The subscription identifier identifies this subscription for 
+         * The subscription identifier identifies this subscription for unsubscribing.
          */
         void Watch(string eventName, string watcherIdentifier, string handler);
+        /*
+         * Watch this source, execuing the callback or string script contained within the DynValue.
+         * 
+         * The subscription identifier identified this subscription for unsubscribing.
+         */
+        void Watch(string eventName, string subscriber, DynValue handler);
         /*
          * Unsubscribe from this, causing the script identified by the subscription identifier for the event to not be invoked in the future.
          */

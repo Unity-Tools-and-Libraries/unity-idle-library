@@ -39,7 +39,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
         public ScriptingService(IdleEngine engine)
         {
             this.engine = engine;
-            script = new Script(CoreModules.Preset_HardSandbox ^ CoreModules.Math );
+            script = new Script(CoreModules.Preset_HardSandbox ^ CoreModules.Math);
 
 
             UserData.RegisterType<IdleEngine>();
@@ -91,7 +91,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             {
                 string locationArg = args[1].CastToString();
                 object value;
-                if(!BuiltIns.TryGetValue(locationArg, out value))
+                if (!BuiltIns.TryGetValue(locationArg, out value))
                 {
                     engine.GlobalProperties.TryGetValue(locationArg, out value);
                 }
@@ -142,20 +142,22 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
         private DynValue EngineAwareIndexMethod;
         private DynValue EngineAwareIndexSetMethod;
 
-        public void SetupContext(IDictionary<string, object> contextVariables = null)
+        public Table SetupContext(IDictionary<string, object> contextVariables = null)
         {
-            foreach(var global in engine.GlobalProperties)
+            var contextTable = new Table(script);
+            foreach (var global in engine.GlobalProperties)
             {
-                script.Globals[global.Key] = global.Value;
+                contextTable[global.Key] = global.Value;
             }
             if (contextVariables != null)
             {
                 foreach (var contextVariable in contextVariables)
                 {
-                    script.Globals[contextVariable.Key] = contextVariable.Value;
+                    contextTable[contextVariable.Key] = contextVariable.Value;
                 }
             }
-            script.Globals.MetaTable = defaultMetatable;
+            contextTable.MetaTable = defaultMetatable;
+            return contextTable;
         }
 
         public void SetClrToScriptCustomConversion(Type clrType, Func<Script, object, DynValue> converter)
@@ -168,33 +170,34 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             Script.GlobalOptions.CustomConverters.SetScriptToClrCustomConversion(scriptDataType, clrDataType, converter);
         }
 
-        public DynValue EvaluateString(string script, IDictionary<string, object> localContext = null)
+        public DynValue Evaluate(string script, IDictionary<string, object> localContext = null)
         {
-            if (script == null)
+            return Evaluate(DynValue.NewString(script), localContext);
+        }
+        public DynValue Evaluate(string script, KeyValuePair<string, object> localContext)
+        {
+            return Evaluate(DynValue.NewString(script), new Dictionary<string, object>() {
+                { localContext.Key, localContext.Value }});
+        }
+
+        public DynValue Evaluate(DynValue toEvaluate, IDictionary<string, object> localContext = null, params object[] callbackArgs)
+        {
+            if (toEvaluate == null)
             {
                 throw new ArgumentNullException("valueExpression");
             }
-            SetupContext(localContext);
-            DynValue result = this.script.DoString(script);
-            if (result.Type == DataType.Number)
+            DynValue result;
+            switch (toEvaluate.Type)
             {
-                return DynValue.FromObject(null, new BigDouble(result.Number));
+                case DataType.String:
+                    result = script.DoString(toEvaluate.String, SetupContext(localContext));
+                    break;
+                case DataType.ClrFunction:
+                    result = script.Call(toEvaluate.Callback, callbackArgs);
+                    break;
+                default:
+                    throw new InvalidOperationException();
             }
-            return result;
-        }
-
-        public DynValue EvaluateString(string valueExpression, KeyValuePair<string, object> localContext)
-        {
-            return EvaluateString(valueExpression, new Dictionary<string, object>()
-            {
-                { localContext.Key, localContext.Value }
-            });
-        }
-
-        public DynValue ExecuteCallback(CallbackFunction callback, IDictionary<string, object> localContext = null)
-        {
-            SetupContext(localContext);
-            DynValue result = script.Call(DynValue.NewCallback(callback));
             if (result.Type == DataType.Number)
             {
                 return DynValue.FromObject(null, new BigDouble(result.Number));
@@ -233,6 +236,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             }
         }
 
-        
+
     }
 }

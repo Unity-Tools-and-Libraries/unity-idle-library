@@ -1,4 +1,5 @@
 using BreakInfinity;
+using io.github.thisisnozaku.idle.framework.Engine;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg;
 using NUnit.Framework;
 using System;
@@ -38,7 +39,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         [Test]
         public void DefaultXpBasedOnLevel()
         {
-            var result = engine.Scripting.EvaluateString("return 10 * math.pow(2, level - 1)", new Dictionary<string, object>()
+            var result = engine.Scripting.Evaluate("return 10 * math.pow(2, level - 1)", new Dictionary<string, object>()
             {
                 { "level", 1 }
             });
@@ -61,6 +62,26 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             {
                 new RpgModule().AddEncounter(new EncounterDefinition(1));
             });
+        }
+
+        [Test]
+        public void GetPlayerCanReturnCustomCharacterClass()
+        {
+            engine.GlobalProperties["InitializePlayer"] = (Func<RpgCharacter>)(() =>
+            {
+                return new CustomRpgCharacter(engine, 0);
+            });
+
+            Configure();
+
+            Assert.IsInstanceOf<CustomRpgCharacter>(engine.GetPlayer<CustomRpgCharacter>());
+        }
+
+        public class CustomRpgCharacter : RpgCharacter
+        {
+            public CustomRpgCharacter(IdleEngine engine, long id) : base(engine, id)
+            {
+            }
         }
     }
 }

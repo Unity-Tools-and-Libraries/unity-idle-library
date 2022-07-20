@@ -121,7 +121,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                         {
                             object currentValue = fieldInfo.GetValue(this);
                             updateScriptContext["value"] = currentValue;
-                            fieldInfo.SetValue(this, Engine.Scripting.EvaluateString(child.Value, updateScriptContext).ToObject());
+                            fieldInfo.SetValue(this, Engine.Scripting.Evaluate(child.Value, updateScriptContext).ToObject());
                         };
                     }
 
@@ -132,7 +132,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                         {
                             object currentValue = propertyInfo.GetValue(this);
                             updateScriptContext["value"] = currentValue;
-                            propertyInfo.SetValue(this, Engine.Scripting.EvaluateString(child.Value, updateScriptContext).ToObject());
+                            propertyInfo.SetValue(this, Engine.Scripting.Evaluate(child.Value, updateScriptContext).ToObject());
                         };
                     }
                     if(!calculatedPropertySetters.ContainsKey(child.Key))

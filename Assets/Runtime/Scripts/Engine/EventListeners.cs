@@ -36,7 +36,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                         {
                             throw new InvalidOperationException(String.Format("Subscriber '{0}' for event '{1}' had both a callback and a script to handle it, which is not supported.", subscription.Key, eventName));
                         }
-                        engine.Scripting.EvaluateString(subscription.Value, contextToUse);
+                        engine.Scripting.Evaluate(subscription.Value, contextToUse);
                     }
                 }
             }
@@ -44,7 +44,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             {
                 foreach(var subscription in callbacksBySubscriber)
                 {
-                    engine.Scripting.ExecuteCallback(subscription.Value, contextToUse);
+                    engine.Scripting.Evaluate(DynValue.NewCallback(subscription.Value), null, contextToUse.Values.ToArray());
                 }
             }
         }
@@ -65,7 +65,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             eventListeners[subscriber] = handler;
             if(EngineReadyEvent.EventName == eventName)
             {
-                engine.Scripting.EvaluateString(handler);
+                engine.Scripting.Evaluate(handler);
             }
         }
 
@@ -95,7 +95,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             callbacks[subscriber] = callback;
             if(eventName == EngineReadyEvent.EventName)
             {
-                engine.Scripting.ExecuteCallback(callback);
+                engine.Scripting.Evaluate(DynValue.NewCallback(callback));            
             }
         }
 

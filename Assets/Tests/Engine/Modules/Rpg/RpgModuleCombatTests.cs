@@ -17,7 +17,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             engine.StartEncounter();
 
-            var result = engine.MakeAttack(engine.GetPlayer(), engine.GetCurrentEncounter().Creatures[0]);
+            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), engine.GetCurrentEncounter().Creatures[0]);
 
             Assert.AreEqual("hit", result.Description);
         }
@@ -31,7 +31,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             engine.StartEncounter();
 
-            var result = engine.MakeAttack(engine.GetPlayer(), engine.GetCurrentEncounter().Creatures[0]);
+            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), engine.GetCurrentEncounter().Creatures[0]);
 
             Assert.AreEqual("miss", result.Description);
         }
@@ -46,11 +46,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             Configure();
 
-            engine.GetPlayer().AddAbility(engine.GetAbilities()[5]);
+            engine.GetPlayer<RpgCharacter>().AddAbility(engine.GetAbilities()[5]);
 
             var defender = new RpgCharacter(engine, 7);
 
-            var result = engine.MakeAttack(engine.GetPlayer(), defender);
+            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
 
             Assert.IsFalse(result.IsHit);
             Assert.AreEqual(BigDouble.Zero, result.DamageToDefender);
@@ -68,7 +68,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             var defender = new RpgCharacter(engine, 7);
             defender.AddAbility(engine.GetAbilities()[5]);
 
-            var result = engine.MakeAttack(engine.GetPlayer(), defender);
+            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
 
             Assert.IsFalse(result.IsHit);
             Assert.AreEqual(BigDouble.Zero, result.DamageToDefender);
@@ -87,7 +87,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             defender.AddAbility(engine.GetAbilities()[5]);
             defender.RemoveAbility(engine.GetAbilities()[5]);
 
-            var result = engine.MakeAttack(engine.GetPlayer(), defender);
+            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
 
             Assert.IsTrue(result.IsHit);
         }
@@ -101,11 +101,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             Configure();
 
-            engine.GetPlayer().AddStatus(engine.GetStatuses()[5], 1);
+            engine.GetPlayer<RpgCharacter>().AddStatus(engine.GetStatuses()[5], 1);
 
             var defender = new RpgCharacter(engine, 7);
 
-            var result = engine.MakeAttack(engine.GetPlayer(), defender);
+            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
 
             Assert.IsFalse(result.IsHit);
             Assert.AreEqual(BigDouble.Zero, result.DamageToDefender);
@@ -123,7 +123,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             var defender = new RpgCharacter(engine, 7);
             defender.AddStatus(engine.GetStatuses()[5], 1);
 
-            var result = engine.MakeAttack(engine.GetPlayer(), defender);
+            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
 
             Assert.IsFalse(result.IsHit);
             Assert.AreEqual(BigDouble.Zero, result.DamageToDefender);
@@ -142,7 +142,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             defender.AddStatus(engine.GetStatuses()[5], 1);
             defender.RemoveStatus(engine.GetStatuses()[5]);
 
-            var result = engine.MakeAttack(engine.GetPlayer(), defender);
+            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
 
             Assert.IsTrue(result.IsHit);
         }
@@ -156,11 +156,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             Configure();
 
-            engine.GetPlayer().AddItem(engine.GetItems()[5]);
+            engine.GetPlayer<RpgCharacter>().AddItem(engine.GetItems()[5]);
 
             var defender = new RpgCharacter(engine, 7);
 
-            var result = engine.MakeAttack(engine.GetPlayer(), defender);
+            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
 
             Assert.IsFalse(result.IsHit);
             Assert.AreEqual(BigDouble.Zero, result.DamageToDefender);
@@ -178,7 +178,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             var defender = new RpgCharacter(engine, 7);
             defender.AddItem(engine.GetItems()[5]);
 
-            var result = engine.MakeAttack(engine.GetPlayer(), defender);
+            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
 
             Assert.IsFalse(result.IsHit);
             Assert.AreEqual(BigDouble.Zero, result.DamageToDefender);
@@ -197,7 +197,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             defender.AddItem(engine.GetItems()[5]);
             defender.RemoveItem(engine.GetItems()[5]);
 
-            var result = engine.MakeAttack(engine.GetPlayer(), defender);
+            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
 
             Assert.IsTrue(result.IsHit);
         }

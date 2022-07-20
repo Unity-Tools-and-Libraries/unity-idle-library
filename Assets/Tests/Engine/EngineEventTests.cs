@@ -13,7 +13,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         {
             engine.Watch("event", "test", "triggered = true");
             engine.Emit("event", engine);
-            Assert.IsTrue(engine.Scripting.EvaluateString("return triggered").Boolean);
+            Assert.IsTrue(engine.Scripting.Evaluate("return triggered").Boolean);
         }
 
         [Test]
@@ -24,7 +24,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
                 engine.GlobalProperties["triggered"] = true;
             })));
             engine.Emit("event", engine);
-            Assert.IsTrue(engine.Scripting.EvaluateString("return triggered").Boolean);
+            Assert.IsTrue(engine.Scripting.Evaluate("return triggered").Boolean);
         }
 
         [Test]
@@ -35,7 +35,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
             {
                 engine.GlobalProperties["triggered"] = true;
             })));
-            Assert.IsTrue(engine.Scripting.EvaluateString("return triggered").Boolean);
+            Assert.IsTrue(engine.Scripting.Evaluate("return triggered").Boolean);
         }
 
         [Test]
@@ -52,7 +52,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         {
             engine.Watch(EngineReadyEvent.EventName, "test", "triggered = true");
             engine.Start();
-            Assert.IsTrue(engine.Scripting.EvaluateString("return triggered").Boolean);
+            Assert.IsTrue(engine.Scripting.Evaluate("return triggered").Boolean);
         }
 
         [Test]
@@ -60,7 +60,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         {
             engine.Start();
             engine.Watch(EngineReadyEvent.EventName, "test", "triggered = true");
-            Assert.IsTrue(engine.Scripting.EvaluateString("return triggered").Boolean);
+            Assert.IsTrue(engine.Scripting.Evaluate("return triggered").Boolean);
         }
 
         [Test]
@@ -69,7 +69,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
             engine.Watch("event", "test", "triggered = true");
             engine.StopWatching("event", "test");
             engine.Emit("test", engine);
-            Assert.IsFalse(engine.Scripting.EvaluateString("return triggered").Boolean);
+            Assert.IsFalse(engine.Scripting.Evaluate("return triggered").Boolean);
         }
 
         [Test]
@@ -81,7 +81,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
             })));
             engine.StopWatching("event", "test");
             engine.Emit("test", engine);
-            Assert.IsFalse(engine.Scripting.EvaluateString("return triggered").Boolean);
+            Assert.IsFalse(engine.Scripting.Evaluate("return triggered").Boolean);
         }
 
         [Test]
@@ -90,7 +90,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
             engine.Watch("event", "test", "triggered = true");
             engine.StopWatching("event", "test");
             engine.Emit("test", new Dictionary<string, object>());
-            Assert.IsFalse(engine.Scripting.EvaluateString("return triggered").Boolean);
+            Assert.IsFalse(engine.Scripting.Evaluate("return triggered").Boolean);
         }
     }
 }

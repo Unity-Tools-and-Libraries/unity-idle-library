@@ -357,19 +357,19 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         /*
          * Return the value used to determine if this character hits with an attack or not. Defaults to Accuracy, if not overridden.
          */
-        public BigDouble AttackValue => Engine.Scripting.EvaluateString(DetermineAttackValueScript, new KeyValuePair<string, object>("self", this)).ToObject<BigDouble>();
+        public BigDouble AttackValue => Engine.Scripting.Evaluate(DetermineAttackValueScript, new KeyValuePair<string, object>("self", this)).ToObject<BigDouble>();
         /*
          * Return the value used to determine if this character avoids being hit with an attack or not. Defaults to Evasion, if not overridden.
          */
-        public BigDouble DefenseValue => Engine.Scripting.EvaluateString(DetermineDefenseValueScript, new KeyValuePair<string, object>("self", this)).ToObject<BigDouble>();
+        public BigDouble DefenseValue => Engine.Scripting.Evaluate(DetermineDefenseValueScript, new KeyValuePair<string, object>("self", this)).ToObject<BigDouble>();
         /*
          * Return the value used to determine the amount of damage this character does with an attack. Defaults to Damage, if not overriden.
          */
-        public BigDouble DamageValue => Engine.Scripting.EvaluateString(DetermineDamageValueScript, new KeyValuePair<string, object>("self", this)).ToObject<BigDouble>();
+        public BigDouble DamageValue => Engine.Scripting.Evaluate(DetermineDamageValueScript, new KeyValuePair<string, object>("self", this)).ToObject<BigDouble>();
         /*
          * Return the value used to determine the amount of damage this character does with an attack. Defaults to Damage, if not overriden.
          */
-        public BigDouble DamageReductionValue => Engine.Scripting.EvaluateString(DetermineDamageReductionValueScript, new KeyValuePair<string, object>("self", this)).ToObject<BigDouble>();
+        public BigDouble DamageReductionValue => Engine.Scripting.Evaluate(DetermineDamageReductionValueScript, new KeyValuePair<string, object>("self", this)).ToObject<BigDouble>();
 
     }
 }

@@ -15,9 +15,9 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             Configure();
 
             engine.GetPlayer().Points.Quantity = 10000;
-            Assert.AreEqual(new BigDouble(0), engine.Scripting.EvaluateString("return player.producers[1].quantity").ToObject<BigDouble>());
-            engine.Scripting.EvaluateString("player.BuyProducer(1)");
-            Assert.AreEqual(new BigDouble(1), engine.Scripting.EvaluateString("return player.producers[1].quantity").ToObject<BigDouble>());
+            Assert.AreEqual(new BigDouble(0), engine.Scripting.Evaluate("return player.producers[1].quantity").ToObject<BigDouble>());
+            engine.Scripting.Evaluate("player.BuyProducer(1)");
+            Assert.AreEqual(new BigDouble(1), engine.Scripting.Evaluate("return player.producers[1].quantity").ToObject<BigDouble>());
         }
 
         [Test]
@@ -28,7 +28,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             engine.Start();
             engine.GetPlayer().Producers[1].Quantity = 1;
             engine.Update(0f);
-            Assert.AreEqual(new BigDouble(1), engine.Scripting.EvaluateString("return player.producers[1].TotalOutput").ToObject<BigDouble>());
+            Assert.AreEqual(new BigDouble(1), engine.Scripting.Evaluate("return player.producers[1].TotalOutput").ToObject<BigDouble>());
         }
 
         [Test]
@@ -42,7 +42,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             });
             engine.GetPlayer().AddModifier(upgrade);
 
-            Assert.AreEqual(new BigDouble(2), engine.Scripting.EvaluateString("return player.producers[1].OutputMultiplier").ToObject<BigDouble>());
+            Assert.AreEqual(new BigDouble(2), engine.Scripting.Evaluate("return player.producers[1].OutputMultiplier").ToObject<BigDouble>());
         }
 
         [Test]
@@ -52,11 +52,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
 
             engine.Start();
 
-            Assert.IsFalse(engine.Scripting.EvaluateString("return player.producers[1].IsUnlocked").Boolean);
+            Assert.IsFalse(engine.Scripting.Evaluate("return player.producers[1].IsUnlocked").Boolean);
 
             engine.Update(1);
 
-            Assert.IsTrue(engine.Scripting.EvaluateString("return player.producers[1].IsUnlocked").Boolean);
+            Assert.IsTrue(engine.Scripting.Evaluate("return player.producers[1].IsUnlocked").Boolean);
         }
 
         [Test]

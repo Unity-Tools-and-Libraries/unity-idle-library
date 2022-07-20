@@ -1,16 +1,9 @@
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine.Persistence;
 using NUnit.Framework;
-using io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 using io.github.thisisnozaku.idle.framework.Engine;
 using io.github.thisisnozaku.idle.framework.Events;
 using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Reflection;
 
 namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Persistence
 {
@@ -66,6 +59,19 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Persistence
             engine.Emit("event", (ScriptingContext)null);
 
             Assert.IsTrue(engine.GetProperty<bool>("triggered"));
+        }
+
+        [Test]
+        public void CallbackEventListenerDoNotSerialize()
+        {
+            engine.Watch("event", "test", MoonSharp.Interpreter.DynValue.FromObject(null, (System.Action)(() =>
+            {
+
+            })));
+
+            var snapshot = engine.GetSerializedSnapshotString();
+
+            Assert.IsNull(Newtonsoft.Json.Linq.JObject.Parse(snapshot).SelectToken("$.listeners.callbacks"));
         }
 
         [Test]

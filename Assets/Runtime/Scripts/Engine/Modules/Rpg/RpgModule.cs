@@ -466,7 +466,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             }
         }
 
-        public static RpgCharacter GetPlayer<T>(this IdleEngine engine) where T : RpgCharacter
+        public static T GetPlayer<T>(this IdleEngine engine) where T : RpgCharacter
         {
             return engine.GlobalProperties["player"] as T;
         }

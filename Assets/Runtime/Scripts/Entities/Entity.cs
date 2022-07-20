@@ -176,21 +176,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         public void Watch(string eventName, string subscriber, DynValue handler)
         {
-            switch (handler.Type)
-            {
-                case DataType.String:
-                    Watch(eventName, subscriber, handler.String);
-                    break;
-                case DataType.ClrFunction:
-                    this.eventListeners.Watch(eventName, subscriber, handler.Callback);
-                    if (eventName == EngineReadyEvent.EventName && Engine.IsReady)
-                    {
-                        Engine.Scripting.ExecuteCallback(handler.Callback);
-                    }
-                    break;
-                default:
-                    throw new ArgumentException("Handler must be a clr function or string wrapped in the DynValue.");
-            }
+            eventListeners.Watch(eventName, subscriber, handler);
         }
 
         public void StopWatching(string eventName, string subscriptionTarget)

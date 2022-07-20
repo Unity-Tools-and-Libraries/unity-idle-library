@@ -63,6 +63,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                 listeners[eventName] = eventListeners;
             }
             eventListeners[subscriber] = handler;
+            if(EngineReadyEvent.EventName == eventName)
+            {
+                engine.Scripting.EvaluateString(handler);
+            }
         }
 
         public void Watch(string eventName, string subscriber, DynValue handler)
@@ -76,7 +80,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                     Watch(eventName, subscriber, handler.String);
                     break;
                 default:
-                    throw new InvalidOperationException();
+                    throw new ArgumentException("Handler must be a DynValue containing a string or Clr Function.");
             }
         }
 
@@ -89,6 +93,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                 this.callbacks[eventName] = callbacks;
             }
             callbacks[subscriber] = callback;
+            if(eventName == EngineReadyEvent.EventName)
+            {
+                engine.Scripting.ExecuteCallback(callback);
+            }
         }
 
         public void StopWatching(string eventName, string subscriber)

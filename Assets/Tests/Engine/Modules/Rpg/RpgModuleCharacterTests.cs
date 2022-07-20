@@ -111,7 +111,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             Configure();
 
-            var item = new RpgItem(engine.GetNextAvailableId(), engine, "", new string[] { }, null, null);
+            var item = new CharacterItem(engine.GetNextAvailableId(), engine, "", new string[] { }, null, null);
             engine.GetPlayer<RpgCharacter>().Watch(ItemAddedEvent.EventName, "test", "triggered = true");
             Assert.IsTrue(engine.GetPlayer<RpgCharacter>().AddItem(item));
         }
@@ -137,7 +137,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             Configure();
 
-            var item = new RpgItem(engine.GetNextAvailableId(), engine, "", new string[] { "head" }, null, null);
+            var item = new CharacterItem(engine.GetNextAvailableId(), engine, "", new string[] { "head" }, null, null);
             Assert.IsTrue(engine.GetPlayer<RpgCharacter>().AddItem(item));
             Assert.IsFalse(engine.GetPlayer<RpgCharacter>().AddItem(item));
         }
@@ -147,7 +147,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         {
             Configure();
 
-            var item = new RpgItem(engine.GetNextAvailableId(), engine, "", new string[] { "head" }, new Dictionary<string, Tuple<string, string>>()
+            var item = new CharacterItem(engine.GetNextAvailableId(), engine, "", new string[] { "head" }, new Dictionary<string, Tuple<string, string>>()
             {
                 { "Accuracy", Tuple.Create("value * 100", "value / 100") }
             }, null);
@@ -164,7 +164,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         {
             Configure();
 
-            var item = new RpgItem(engine.GetNextAvailableId(), engine, "", new string[] { "head" }, new Dictionary<string, Tuple<string, string>>()
+            var item = new CharacterItem(engine.GetNextAvailableId(), engine, "", new string[] { "head" }, new Dictionary<string, Tuple<string, string>>()
             {
                 { "Accuracy", Tuple.Create("value * 100", "value / 100") }
             }, null);
@@ -180,7 +180,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         {
             Configure();
 
-            var item = new RpgItem(engine.GetNextAvailableId(), engine, "", new string[] { "head" }, new Dictionary<string, Tuple<string, string>>()
+            var item = new CharacterItem(engine.GetNextAvailableId(), engine, "", new string[] { "head" }, new Dictionary<string, Tuple<string, string>>()
             {
                 { "Accuracy", Tuple.Create("value * 100", "value / 100") }
             }, null);
@@ -237,9 +237,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             var ability = new CharacterAbility.Builder().ChangeProperty("Accuracy", "value * 2", "value / 2").Build( engine, engine.GetNextAvailableId());
 
+            engine.GetPlayer<RpgCharacter>().Watch(AbilityAddedEvent.EventName, "test", "triggered = true");
             engine.GetPlayer<RpgCharacter>().AddAbility(ability);
 
             Assert.AreEqual(new BigDouble(20), engine.GetPlayer<RpgCharacter>().Accuracy);
+            Assert.IsTrue((bool?)engine.GlobalProperties["triggered"]);
         }
 
         [Test]
@@ -260,7 +262,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         {
             Configure();
 
-            engine.GetPlayer<RpgCharacter>().Watch(CharacterDiedEvent.EventName, "test", "triggered = true");
             engine.GetPlayer<RpgCharacter>().CurrentHealth = 10;
 
             engine.GetPlayer<RpgCharacter>().InflictDamage(5, null);
@@ -273,7 +274,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         {
             Configure();
 
-            engine.GetPlayer<RpgCharacter>().Watch(CharacterDamagedEvent.EventName, "test", "triggered = true");
+            engine.GetPlayer<RpgCharacter>().Watch(DamageTakenEvent.EventName, "test", "triggered = true");
             engine.GetPlayer<RpgCharacter>().CurrentHealth = 10;
 
             engine.GetPlayer<RpgCharacter>().InflictDamage(5, null);

@@ -151,7 +151,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         public void ItemsOnTheAttackerCanModifyAnAttackBeingMade()
         {
             random.SetNextValues(1, 1, 1, 1, 1);
-            rpgModule.AddItem(new RpgItem.Builder().WithEventTrigger("IsAttacking", "attack.isHit = false; attack.description = 'miss'; attack.damageToDefender = 0")
+            rpgModule.AddItem(new CharacterItem.Builder().WithEventTrigger("IsAttacking", "attack.isHit = false; attack.description = 'miss'; attack.damageToDefender = 0")
                 .Build(engine, 5));
 
             Configure();
@@ -170,7 +170,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         public void ItemsOnTheDefenderCanModifyAnAttackBeingMade()
         {
             random.SetNextValues(1, 1, 1, 1, 1);
-            rpgModule.AddItem(new RpgItem.Builder().WithEventTrigger("IsAttacking", "attack.isHit = false; attack.description = 'miss'; attack.damageToDefender = 0")
+            rpgModule.AddItem(new CharacterItem.Builder().WithEventTrigger("IsAttacking", "attack.isHit = false; attack.description = 'miss'; attack.damageToDefender = 0")
                 .Build(engine, 5));
 
             Configure();
@@ -188,7 +188,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         public void RemovingItemRemovesTrigger()
         {
             random.SetNextValues(1, 1, 1, 1, 1);
-            rpgModule.AddItem(new RpgItem.Builder().WithEventTrigger("IsAttacking", "attack.isHit = false; attack.description = 'miss'; attack.damageToDefender = 0")
+            rpgModule.AddItem(new CharacterItem.Builder().WithEventTrigger("IsAttacking", "attack.isHit = false; attack.description = 'miss'; attack.damageToDefender = 0")
                 .Build(engine, 5));
 
             Configure();

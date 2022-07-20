@@ -17,7 +17,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         private Dictionary<long, CreatureDefinition> creatures = new Dictionary<long, CreatureDefinition>();
         private Dictionary<long, CharacterStatus> statuses = new Dictionary<long, CharacterStatus>();
         private Dictionary<long, CharacterAbility> abilities = new Dictionary<long, CharacterAbility>();
-        private Dictionary<long, RpgItem> items = new Dictionary<long, RpgItem>();
+        private Dictionary<long, CharacterItem> items = new Dictionary<long, CharacterItem>();
 
         public const string DEFAULT_XP_CALCULATION_METHOD = "return 10 * math.pow(2, character.level - 1)";
         public const string DEFAULT_gold_calculation_script = "return 10 * math.pow(2, character.level - 1)";
@@ -91,6 +91,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             UserData.RegisterType<EncounterDefinition>();
             UserData.RegisterType<CharacterStatus>();
             UserData.RegisterType<AttackResultDescription>();
+            UserData.RegisterType<CharacterItem>();
+            UserData.RegisterType<CharacterAbility>();
 
             engine.GlobalProperties["actionPhase"] = "";
             engine.GlobalProperties["stage"] = new BigDouble(1);
@@ -232,7 +234,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             statuses[status.Id] = status;
         }
 
-        public void AddItem(RpgItem item)
+        public void AddItem(CharacterItem item)
         {
             items[item.Id] = item;
         }
@@ -349,14 +351,20 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             return (Dictionary<long, CreatureDefinition>)engine.GetDefinitions()["creatures"];
         }
 
-        public static Dictionary<long, RpgItem> GetItems(this IdleEngine engine)
+        public static Dictionary<long, CharacterItem> GetItems(this IdleEngine engine)
         {
-            return (Dictionary<long, RpgItem>)engine.GetDefinitions()["items"];
+            return (Dictionary<long, CharacterItem>)engine.GetDefinitions()["items"];
         }
 
         public static Dictionary<long, CharacterAbility> GetAbilities(this IdleEngine engine)
         {
             return (Dictionary<long, CharacterAbility>)engine.GetDefinitions()["abilities"];
+        }
+
+        public static void SetStage(this IdleEngine engine, BigDouble newStage)
+        {
+            engine.GlobalProperties["stage"] = newStage;
+            engine.Emit(StageChangedEvent.EventName, new StageChangedEvent(newStage));
         }
 
         public static AttackResultDescription MakeAttack(this IdleEngine engine, RpgCharacter attacker, RpgCharacter defender)

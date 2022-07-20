@@ -1,6 +1,7 @@
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Combat;
+using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Events;
 using NUnit.Framework;
 using System;
 using System.Collections;
@@ -40,6 +41,18 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             source.Watch(DamageInflictedEvent.EventName, "test", "triggered = true");
 
             target.InflictDamage(new BigDouble(1), source);
+
+            Assert.IsTrue((bool)engine.GlobalProperties["triggered"]);
+        }
+
+        [Test]
+        public void ChangingStageEmitsEvent()
+        {
+            Configure();
+
+            engine.Watch(StageChangedEvent.EventName, "test", "triggered = true");
+
+            engine.SetStage(1);
 
             Assert.IsTrue((bool)engine.GlobalProperties["triggered"]);
         }

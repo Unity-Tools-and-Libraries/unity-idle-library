@@ -47,7 +47,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             UserData.RegisterType<BigDouble>();
             UserData.RegisterType<WrappedDictionary>();
             UserData.RegisterType<Type>();
-            UserData.RegisterType<RpgItem>();
 
             SetScriptToClrCustomConversion(DataType.Number, typeof(BigDouble), (arg) =>
             {

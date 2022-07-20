@@ -17,10 +17,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public RpgCharacter(IdleEngine engine, long id) : base(engine, id)
         {
             Statuses = new Dictionary<long, Duration>();
-            ItemSlots = new Dictionary<string, RpgItem[]>();
+            ItemSlots = new Dictionary<string, CharacterItem[]>();
             foreach (var defaultSlot in engine.GetConfiguration<Dictionary<string, int>>("characterItemSlots"))
             {
-                ItemSlots[defaultSlot.Key] = new RpgItem[defaultSlot.Value];
+                ItemSlots[defaultSlot.Key] = new CharacterItem[defaultSlot.Value];
             }
             Abilities = new Dictionary<long, CharacterAbility>();
             OnEventTriggers = new Dictionary<string, List<string>>();
@@ -67,7 +67,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public BigDouble Xp { get; set; }
         public BigDouble Gold { get; set; }
         public Dictionary<long, CharacterAbility> Abilities { get; set; }
-        public Dictionary<string, RpgItem[]> ItemSlots { get; set; }
+        public Dictionary<string, CharacterItem[]> ItemSlots { get; set; }
         public Dictionary<long, Duration> Statuses { get; set; }
         public Dictionary<string, List<string>> OnEventTriggers { get; private set; }
 
@@ -131,6 +131,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                         triggers.AddRange(@event.Value);
                     }
                 }
+                Emit(AbilityAddedEvent.EventName, new AbilityAddedEvent(ability));
             }
         }
 
@@ -154,6 +155,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                         }
                     }
                 }
+                Emit(AbilityRemovedEvent.EventName, new AbilityRemovedEvent(ability));
             }
         }
 
@@ -206,7 +208,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             }
         }
 
-        public bool AddItem(RpgItem item)
+        public bool AddItem(CharacterItem item)
         {
             var itemSlots = item.UsedSlots;
             foreach (var slot in itemSlots)
@@ -246,7 +248,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             return true;
         }
 
-        public bool RemoveItem(RpgItem item)
+        public bool RemoveItem(CharacterItem item)
         {
             bool removed = false;
             foreach (var slot in item.UsedSlots)

@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Events
 {
-    public class ItemAddedEvent : RpgCharacterModifierEvent<RpgItem>
+    public class ItemAddedEvent : RpgCharacterModifierEvent<CharacterItem>
     {
         public const string EventName = "itemAdded";
-        public RpgItem item { get; }
+        public CharacterItem item { get; }
 
-        public ItemAddedEvent(RpgItem item)
+        public ItemAddedEvent(CharacterItem item)
         {
             this.item = item;
         }
@@ -20,12 +20,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Events
         }
     }
 
-    public class ItemRemovedEvent : RpgCharacterModifierEvent<RpgItem>
+    public class ItemRemovedEvent : RpgCharacterModifierEvent<CharacterItem>
     {
         public const string EventName = "itemAdded";
-        public RpgItem item { get; }
+        public CharacterItem item { get; }
 
-        public ItemRemovedEvent(RpgItem item)
+        public ItemRemovedEvent(CharacterItem item)
         {
             this.item = item;
         }

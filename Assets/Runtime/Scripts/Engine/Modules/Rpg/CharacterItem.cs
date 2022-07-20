@@ -6,9 +6,9 @@ using UnityEngine;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 {
-    public class RpgItem : RpgCharacterModifier
+    public class CharacterItem : RpgCharacterModifier
     {
-        public RpgItem(long id, IdleEngine engine, string description, string[] usedSlots, Dictionary<string, Tuple<string, string>> modifications, Dictionary<string, List<String>> events) : base(engine, id, description, modifications, events)
+        public CharacterItem(long id, IdleEngine engine, string description, string[] usedSlots, Dictionary<string, Tuple<string, string>> modifications, Dictionary<string, List<String>> events) : base(engine, id, description, modifications, events)
         {
             this.UsedSlots = usedSlots;
         }
@@ -18,14 +18,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
          */
         public readonly string[] UsedSlots;
 
-        public class Builder : EntityModifier<RpgCharacter>.Builder<RpgItem>
+        public class Builder : EntityModifier<RpgCharacter>.Builder<CharacterItem>
         {
             private List<string> usedSlots = new List<string>();
             private Dictionary<string, List<string>> events = new Dictionary<string, List<string>>();
             private string description;
-            public override RpgItem Build(IdleEngine engine, long id)
+            public override CharacterItem Build(IdleEngine engine, long id)
             {
-                return new RpgItem(id, engine, description, usedSlots.ToArray(), modifications, events);
+                return new CharacterItem(id, engine, description, usedSlots.ToArray(), modifications, events);
             }
 
             public Builder WithDescription(string description)

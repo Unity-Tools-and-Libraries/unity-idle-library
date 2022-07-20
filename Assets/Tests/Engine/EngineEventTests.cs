@@ -1,5 +1,7 @@
 using io.github.thisisnozaku.idle.framework.Events;
+using MoonSharp.Interpreter;
 using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 namespace io.github.thisisnozaku.idle.framework.Tests.Engine
 {
@@ -12,6 +14,37 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
             engine.Watch("event", "test", "triggered = true");
             engine.Emit("event", engine);
             Assert.IsTrue(engine.Scripting.EvaluateString("return triggered").Boolean);
+        }
+
+        [Test]
+        public void CanWatchWithACallback()
+        {
+            engine.Watch("event", "test", DynValue.FromObject(null, (Action)(() =>
+            {
+                engine.GlobalProperties["triggered"] = true;
+            })));
+            engine.Emit("event", engine);
+            Assert.IsTrue(engine.Scripting.EvaluateString("return triggered").Boolean);
+        }
+
+        [Test]
+        public void CanWatchWithACallbackForEngineReadyInvokesImmediatelyWhenEngineReady()
+        {
+            engine.Start();
+            engine.Watch(EngineReadyEvent.EventName, "test", DynValue.FromObject(null, (Action)(() =>
+            {
+                engine.GlobalProperties["triggered"] = true;
+            })));
+            Assert.IsTrue(engine.Scripting.EvaluateString("return triggered").Boolean);
+        }
+
+        [Test]
+        public void WatchWithNonFunctionDynValueThrows()
+        {
+            Assert.Throws(typeof(ArgumentException), () =>
+            {
+                engine.Watch("event", "test", DynValue.FromObject(null, true));
+            });
         }
 
         [Test]
@@ -34,6 +67,18 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         public void CanStopWatching()
         {
             engine.Watch("event", "test", "triggered = true");
+            engine.StopWatching("event", "test");
+            engine.Emit("test", engine);
+            Assert.IsFalse(engine.Scripting.EvaluateString("return triggered").Boolean);
+        }
+
+        [Test]
+        public void CanStopWatchingWithACallback()
+        {
+            engine.Watch("event", "test", DynValue.FromObject(null, (Action)(() =>
+            {
+                engine.GlobalProperties["triggered"] = true;
+            })));
             engine.StopWatching("event", "test");
             engine.Emit("test", engine);
             Assert.IsFalse(engine.Scripting.EvaluateString("return triggered").Boolean);

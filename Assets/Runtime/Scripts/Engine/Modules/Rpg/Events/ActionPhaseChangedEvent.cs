@@ -1,13 +1,18 @@
 using io.github.thisisnozaku.idle.framework.Events;
 using System;
 using System.Collections.Generic;
-
-public static class ActionPhaseChangedEvent
+namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Events
 {
-    public const string EventName = "action_phase_changed";
-    public static readonly List<Tuple<Type, String>> Arguments = new List<Tuple<Type, String>>()
+    /*
+     * Event emitted when the action phase changes.
+     */
+    public class ActionPhaseChangedEvent : ScriptingContext
+    {
+        public const string EventName = "action_phase_changed";
+
+        public Dictionary<string, object> GetScriptingProperties()
         {
-            Tuple.Create(typeof(string), "The new action phase."),
-            Tuple.Create(typeof(string), "The previous action phase."),
-        };
+            throw new NotImplementedException();
+        }
+    }
 }

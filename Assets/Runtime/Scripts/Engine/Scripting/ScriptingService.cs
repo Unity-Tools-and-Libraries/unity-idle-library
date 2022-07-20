@@ -1,4 +1,5 @@
 using BreakInfinity;
+using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg;
 using io.github.thisisnozaku.idle.framework.Engine.Persistence;
 using MoonSharp.Interpreter;
 using MoonSharp.Interpreter.Interop;
@@ -46,6 +47,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             UserData.RegisterType<BigDouble>();
             UserData.RegisterType<WrappedDictionary>();
             UserData.RegisterType<Type>();
+            UserData.RegisterType<RpgItem>();
 
             SetScriptToClrCustomConversion(DataType.Number, typeof(BigDouble), (arg) =>
             {

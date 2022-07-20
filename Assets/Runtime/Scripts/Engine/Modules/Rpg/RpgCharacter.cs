@@ -8,6 +8,7 @@ using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Combat;
 using System.Dynamic;
 using io.github.thisisnozaku.idle.framework.Engine.Persistence;
 using io.github.thisisnozaku.idle.framework.Events;
+using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Events;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 {
@@ -36,8 +37,17 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public string DetermineDamageValueScript { get; set; }
         public string DetermineDamageReductionValueScript { get; set; }
 
+        /*
+         * The level of this character. The higher the level, the more powerful the character.
+         */
         public BigDouble Level { get; set; }
+        /*
+         * The amount of health this character has. Once health is reduced to 0, the character dies.
+         */
         public BigDouble CurrentHealth { get; set; }
+        /*
+         * The maximum amount of health this character has.
+         */
         public BigDouble MaximumHealth { get; set; }
         public BigDouble Damage { get; set; }
         public BigDouble ActionMeter { get; set; }
@@ -170,6 +180,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                     }
                     triggers.AddRange(@event.Value);
                 }
+                Emit(StatusAddedEvent.EventName, new StatusAddedEvent(status, duration));
             }
             Statuses[status.Id] = new Duration(duration);
         }
@@ -191,6 +202,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                         }
                     }
                 }
+                Emit(StatusRemovedEvent.EventName, new StatusRemovedEvent(status));
             }
         }
 
@@ -230,11 +242,13 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 }
             }
             AddModifier(item);
+            Emit(ItemAddedEvent.EventName, new ItemAddedEvent(item));
             return true;
         }
 
         public bool RemoveItem(RpgItem item)
         {
+            bool removed = false;
             foreach (var slot in item.UsedSlots)
             {
                 for (int i = 0; i < ItemSlots[slot].Length; i++)
@@ -242,6 +256,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                     if (ItemSlots[slot][i] == item)
                     {
                         ItemSlots[slot][i] = null;
+                        removed = true;
                     }
                 }
             }
@@ -260,6 +275,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 }
             }
             RemoveModifier(item);
+            if(removed)
+            {
+                Emit(ItemRemovedEvent.EventName, new ItemRemovedEvent(item));
+            }
             return true;
         }
 

@@ -395,8 +395,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 defender.Emit(HitByAttackEvent.EventName, new HitByAttackEvent(attacker, defender, attackResultDescription.DamageToDefender));
             } else
             {
-                attacker.Emit(AttackFailedEvent.EventName, new AttackFailedEvent(attacker, defender, attackResultDescription.DamageToDefender));
-                defender.Emit(MissedByAttack.EventName, new MissedByAttack(attacker, defender, attackResultDescription.DamageToDefender));
+                attacker.Emit(AttackMissedEvent.EventName, new AttackMissedEvent(attacker, defender, attackResultDescription.DamageToDefender));
+                defender.Emit(MissedByAttackEvent.EventName, new MissedByAttackEvent(attacker, defender, attackResultDescription.DamageToDefender));
             }
 
             return attackResultDescription;

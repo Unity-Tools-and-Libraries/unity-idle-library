@@ -1,5 +1,6 @@
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg;
+using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Events;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -46,10 +47,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             rpgModule.AddStatus(new CharacterStatus.Builder().SetFlag("test").Build(engine, 1));
 
             Configure();
-
+            engine.GetPlayer<RpgCharacter>().Watch(StatusAddedEvent.EventName, "test", "triggered = true");
             engine.GetPlayer<RpgCharacter>().AddStatus(engine.GetStatuses()[1], new BigDouble(1));
 
             Assert.AreEqual(true, engine.GetPlayer<RpgCharacter>().GetFlag("test"));
+            Assert.IsTrue(engine.Scripting.Evaluate("return triggered").Boolean);
         }
 
         [Test]
@@ -59,10 +61,13 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             rpgModule.AddStatus(status);
             Configure();
 
+            engine.GetPlayer<RpgCharacter>().Watch(StatusRemovedEvent.EventName, "test", "triggered = true");
+
             engine.GetPlayer<RpgCharacter>().AddStatus(status, new BigDouble(1));
             engine.GetPlayer<RpgCharacter>().RemoveStatus(status);
 
             Assert.IsFalse(engine.GetPlayer<RpgCharacter>().GetFlag("test"));
+            Assert.IsTrue(engine.Scripting.Evaluate("return triggered").Boolean);
         }
 
         [Test]
@@ -92,10 +97,12 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             engine.Start();
             
             engine.GetPlayer<RpgCharacter>().AddStatus(status, new BigDouble(1));
+            engine.GetPlayer<RpgCharacter>().Watch(StatusRemovedEvent.EventName, "test", "triggered = true");
             engine.GlobalProperties[RpgModule.Properties.ActionPhase] = "combat";
 
             engine.Update(1);
             Assert.AreEqual(0, engine.GetPlayer<RpgCharacter>().Statuses.Count);
+            Assert.IsTrue(engine.Scripting.Evaluate("return triggered").Boolean);
         }
 
         [Test]
@@ -105,6 +112,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             Configure();
 
             var item = new RpgItem(engine.GetNextAvailableId(), engine, "", new string[] { }, null, null);
+            engine.GetPlayer<RpgCharacter>().Watch(ItemAddedEvent.EventName, "test", "triggered = true");
             Assert.IsTrue(engine.GetPlayer<RpgCharacter>().AddItem(item));
         }
 
@@ -149,6 +157,38 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             Assert.AreEqual(startingAccuracy * 100, engine.GetPlayer<RpgCharacter>().Accuracy);
             engine.GetPlayer<RpgCharacter>().RemoveItem(item);
             Assert.AreEqual(startingAccuracy, engine.GetPlayer<RpgCharacter>().Accuracy);
+        }
+
+        [Test]
+        public void AddItemEmitsEvent()
+        {
+            Configure();
+
+            var item = new RpgItem(engine.GetNextAvailableId(), engine, "", new string[] { "head" }, new Dictionary<string, Tuple<string, string>>()
+            {
+                { "Accuracy", Tuple.Create("value * 100", "value / 100") }
+            }, null);
+
+            engine.GetPlayer<RpgCharacter>().Watch(ItemAddedEvent.EventName, "test", "triggered = true");
+
+            engine.GetPlayer<RpgCharacter>().AddItem(item);
+            Assert.IsTrue((bool)engine.GlobalProperties["triggered"]);
+        }
+
+        [Test]
+        public void RemoveItemEmitsEvent()
+        {
+            Configure();
+
+            var item = new RpgItem(engine.GetNextAvailableId(), engine, "", new string[] { "head" }, new Dictionary<string, Tuple<string, string>>()
+            {
+                { "Accuracy", Tuple.Create("value * 100", "value / 100") }
+            }, null);
+
+            engine.GetPlayer<RpgCharacter>().Watch(ItemAddedEvent.EventName, "test", "triggered = true");
+            engine.GetPlayer<RpgCharacter>().AddItem(item);            
+            engine.GetPlayer<RpgCharacter>().RemoveItem(item);
+            Assert.IsTrue(engine.Scripting.Evaluate("return triggered").Boolean);
         }
 
         [Test]
@@ -226,7 +266,19 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             engine.GetPlayer<RpgCharacter>().InflictDamage(5, null);
 
             Assert.AreEqual(new BigDouble(5), engine.GetPlayer<RpgCharacter>().CurrentHealth);
-            
+        }
+
+        [Test]
+        public void TakingDamageEmitsEvent()
+        {
+            Configure();
+
+            engine.GetPlayer<RpgCharacter>().Watch(CharacterDamagedEvent.EventName, "test", "triggered = true");
+            engine.GetPlayer<RpgCharacter>().CurrentHealth = 10;
+
+            engine.GetPlayer<RpgCharacter>().InflictDamage(5, null);
+
+            Assert.AreEqual(new BigDouble(5), engine.GetPlayer<RpgCharacter>().CurrentHealth);
         }
 
         [Test]

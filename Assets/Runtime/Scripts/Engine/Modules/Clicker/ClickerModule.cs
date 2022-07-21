@@ -25,7 +25,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             producers[producer.Id] = producer;
         }
 
-        public void ConfigureEngine(IdleEngine engine)
+        public void SetGlobalProperties(IdleEngine engine)
         {
             UserData.RegisterType<ClickerPlayer>();
             UserData.RegisterType<Producer>();
@@ -60,6 +60,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
         public void AssertReady()
         {
 
+        }
+
+        public void SetConfiguration(IdleEngine engine)
+        {
+            
+        }
+
+        public void SetDefinitions(IdleEngine engine)
+        {
+            
         }
 
         public static class DefaultProperties

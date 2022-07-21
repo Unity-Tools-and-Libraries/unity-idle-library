@@ -346,7 +346,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                 throw new InvalidOperationException("Can only add modules before starting the engine.");
             }
             newModule.AssertReady();
-            newModule.ConfigureEngine(this);
+            newModule.SetConfiguration(this);
+            newModule.SetDefinitions(this);
+            newModule.SetGlobalProperties(this);
         }
         public Dictionary<string, object> GetScriptingProperties()
         {

@@ -29,6 +29,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             DetermineDamageValueScript = (string)Engine.GlobalProperties["DetermineDamageValueScript"];
             DetermineDamageReductionValueScript = (string)Engine.GlobalProperties["DetermineDamageReductionValueScript"];
         }
+        public string AttackScript => Engine.GetConfiguration<string>(Party == 0 ? "PlayerAttackCalculationScript" : "CreatureAttackCalculationScript");
         /*
          * The script called to determine the combat attack
          */

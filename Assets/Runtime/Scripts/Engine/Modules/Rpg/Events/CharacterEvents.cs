@@ -29,7 +29,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
     public class CharacterDiedEvent : ScriptingContext
     {
-        public const string EventName = "character_died";
+        public const string EventName = "characterDied";
         private RpgCharacter died;
         private RpgCharacter killer;
         public CharacterDiedEvent(RpgCharacter died, RpgCharacter killer = null)

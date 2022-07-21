@@ -11,7 +11,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         [Test]
         public void ScriptMustReturnAString()
         {
-            rpgModule.SetAttackCalcuationScript("return 1");
+            rpgModule.Player.AttackToHitScript = "return 1";
 
             Configure();
 

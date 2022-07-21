@@ -65,13 +65,31 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         }
 
         [Test]
-        public void GetPlayerCanReturnCustomCharacterClass()
+        public void CanDefineCustomPlayerType()
         {
-            engine.GlobalProperties["InitializePlayer"] = (Func<RpgCharacter>)(() =>
-            {
-                return new CustomRpgCharacter(engine, 0);
-            });
+            rpgModule.Player.CharacterType = typeof(CustomRpgCharacter);
 
+            Configure();
+
+            Assert.IsInstanceOf<CustomRpgCharacter>(engine.GetPlayer<CustomRpgCharacter>());
+        }
+
+        [Test]
+        public void InvalidPlayerTypeThrowsError()
+        {
+            Assert.Throws(typeof(InvalidOperationException), () =>
+            {
+                rpgModule.Player.CharacterType = typeof(Boolean);
+
+                Configure();
+            });
+        }
+
+        [Test]
+        public void CanDefinePlayerInitializationScript()
+        {
+            rpgModule.Player.CharacterType = typeof(CustomRpgCharacter);
+            
             Configure();
 
             Assert.IsInstanceOf<CustomRpgCharacter>(engine.GetPlayer<CustomRpgCharacter>());

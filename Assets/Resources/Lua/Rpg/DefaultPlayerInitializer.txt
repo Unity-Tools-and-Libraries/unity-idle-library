@@ -1,0 +1,17 @@
+player.party = 0
+player.accuracy = configuration.default_player_stats.accuracy
+player.criticalHitChance = configuration.default_player_stats.criticalHitChance
+player.criticalHitDamageMultiplier = configuration.default_player_stats.criticalHitDamageMultiplier
+player.maximumHealth = configuration.default_player_stats.maximumHealth
+player.currentHealth = player.maximumHealth
+player.damage = configuration.default_player_stats.damage
+player.defense = configuration.default_player_stats.defense
+player.evasion = configuration.default_player_stats.evasion
+player.penetration = configuration.default_player_stats.penetration
+player.precision = configuration.default_player_stats.precision
+player.resilience = configuration.default_player_stats.resilience
+
+player.xp = 0
+player.gold = 0
+
+player.watch("characterDied", "begin resurrecting", "died.action = 'REINCARNATING'")

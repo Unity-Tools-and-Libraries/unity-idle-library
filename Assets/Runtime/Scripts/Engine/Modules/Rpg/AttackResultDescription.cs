@@ -9,6 +9,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Combat
     {
         public bool IsHit;
         public string Description;
+        public BigDouble OriginalDamageToDefender;
         public BigDouble DamageToDefender;
         public BigDouble DamageToAttacker;
         public List<long> StatusesToApplyToAttacker;
@@ -18,7 +19,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Combat
         {
             IsHit = isHit;
             Description = description;
-            DamageToDefender = damageToDefender;
+            OriginalDamageToDefender = DamageToDefender = damageToDefender;
             DamageToAttacker = damageToAttacker;
             StatusesToApplyToAttacker = statusesToApplyToAttacker;
             StatusesToApplyToDefender = statusesToApplyToDefender;

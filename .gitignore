@@ -69,6 +69,6 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
-ProjectSettings/SceneTemplateSettings.json
+ProjectSettings/*
 
 Assets/Runtime/Plugins/MoonSharp/*

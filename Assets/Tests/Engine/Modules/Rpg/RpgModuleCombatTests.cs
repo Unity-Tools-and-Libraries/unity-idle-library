@@ -8,33 +8,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 {
     public class RpgModuleCombatTests : RpgModuleTestsBase
     {
-        [Test]
-        public void AttackRollGreaterThanHitChanceHits()
-        {
-            Configure();
-
-            random.SetNextValues(0, 1, 500);
-
-            engine.StartEncounter();
-
-            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), engine.GetCurrentEncounter().Creatures[0]);
-
-            Assert.AreEqual("hit", result.Description);
-        }
-
-        [Test]
-        public void AttackLessThanHitChanceHits()
-        {
-            Configure();
-
-            random.SetNextValues(0, 99, 100);
-
-            engine.StartEncounter();
-
-            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), engine.GetCurrentEncounter().Creatures[0]);
-
-            Assert.AreEqual("miss", result.Description);
-        }
 
         [Test]
         public void AbilitiesOnTheAttackerCanModifyAnAttackBeingMade()

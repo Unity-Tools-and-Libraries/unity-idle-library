@@ -34,12 +34,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             Points.Quantity += Points.TotalIncome * deltaTime;
             foreach(var p in Producers.Values)
             {
-                p.IsUnlocked = engine.Scripting.Evaluate(p.UnlockExpression, new Dictionary<string, object>()
+                p.IsUnlocked = engine.Scripting.EvaluateStringAsScript(p.UnlockExpression, new Dictionary<string, object>()
                 {
                     { "producer", p },
                     { "target", this }
                 }).Boolean;
-                p.IsEnabled = engine.Scripting.Evaluate(p.EnableExpression, new Dictionary<string, object>()
+                p.IsEnabled = engine.Scripting.EvaluateStringAsScript(p.EnableExpression, new Dictionary<string, object>()
                 {
                     { "producer", p },
                     { "target", this }
@@ -47,12 +47,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             }
             foreach (var u in Upgrades.Values)
             {
-                u.IsUnlocked = engine.Scripting.Evaluate(u.UnlockExpression, new Dictionary<string, object>()
+                u.IsUnlocked = engine.Scripting.EvaluateStringAsScript(u.UnlockExpression, new Dictionary<string, object>()
                 {
                     { "upgrade", u },
                     { "target", this }
                 }).Boolean;
-                u.IsEnabled = engine.Scripting.Evaluate(u.EnableExpression, new Dictionary<string, object>()
+                u.IsEnabled = engine.Scripting.EvaluateStringAsScript(u.EnableExpression, new Dictionary<string, object>()
                 {
                     { "upgrade", u },
                     { "target", this }
@@ -85,7 +85,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
         public void BuyProducer(long id)
         {
             Producer producerDefinition = Engine.GetProducers()[id];
-            BigDouble cost = Engine.Scripting.Evaluate(producerDefinition.CostExpression, new Dictionary<string, object>()
+            BigDouble cost = Engine.Scripting.EvaluateStringAsScript(producerDefinition.CostExpression, new Dictionary<string, object>()
             {
                 { "target", producerDefinition }
             }).ToObject<BigDouble>();
@@ -102,7 +102,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
         public void BuyUpgrade(long id)
         {
             Upgrade upgrade = Engine.GetUpgrades()[id];
-            BigDouble cost = Engine.Scripting.Evaluate(upgrade.CostExpression, new Dictionary<string, object>()
+            BigDouble cost = Engine.Scripting.EvaluateStringAsScript(upgrade.CostExpression, new Dictionary<string, object>()
             {
                 { "target", upgrade }
             }).ToObject<BigDouble>();

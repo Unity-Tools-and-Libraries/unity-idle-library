@@ -8,16 +8,22 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 {
     public class AttackResultScriptingTests : RpgModuleTestsBase
     {
+
         [Test]
         public void ScriptMustReturnAString()
         {
-            rpgModule.Player.AttackToHitScript = "return 1";
+            rpgModule.Player.AttackScript = "return 1";
 
             Configure();
-
             var attacker = new RpgCharacter(engine, 10);
             var defender = new RpgCharacter(engine, 11);
-            
+            engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<string>("player.Initializer"), Tuple.Create<string, object>("player", attacker)).ToObject<RpgCharacter>();
+            engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<string>("creatures.Initializer"), new Dictionary<string, object>() { 
+                { "creature", defender },
+                { "definition", engine.GetCreatures()[1] },
+                { "level", 1 }
+            }).ToObject<RpgCharacter>();
+
             Assert.Throws(typeof(InvalidOperationException), () =>
             {
                 engine.MakeAttack(attacker, defender);

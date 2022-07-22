@@ -16,25 +16,25 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void SetsPointsProperties()
         {
-            Assert.AreNotEqual(DataType.Nil, engine.Scripting.Evaluate("return player.points").Type);
-            Assert.AreEqual(new BigDouble(0), engine.Scripting.Evaluate("return player.points.quantity").ToObject<BigDouble>());
-            Assert.AreEqual(new BigDouble(0), engine.Scripting.Evaluate("return player.points.totalIncome").ToObject<BigDouble>());
-            Assert.AreEqual(new BigDouble(1), engine.Scripting.Evaluate("return player.points.click_income").ToObject<BigDouble>());
+            Assert.AreNotEqual(DataType.Nil, engine.Scripting.EvaluateStringAsScript("return player.points").Type);
+            Assert.AreEqual(new BigDouble(0), engine.Scripting.EvaluateStringAsScript("return player.points.quantity").ToObject<BigDouble>());
+            Assert.AreEqual(new BigDouble(0), engine.Scripting.EvaluateStringAsScript("return player.points.totalIncome").ToObject<BigDouble>());
+            Assert.AreEqual(new BigDouble(1), engine.Scripting.EvaluateStringAsScript("return player.points.click_income").ToObject<BigDouble>());
         }
 
         [Test]
         public void SetsPlayerProducersProperties()
         {
-            Assert.NotNull(engine.Scripting.Evaluate("return player.producers").ToObject());
+            Assert.NotNull(engine.Scripting.EvaluateStringAsScript("return player.producers").ToObject());
         }
 
         [Test]
         public void DoClickIncreasesPointsByClickIncomeValue()
         {
-            Assert.AreEqual(new BigDouble(0), engine.Scripting.Evaluate("return player.points.quantity").ToObject<BigDouble>());
-            Assert.AreEqual(new BigDouble(1), engine.Scripting.Evaluate("return player.points.click_income").ToObject<BigDouble>());
-            engine.Scripting.Evaluate("DoClick()");
-            Assert.AreEqual(new BigDouble(1), engine.Scripting.Evaluate("return player.points.quantity").ToObject<BigDouble>());
+            Assert.AreEqual(new BigDouble(0), engine.Scripting.EvaluateStringAsScript("return player.points.quantity").ToObject<BigDouble>());
+            Assert.AreEqual(new BigDouble(1), engine.Scripting.EvaluateStringAsScript("return player.points.click_income").ToObject<BigDouble>());
+            engine.Scripting.EvaluateStringAsScript("DoClick()");
+            Assert.AreEqual(new BigDouble(1), engine.Scripting.EvaluateStringAsScript("return player.points.quantity").ToObject<BigDouble>());
         }
     }
 }

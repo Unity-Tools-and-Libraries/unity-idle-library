@@ -1,0 +1,1 @@
+return base.pow(1.25, level - 1)

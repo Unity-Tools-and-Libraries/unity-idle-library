@@ -21,8 +21,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             Assert.NotNull(engine.GetConfiguration("characterItemSlots"));
             Assert.AreEqual(new BigDouble(1), engine.GetProperty("stage"));
             Assert.AreEqual(new BigDouble(2), engine.GetConfiguration()["action_meter_required_to_act"]);
-            Assert.AreEqual(RpgModule.DEFAULT_XP_CALCULATION_METHOD, engine.GetConfiguration()["xp_calculation_method"]);
-            Assert.AreEqual(RpgModule.DEFAULT_gold_calculation_script, engine.GetConfiguration()["gold_calculation_script"]);
+
             Assert.NotNull(engine.GetProperty<RpgCharacter>("player"));
             Assert.NotNull(engine.GetDefinitions()["statuses"]);
         }
@@ -39,7 +38,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         [Test]
         public void DefaultXpBasedOnLevel()
         {
-            var result = engine.Scripting.Evaluate("return 10 * math.pow(2, level - 1)", new Dictionary<string, object>()
+            var result = engine.Scripting.EvaluateStringAsScript("return 10 * math.pow(2, level - 1)", new Dictionary<string, object>()
             {
                 { "level", 1 }
             });

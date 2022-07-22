@@ -432,10 +432,27 @@ namespace BreakInfinity
             {
                 return 1;
             }
+            if (IsConvertible(other))
+            {
+                if (other is int)
+                {
+                    other = new BigDouble((int)other);
+                } else if(other is long)
+                {
+                    other = new BigDouble((long)other);
+                } else if(other is double)
+                {
+                    other = new BigDouble((double)other);
+                } else if (other is float)
+                {
+                    other = new BigDouble((float)other);
+                }
+            }
             if (other is BigDouble)
             {
                 return CompareTo((BigDouble) other);
             }
+            
             throw new ArgumentException("The parameter must be a BigDouble.");
         }
 
@@ -796,6 +813,11 @@ namespace BreakInfinity
         private static bool IsFinite(double value)
         {
             return !double.IsNaN(value) && !double.IsInfinity(value);
+        }
+
+        private static bool IsConvertible(object other)
+        {
+            return other is int || other is long || other is double || other is float;
         }
 
         /// <summary>

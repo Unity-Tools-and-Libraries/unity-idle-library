@@ -1,0 +1,4 @@
+if(died.party != 0) then
+	player.xp = died.xp
+	player.gold = died.gold
+end

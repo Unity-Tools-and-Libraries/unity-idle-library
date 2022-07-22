@@ -1,0 +1,25 @@
+if (level == nil or level <= 0) then
+	error("level must be at least 1")
+end
+if (definition == nil) then
+	error("definition must not be nil")
+end
+
+creature.party = 0
+creature.level = level
+creature.accuracy = ScaleCreatureAttribute(configuration.default_creature_stats.accuracy, level) * definition.Properties.accuracy
+creature.criticalHitChance = ScaleCreatureAttribute(configuration.default_creature_stats.criticalHitChance, level) * definition.Properties.criticalHitChance
+creature.criticalHitDamageMultiplier = ScaleCreatureAttribute(configuration.default_creature_stats.criticalHitDamageMultiplier, level) * definition.Properties.criticalHitDamageMultiplier
+creature.maximumHealth = ScaleCreatureAttribute(configuration.default_creature_stats.maximumHealth, level) * definition.Properties.maximumHealth
+creature.currentHealth = creature.maximumHealth
+creature.damage = ScaleCreatureAttribute(configuration.default_creature_stats.damage, level) * definition.Properties.damage
+creature.defense = ScaleCreatureAttribute(configuration.default_creature_stats.defense, level) * definition.Properties.defense
+creature.evasion = ScaleCreatureAttribute(configuration.default_creature_stats.evasion, level) * definition.Properties.evasion
+creature.penetration = ScaleCreatureAttribute(configuration.default_creature_stats.penetration, level) * definition.Properties.penetration
+creature.precision = ScaleCreatureAttribute(configuration.default_creature_stats.precision, level) * definition.Properties.precision
+creature.resilience = ScaleCreatureAttribute(configuration.default_creature_stats.resilience, level) * definition.Properties.resilience
+
+creature.xp = CalculateXpValue(creature)
+creature.gold = CalculateGoldValue(creature)
+
+creature.AttackScript = configuration.creatures.AttackScript

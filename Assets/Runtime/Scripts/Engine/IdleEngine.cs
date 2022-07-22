@@ -207,7 +207,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             listeners.Watch(eventName, subscriber, handlerScript);
             if (eventName == EngineReadyEvent.EventName && IsReady)
             {
-                Scripting.Evaluate(handlerScript);
+                Scripting.EvaluateStringAsScript(handlerScript);
             }
         }
 
@@ -305,7 +305,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                 }
                 foreach (var calculator in propertyCalculators)
                 {
-                    GlobalProperties[calculator.Key] = scripting.Evaluate(calculator.Value, new Dictionary<string, object>()
+                    GlobalProperties[calculator.Key] = scripting.EvaluateStringAsScript(calculator.Value, new Dictionary<string, object>()
                     {
                         { "value", GlobalProperties.ContainsKey(calculator.Key) ? GlobalProperties[calculator.Key] : null },
                         { "deltaTime", deltaTime }

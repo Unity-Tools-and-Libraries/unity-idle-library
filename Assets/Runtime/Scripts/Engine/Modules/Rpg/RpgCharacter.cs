@@ -9,6 +9,7 @@ using System.Dynamic;
 using io.github.thisisnozaku.idle.framework.Engine.Persistence;
 using io.github.thisisnozaku.idle.framework.Events;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Events;
+using Newtonsoft.Json;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 {
@@ -24,53 +25,44 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             }
             Abilities = new Dictionary<long, CharacterAbility>();
             OnEventTriggers = new Dictionary<string, List<string>>();
-            DetermineAttackValueScript = (string)Engine.GlobalProperties["DetermineAttackValueScript"];
-            DetermineDefenseValueScript = (string)Engine.GlobalProperties["DetermineDefenseValueScript"];
-            DetermineDamageValueScript = (string)Engine.GlobalProperties["DetermineDamageValueScript"];
-            DetermineDamageReductionValueScript = (string)Engine.GlobalProperties["DetermineDamageReductionValueScript"];
         }
-        public string AttackScript => Engine.GetConfiguration<string>(Party == 0 ? "PlayerAttackCalculationScript" : "CreatureAttackCalculationScript");
         /*
-         * The script called to determine the combat attack
+         * This is the script used to determine if this characters attacks hit or not.
          */
-        public string DetermineAttackValueScript { get; set; }
-        public string DetermineDefenseValueScript { get; set; }
-        public string DetermineDamageValueScript { get; set; }
-        public string DetermineDamageReductionValueScript { get; set; }
-
+        public string AttackScript { get; set; }
         /*
          * The level of this character. The higher the level, the more powerful the character.
          */
-        public BigDouble Level { get; set; }
+        public virtual BigDouble Level { get; set; }
         /*
          * The amount of health this character has. Once health is reduced to 0, the character dies.
          */
-        public BigDouble CurrentHealth { get; set; }
+        public virtual BigDouble CurrentHealth { get; set; }
         /*
          * The maximum amount of health this character has.
          */
-        public BigDouble MaximumHealth { get; set; }
-        public BigDouble Damage { get; set; }
-        public BigDouble ActionMeter { get; set; }
-        public BigDouble Accuracy { get; set; }
-        public BigDouble Evasion { get; set; }
-        public BigDouble Defense { get; set; }
-        public BigDouble Penetration { get; set; }
-        public BigDouble Precision { get; set; }
-        public BigDouble Resilience { get; set; }
-        public BigDouble ActionMeterSpeed { get; set; }
-        public BigDouble CriticalHitDamageMultiplier { get; set; }
-        public bool Targetable { get; set; }
-        public BigDouble Party { get; set; }
-        public bool IsAlive { get; set; }
+        public virtual BigDouble MaximumHealth { get; set; }
+        public virtual BigDouble Damage { get; set; }
+        public virtual BigDouble ActionMeter { get; set; }
+        public virtual BigDouble Accuracy { get; set; }
+        public virtual BigDouble Evasion { get; set; }
+        public virtual BigDouble Defense { get; set; }
+        public virtual BigDouble Penetration { get; set; }
+        public virtual BigDouble Precision { get; set; }
+        public virtual BigDouble Resilience { get; set; }
+        public virtual BigDouble ActionMeterSpeed { get; set; }
+        public virtual BigDouble CriticalHitDamageMultiplier { get; set; }
+        public virtual bool Targetable { get; set; }
+        public virtual BigDouble Party { get; set; }
+        public virtual bool IsAlive { get; set; }
         public string Action { get; set; }
-        public BigDouble CriticalHitChance { get; set; }
-        public BigDouble Xp { get; set; }
-        public BigDouble Gold { get; set; }
-        public Dictionary<long, CharacterAbility> Abilities { get; set; }
-        public Dictionary<string, CharacterItem[]> ItemSlots { get; set; }
-        public Dictionary<long, Duration> Statuses { get; set; }
-        public Dictionary<string, List<string>> OnEventTriggers { get; private set; }
+        public virtual BigDouble CriticalHitChance { get; set; }
+        public virtual BigDouble Xp { get; set; }
+        public virtual BigDouble Gold { get; set; }
+        public virtual Dictionary<long, CharacterAbility> Abilities { get; set; }
+        public virtual Dictionary<string, CharacterItem[]> ItemSlots { get; set; }
+        public virtual Dictionary<long, Duration> Statuses { get; set; }
+        public virtual Dictionary<string, List<string>> OnEventTriggers { get; private set; }
 
         public void Act(IdleEngine engine)
         {
@@ -375,23 +367,5 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             public const string FIGHT = "FIGHT";
             public const string REINCARNATING = "REINCARNATING";
         }
-
-        /*
-         * Return the value used to determine if this character hits with an attack or not. Defaults to Accuracy, if not overridden.
-         */
-        public BigDouble AttackValue => Engine.Scripting.Evaluate(DetermineAttackValueScript, new KeyValuePair<string, object>("self", this)).ToObject<BigDouble>();
-        /*
-         * Return the value used to determine if this character avoids being hit with an attack or not. Defaults to Evasion, if not overridden.
-         */
-        public BigDouble DefenseValue => Engine.Scripting.Evaluate(DetermineDefenseValueScript, new KeyValuePair<string, object>("self", this)).ToObject<BigDouble>();
-        /*
-         * Return the value used to determine the amount of damage this character does with an attack. Defaults to Damage, if not overriden.
-         */
-        public BigDouble DamageValue => Engine.Scripting.Evaluate(DetermineDamageValueScript, new KeyValuePair<string, object>("self", this)).ToObject<BigDouble>();
-        /*
-         * Return the value used to determine the amount of damage this character does with an attack. Defaults to Damage, if not overriden.
-         */
-        public BigDouble DamageReductionValue => Engine.Scripting.Evaluate(DetermineDamageReductionValueScript, new KeyValuePair<string, object>("self", this)).ToObject<BigDouble>();
-
     }
 }

@@ -17,7 +17,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
 
             Configure();
 
-            engine.Scripting.Evaluate(string.Format("player.BuyUpgrade({0})", upgrade.Id));
+            engine.Scripting.EvaluateStringAsScript(string.Format("player.BuyUpgrade({0})", upgrade.Id));
             Assert.IsTrue(engine.GetPlayer().GetModifiers().Contains(upgrade.Id));
 
         }
@@ -29,11 +29,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
 
             engine.Start();
 
-            Assert.IsFalse(engine.Scripting.Evaluate("return player.producers[1].IsUnlocked").Boolean);
+            Assert.IsFalse(engine.Scripting.EvaluateStringAsScript("return player.producers[1].IsUnlocked").Boolean);
 
             engine.Update(1);
 
-            Assert.IsTrue(engine.Scripting.Evaluate("return player.producers[1].IsUnlocked").Boolean);
+            Assert.IsTrue(engine.Scripting.EvaluateStringAsScript("return player.producers[1].IsUnlocked").Boolean);
         }
 
         [Test]

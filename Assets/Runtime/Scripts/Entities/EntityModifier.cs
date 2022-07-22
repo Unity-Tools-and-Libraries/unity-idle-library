@@ -36,10 +36,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                     else
                     {
                         toExecute = string.Format("target.{0} = {1}", effect.Key, effect.Value.Item1);
-                        context["value"] = Engine.Scripting.Evaluate(string.Format("return target.{0}", effect.Key), context).ToObject();
+                        context["value"] = Engine.Scripting.EvaluateStringAsScript(string.Format("return target.{0}", effect.Key), context).ToObject();
                     }
 
-                    Engine.Scripting.Evaluate(toExecute, context);
+                    Engine.Scripting.EvaluateStringAsScript(toExecute, context);
                 }
             }
         }
@@ -65,11 +65,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                             break;
                         default:
                             toExecute = string.Format("target.{0} = {1}", effect.Key, effect.Value.Item2);
-                            context["value"] = Engine.Scripting.Evaluate(string.Format("return target.{0}", effect.Key), context).ToObject();
+                            context["value"] = Engine.Scripting.EvaluateStringAsScript(string.Format("return target.{0}", effect.Key), context).ToObject();
                             break;
                     }
 
-                    Engine.Scripting.Evaluate(toExecute, context);
+                    Engine.Scripting.EvaluateStringAsScript(toExecute, context);
                 }
             }
         }

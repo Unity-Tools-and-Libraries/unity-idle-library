@@ -1,0 +1,7 @@
+local attackResultType = attacker.Attack(defender) -- Get string attack result type (hit, miss, etc.)
+
+local attackResult = attackHandlerScripts[attackResultType](attacker, defender)
+if(attacker.OnEventTriggers != nil && attacker.OnEventTriggers["IsAttacking"] != nil)
+	for i, v in ipairs(attacker.OnEventTriggers) do
+		loadstring(v)()
+end

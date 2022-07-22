@@ -33,7 +33,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
                     BigDouble rhv = ScriptingService.DynValueToBigDouble(args[1]);
                     return DynValue.FromObject(ctx.GetScript(), BigDouble.Pow(lhv, rhv));
                 }) }
-            }}
+            }},
+            { "BigDouble", typeof(BigDouble) },
+            { "error", (Action<string>)((message) => throw new ScriptRuntimeException(message)) }
         };
         internal Script script;
         public Table Globals => script.Globals;
@@ -41,7 +43,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
         {
             this.engine = engine;
             script = new Script(CoreModules.Preset_HardSandbox ^ CoreModules.Math);
-
 
             UserData.RegisterType<IdleEngine>();
             UserData.RegisterType<BigDouble>();
@@ -171,14 +172,36 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             Script.GlobalOptions.CustomConverters.SetScriptToClrCustomConversion(scriptDataType, clrDataType, converter);
         }
 
-        public DynValue Evaluate(string script, IDictionary<string, object> localContext = null)
+        public DynValue EvaluateStringAsScript(string script, IDictionary<string, object> localContext = null)
         {
+            if (script == null)
+            {
+                throw new ArgumentNullException("script");
+            }
             return Evaluate(DynValue.NewString(script), localContext);
         }
-        public DynValue Evaluate(string script, KeyValuePair<string, object> localContext)
+        public DynValue EvaluateStringAsScript(string script, KeyValuePair<string, object> localContext)
         {
+            if (script == null)
+            {
+                throw new ArgumentNullException("script");
+            }
             return Evaluate(DynValue.NewString(script), new Dictionary<string, object>() {
                 { localContext.Key, localContext.Value }});
+        }
+        public DynValue EvaluateStringAsScript(string script, Tuple<string, object> localContext)
+        {
+            if (script == null)
+            {
+                throw new ArgumentNullException("script");
+            }
+            return Evaluate(DynValue.NewString(script), new Dictionary<string, object>() {
+                { localContext.Item1, localContext.Item2 }});
+        }
+
+        public DynValue Evaluate(DynValue toEvaluate, params object[] callbackArgs)
+        {
+            return Evaluate(toEvaluate, (IDictionary<string, object>)null, callbackArgs);
         }
 
         public DynValue Evaluate(DynValue toEvaluate, IDictionary<string, object> localContext = null, params object[] callbackArgs)
@@ -204,6 +227,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
                 return DynValue.FromObject(null, new BigDouble(result.Number));
             }
             return result;
+        }
+
+        public DynValue Evaluate(DynValue toEvaluate, Tuple<string, object> localContext = null, params object[] callbackArgs)
+        {
+            return Evaluate(toEvaluate, new Dictionary<string, object>()
+            {
+                { localContext.Item1, localContext.Item2 }
+            }, callbackArgs);
         }
 
         private class WrappedDictionary : IUserDataType, ITraversableType
@@ -236,7 +267,5 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
                 return underlying.Values;
             }
         }
-
-
     }
 }

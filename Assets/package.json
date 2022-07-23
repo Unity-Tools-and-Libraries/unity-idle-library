@@ -1,4 +1,7 @@
 {
 	"name" : "nozaku-idle-framework",
-	"version" : "0.0.1"
+	"version" : "0.0.1",
+	"dependencies" : {
+		"com.unity.nuget.newtonsoft-json" : "2.0.0"
+	}
 }

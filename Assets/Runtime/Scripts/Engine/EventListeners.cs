@@ -44,7 +44,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             {
                 foreach(var subscription in callbacksBySubscriber)
                 {
-                    engine.Scripting.Evaluate(DynValue.NewCallback(subscription.Value), contextToUse.Values.ToArray());
+                    engine.Scripting.Evaluate(DynValue.NewCallback(subscription.Value), contextToUse != null ? contextToUse.Values.ToArray() : null);
                 }
             }
         }

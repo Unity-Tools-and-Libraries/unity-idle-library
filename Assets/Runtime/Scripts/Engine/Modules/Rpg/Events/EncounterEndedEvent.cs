@@ -1,8 +1,15 @@
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using io.github.thisisnozaku.idle.framework.Events;
 
-public class EncounterEndedEvent
+namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Events
 {
-    public const string EventName = "encounter_ended";
+    public class EncounterEndedEvent: ScriptingContext
+    {
+        public const string EventName = "encounter_ended";
+
+        public Dictionary<string, object> GetScriptingProperties()
+        {
+            return new Dictionary<string, object>();
+        }
+    }
 }

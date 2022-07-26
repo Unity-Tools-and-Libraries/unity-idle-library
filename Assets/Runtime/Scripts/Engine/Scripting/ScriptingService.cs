@@ -217,7 +217,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
                     result = script.DoString(toEvaluate.String, SetupContext(localContext));
                     break;
                 case DataType.ClrFunction:
-                    result = script.Call(toEvaluate.Callback, callbackArgs);
+                    result = script.Call(toEvaluate.Callback, callbackArgs != null ? callbackArgs : new object[0]);
                     break;
                 default:
                     throw new InvalidOperationException();

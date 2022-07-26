@@ -432,6 +432,10 @@ namespace BreakInfinity
             {
                 return 1;
             }
+            if(IsConvertible(other))
+            {
+                other = ConvertToBigDouble(other);
+            }
             if (other is BigDouble)
             {
                 return CompareTo((BigDouble) other);
@@ -494,6 +498,32 @@ namespace BreakInfinity
         {
             return !IsNaN(this) && !IsNaN(other) && (AreSameInfinity(this, other)
                 || Abs(this - other) <= Max(Abs(this), Abs(other)) * tolerance);
+        }
+
+        public static bool IsConvertible(object value)
+        {
+            return value is int || value is long || value is float || value is double;
+        }
+
+        private static BigDouble ConvertToBigDouble(object value)
+        {
+            if(value is int)
+            {
+                return new BigDouble((int)value);
+            }
+            if(value is long)
+            {
+                return new BigDouble((long)value);
+            }
+            if(value is float)
+            {
+                return new BigDouble((float)value);
+            }
+            if(value is double)
+            {
+                return new BigDouble((double)value);
+            }
+            throw new InvalidOperationException();
         }
 
         private static bool AreSameInfinity(BigDouble first, BigDouble second)

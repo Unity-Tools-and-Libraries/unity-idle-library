@@ -102,6 +102,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             engine.SetConfiguration("action_meter_required_to_act", new BigDouble(2));
             engine.SetConfiguration("characterItemSlots", defaultItemSlots);
 
+            engine.SetConfiguration("PlayerAttackScript", Player.AttackScript);
+
             engine.Scripting.SetScriptToClrCustomConversion(DataType.Table, typeof(AttackResultDescription), value =>
             {
                 var table = value.Table;
@@ -134,6 +136,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             engine.GlobalProperties["OnCreatureDied"] = (Action<RpgCharacter>)(creature => {
                 engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<string>("player.OnCreatureDiedScript"), Tuple.Create("died", (object)creature)).ToObject<BigDouble>();
             });
+
+            engine.Watch(CharacterDiedEvent.EventName, "rpg", "OnCreatureDied(died)");
 
             engine.GlobalProperties["GenerateCreature"] = (Func<CreatureDefinition, BigDouble, RpgCharacter>)((definition, level) =>
             {

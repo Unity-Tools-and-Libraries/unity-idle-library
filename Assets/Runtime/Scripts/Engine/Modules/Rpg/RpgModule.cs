@@ -23,6 +23,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public PlayerConfiguration Player { get; } = new PlayerConfiguration();
         public CreaturesConfiguration Creatures { get; } = new CreaturesConfiguration();
 
+        public Dictionary<string, int> ItemSlots { get; set; } = defaultItemSlots;
+        public Dictionary<string, string> ActionUpdateScripts { get; set; }
+
         public static readonly Dictionary<string, int> defaultItemSlots = new Dictionary<string, int>()
             {
                 {"head", 1 },
@@ -66,11 +69,18 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             { RpgCharacter.Attributes.PRECISION, 5 },
             { RpgCharacter.Attributes.RESILIENCE, 0 }
         };
+
+        public string PostUpdateHook;
         // FIXME: Externalize
         private string defaultAttackHitScript =
             "return {hit=true, description='hit', damageToTarget=attacker.damage - defender.defense}";
         private string defaultAttackMissScript = "return {hit=false, description='miss', damageToTarget=0}";
         private string defaultAttackCriticalHitScript = "return {hit=true, description='critical hit', damageToTarget=(attacker.damage - defender.defense) * attacker.criticalHitDamageMultiplier}";
+
+        public RpgModule()
+        {
+            //PostUpdateHook = Resources.Load<TextAsset>("Lua/Rpg/DefaultPostUpdateHook").text;
+        }
 
         public void SetConfiguration(IdleEngine engine)
         {
@@ -84,12 +94,22 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             UserData.RegisterType<AttackResultDescription>();
             UserData.RegisterType<CharacterItem>();
             UserData.RegisterType<CharacterAbility>();
+            UserData.RegisterExtensionType(typeof(RpgExtensionMethods));
 
             engine.SetConfiguration("player", Player);
             engine.SetConfiguration("creatures", Creatures);
 
             engine.SetConfiguration("action_meter_required_to_act", new BigDouble(2));
             engine.SetConfiguration("characterItemSlots", defaultItemSlots);
+
+            engine.Scripting.SetScriptToClrCustomConversion(DataType.Table, typeof(AttackResultDescription), value =>
+            {
+                var table = value.Table;
+                bool hit = (bool)table["hit"];
+                string description = (string)table["description"];
+                BigDouble damageToTarget = table.Get("damageToTarget").ToObject<BigDouble>();
+                return new AttackResultDescription(hit, description, damageToTarget, 0, null, null);
+            });
         }
 
         public void SetDefinitions(IdleEngine engine)
@@ -161,15 +181,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
             engine.GlobalProperties["startEncounter"] = (Func<EncounterDefinition, RpgEncounter>)engine.StartEncounter;
 
-            engine.Scripting.SetScriptToClrCustomConversion(DataType.Table, typeof(AttackResultDescription), value =>
-            {
-                var table = value.Table;
-                bool hit = (bool)table["hit"];
-                string description = (string)table["description"];
-                BigDouble damageToTarget = table.Get("damageToTarget").ToObject<BigDouble>();
-                return new AttackResultDescription(hit, description, damageToTarget, 0, null, null);
-            });
-
             engine.GeneratePlayer();
         }
 
@@ -222,8 +233,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         {
             items[item.Id] = item;
         }
-
-        public Dictionary<string, int> ItemSlots { get; set; } = defaultItemSlots;
 
         public void AssertReady()
         {

@@ -14,7 +14,4 @@ player.resilience = configuration.default_player_stats.resilience
 player.xp = 0
 player.gold = 0
 
-player.attackScript = configuration.player.AttackScript
-
 player.watch("characterDied", "begin resurrecting", "died.action = 'REINCARNATING'")
-engine.watch('characterDied', 'death listener', 'OnCreatureDied(died)')

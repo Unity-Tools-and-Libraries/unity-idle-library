@@ -15,7 +15,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
     /*
      * Base class for custom types.
      */
-    public abstract class Entity : IEventSource, IEngineAware, ITraversableType
+    public abstract class Entity : IEventSource, IEngineAware, ITraversableType, IUpdateable
     {
         [JsonIgnore]
         public IdleEngine Engine { get; private set; }

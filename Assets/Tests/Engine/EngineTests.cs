@@ -109,6 +109,18 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
             });
         }
 
+        [Test]
+        public void CanScheduleScriptToCall()
+        {
+            engine.Schedule(.1, "triggered = true");
+
+            engine.Start();
+
+            engine.Update(1);
+
+            Assert.IsTrue((bool)engine.GlobalProperties["triggered"]);
+        }
+
         public class TestEntityWithField : Entity
         {
             public TestEntityWithField(IdleEngine engine, long id, int foo = 1) : base(engine, id)

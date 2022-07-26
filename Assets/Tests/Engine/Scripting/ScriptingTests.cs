@@ -167,5 +167,25 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
                 engine.Scripting.EvaluateStringAsScript(null);
             });
         }
+
+        [Test]
+        public void CanStartATimer()
+        {
+            engine.Scripting.EvaluateStringAsScript("engine.schedule(1, 'triggered = true')");
+            engine.Start();
+            engine.Update(1);
+            Assert.IsTrue((bool)engine.GlobalProperties["triggered"]);
+        }
+
+        [Test]
+        public void TimeEndsAfterTrigger()
+        {
+            engine.Scripting.EvaluateStringAsScript("engine.schedule(1, 'triggered = true')");
+            engine.Start();
+            engine.Update(1);
+            engine.GlobalProperties["triggered"] = false;
+            engine.Update(1);
+            Assert.IsFalse((bool)engine.GlobalProperties["triggered"]);
+        }
     }
 }

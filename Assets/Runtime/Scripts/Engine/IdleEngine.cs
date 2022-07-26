@@ -11,7 +11,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
-using Newtonsoft.Json.Serialization;
 using BreakInfinity;
 
 namespace io.github.thisisnozaku.idle.framework.Engine
@@ -22,6 +21,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         public bool IsReady { get; private set; }
         public Dictionary<string, object> GlobalProperties = new Dictionary<string, object>();
         private Dictionary<string, string> propertyCalculators = new Dictionary<string, string>();
+        private List<Timer> timers = new List<Timer>();
 
         private readonly EventListeners listeners;
 
@@ -98,7 +98,15 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             }
         }
 
-        
+        /*
+         * Create a timer that, after time seconds, evaluated the specified handler as a script.
+         */
+        public void Schedule(double time, string handler)
+        {
+            timers.Add(new Timer(time, handler));
+        }
+
+
 
         /*
          * Convenience method to easily traverse the object graph of global properties.
@@ -290,26 +298,48 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         {
             if (IsReady)
             {
-                foreach (var nextToUpdate in TraverseObjectGraph())
+                string updateScript = GetConfiguration<string>("UpdateScript");
+                if (updateScript != null)
                 {
-                    switch (nextToUpdate.Type)
-                    {
-                        case DataType.UserData:
-                            var updateable = nextToUpdate.ToObject() as Entity;
-                            if (updateable != null)
-                            {
-                                updateable.Update(this, deltaTime);
-                            }
-                            break;
-                    }
+                    scripting.EvaluateStringAsScript(updateScript);
                 }
-                foreach (var calculator in propertyCalculators)
+                else
                 {
-                    GlobalProperties[calculator.Key] = scripting.EvaluateStringAsScript(calculator.Value, new Dictionary<string, object>()
+                    foreach (var nextToUpdate in TraverseObjectGraph())
+                    {
+                        switch (nextToUpdate.Type)
+                        {
+                            case DataType.UserData:
+                                var updateable = nextToUpdate.ToObject() as Entity;
+                                if (updateable != null)
+                                {
+                                    updateable.Update(this, deltaTime);
+                                }
+                                break;
+                        }
+                    }
+                    foreach (var calculator in propertyCalculators)
+                    {
+                        GlobalProperties[calculator.Key] = scripting.EvaluateStringAsScript(calculator.Value, new Dictionary<string, object>()
                     {
                         { "value", GlobalProperties.ContainsKey(calculator.Key) ? GlobalProperties[calculator.Key] : null },
                         { "deltaTime", deltaTime }
                     }).ToObject();
+                    }
+                }
+                string afterUpdateScript = GetConfiguration<string>("AfterUpdateScript");
+                if (afterUpdateScript != null)
+                {
+                    Scripting.EvaluateStringAsScript(afterUpdateScript);
+                }
+
+                foreach(var timer in timers.ToArray())
+                {
+                    timer.Update(this, deltaTime);
+                    if(timer.Triggered)
+                    {
+                        timers.Remove(timer);
+                    }
                 }
             }
             else

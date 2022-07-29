@@ -71,7 +71,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                 listeners[eventName] = eventListeners;
             }
             eventListeners[subscriber] = handler;
-            if(EngineReadyEvent.EventName == eventName)
+            if(EngineReadyEvent.EventName == eventName && engine.IsReady)
             {
                 engine.Scripting.EvaluateStringAsScript(handler);
             }
@@ -101,7 +101,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                 this.callbacks[eventName] = callbacks;
             }
             callbacks[subscriber] = callback;
-            if(eventName == EngineReadyEvent.EventName)
+            if(eventName == EngineReadyEvent.EventName && engine.IsReady)
             {
                 engine.Scripting.Evaluate(DynValue.NewCallback(callback), engine);
             }

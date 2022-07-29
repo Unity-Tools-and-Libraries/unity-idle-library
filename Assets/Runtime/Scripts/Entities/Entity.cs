@@ -159,12 +159,17 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         }
 
 
-        public virtual void Emit(string eventName, IDictionary<string, object> contextToUse = null)
+        public virtual void Emit(string eventName, IDictionary<string, object> contextToUse)
         {
             eventListeners.Emit(eventName, contextToUse);
         }
 
-        public virtual void Emit(string eventName, ScriptingContext contextToUse)
+        public virtual void Emit(string eventName, ScriptingContext contextToUse = null)
+        {
+            eventListeners.Emit(eventName, contextToUse);
+        }
+
+        public virtual void Emit(string eventName, Tuple<string, object> contextToUse)
         {
             eventListeners.Emit(eventName, contextToUse);
         }

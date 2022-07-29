@@ -69,7 +69,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             {
                 if (entity.ToObject() is IEventSource)
                 {
-                    (entity.ToObject() as IEventSource).Emit(EngineReadyEvent.EventName);
+                    (entity.ToObject() as IEventSource).Emit(EngineReadyEvent.EventName, Tuple.Create<string, object>("engine", this));
                 }
             }
         }
@@ -203,6 +203,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine
          * Notify all listeners watching the global scope that the given event has occurred.
          */
         public void Emit(string eventName, IDictionary<string, object> context)
+        {
+            listeners.Emit(eventName, context);
+        }
+
+        public void Emit(string eventName, Tuple<string, object> context)
         {
             listeners.Emit(eventName, context);
         }

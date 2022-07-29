@@ -1,5 +1,6 @@
 ﻿using io.github.thisisnozaku.idle.framework.Events;
 using MoonSharp.Interpreter;
+using System;
 using System.Collections.Generic;
 
 namespace io.github.thisisnozaku.idle.framework.Engine
@@ -12,12 +13,15 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         /*
          * This source emits the given event, evaluating the attached listener scripts using the given context.
          */
-        void Emit(string eventName, ScriptingContext contextToUse);
+        void Emit(string eventName, ScriptingContext contextToUse = null);
         /*
          * This source emits the given event, evaluating the attached listener scripts using the given context.
          */
-        void Emit(string eventName, IDictionary<string, object> contextToUse = null);
-
+        void Emit(string eventName, IDictionary<string, object> contextToUse);
+        /*
+         * This source emits the given event, evaluating the attached listener scripts using the given context.
+         */
+        void Emit(string eventName, Tuple<string, object> contextToUse);
         /*
          * Watch this source, executing the given handler script when the specified event occurs.
          * 

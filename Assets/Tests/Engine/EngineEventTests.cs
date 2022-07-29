@@ -1,3 +1,4 @@
+using io.github.thisisnozaku.idle.framework.Engine;
 using io.github.thisisnozaku.idle.framework.Events;
 using MoonSharp.Interpreter;
 using NUnit.Framework;
@@ -31,8 +32,9 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         public void CanWatchWithACallbackForEngineReadyInvokesImmediatelyWhenEngineReady()
         {
             engine.Start();
-            engine.Watch(EngineReadyEvent.EventName, "test", DynValue.FromObject(null, (Action)(() =>
+            engine.Watch(EngineReadyEvent.EventName, "test", DynValue.FromObject(null, (Action<IdleEngine>)(ie =>
             {
+                Assert.NotNull(ie);
                 engine.GlobalProperties["triggered"] = true;
             })));
             Assert.IsTrue(engine.Scripting.EvaluateStringAsScript("return triggered").Boolean);

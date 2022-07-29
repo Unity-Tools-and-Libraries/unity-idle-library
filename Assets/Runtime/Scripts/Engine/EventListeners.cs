@@ -51,7 +51,15 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         public void Emit(string eventName, ScriptingContext contextToUse)
         {
-            Emit(eventName, contextToUse.GetScriptingProperties());
+            Emit(eventName, contextToUse != null ? contextToUse.GetScriptingProperties() : null);
+        }
+
+        public void Emit(string eventName, Tuple<string, object> contextToUse)
+        {
+            Emit(eventName, new Dictionary<string, object>()
+            {
+                {contextToUse.Item1, contextToUse.Item2 }
+            });
         }
 
         public void Watch(string eventName, string subscriber, string handler)
@@ -95,7 +103,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             callbacks[subscriber] = callback;
             if(eventName == EngineReadyEvent.EventName)
             {
-                engine.Scripting.Evaluate(DynValue.NewCallback(callback));            
+                engine.Scripting.Evaluate(DynValue.NewCallback(callback), engine);
             }
         }
 

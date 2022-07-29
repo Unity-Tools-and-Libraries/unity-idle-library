@@ -34,7 +34,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
             engine.Start();
             engine.Watch(EngineReadyEvent.EventName, "test", DynValue.FromObject(null, (Action<IdleEngine>)(ie =>
             {
-                Assert.NotNull(ie);
+x                Assert.NotNull(ie);
                 engine.GlobalProperties["triggered"] = true;
             })));
             Assert.IsTrue(engine.Scripting.EvaluateStringAsScript("return triggered").Boolean);

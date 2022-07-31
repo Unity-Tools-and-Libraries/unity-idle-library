@@ -66,10 +66,21 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
         {
             if(Points.Quantity >= amount)
             {
-                Points.Quantity -= amount;
+                ChangePoints(-amount);
                 return true;
             }
             return false;
+        }
+
+        /*
+         * Add the given amount to the current points.
+         * 
+         * Returns the new point amount.
+         */
+        public BigDouble ChangePoints(BigDouble amount)
+        {
+            Points.Quantity += amount;
+            return Points.Quantity;
         }
 
         public bool CanAfford(IBuyable buyable)

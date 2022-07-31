@@ -24,7 +24,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public CreaturesConfiguration Creatures { get; } = new CreaturesConfiguration();
 
         public Dictionary<string, int> ItemSlots { get; set; } = defaultItemSlots;
-        public Dictionary<string, string> ActionUpdateScripts { get; set; }
 
         public static readonly Dictionary<string, int> defaultItemSlots = new Dictionary<string, int>()
             {
@@ -244,10 +243,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             {
                 throw new InvalidOperationException("Need to define at least 1 encounter");
             }
-            if (creatures.Count == 0)
-            {
-                throw new InvalidOperationException("Need to define at least 1 creature");
-            }
         }
 
         public static class Properties
@@ -320,13 +315,13 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             }
             if (attackResultDescription.IsHit)
             {
-                attacker.Emit(AttackHitEvent.EventName, new AttackHitEvent(attacker, defender, attackResultDescription.DamageToDefender));
-                defender.Emit(HitByAttackEvent.EventName, new HitByAttackEvent(attacker, defender, attackResultDescription.DamageToDefender));
+                attacker.Emit(AttackHitEvent.EventName, new AttackHitEvent(attacker, defender, attackResultDescription));
+                defender.Emit(HitByAttackEvent.EventName, new HitByAttackEvent(attacker, defender, attackResultDescription));
             }
             else
             {
-                attacker.Emit(AttackMissedEvent.EventName, new AttackMissedEvent(attacker, defender, attackResultDescription.DamageToDefender));
-                defender.Emit(MissedByAttackEvent.EventName, new MissedByAttackEvent(attacker, defender, attackResultDescription.DamageToDefender));
+                attacker.Emit(AttackMissedEvent.EventName, new AttackMissedEvent(attacker, defender, attackResultDescription));
+                defender.Emit(MissedByAttackEvent.EventName, new MissedByAttackEvent(attacker, defender, attackResultDescription));
             }
 
             return attackResultDescription;
@@ -364,10 +359,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             }
             foreach (var option in nextEncounter.CreatureOptions)
             {
-                var creatureDefinition = engine.GetCreatures()[option.Item1];
-                if (creatureDefinition == null)
+                CreatureDefinition creatureDefinition;
+
+                if (!engine.GetCreatures().TryGetValue(option.Item1, out creatureDefinition))
                 {
-                    throw new InvalidOperationException();
+                    throw new InvalidOperationException(String.Format("No creature definition with id {0}", option.Item1));
                 }
                 var level = (BigDouble)engine.GlobalProperties["stage"] + option.Item2;
                 var creature = engine.Scripting.EvaluateStringAsScript("return GenerateCreature(definition, level)", new Dictionary<string, object>()
@@ -377,7 +373,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 }).ToObject<RpgCharacter>();
                 if(creature == null)
                 {
-                    throw new InvalidOperationException("GenerateCreature returned null!");
+                    throw new InvalidOperationException("GenerateCreature returned null! Ensure your implementation of GenerateCreature returns an object of type RpgCharacter or a subclass.");
                 }
 
                 currentEncounter.Creatures.Add(creature);
@@ -414,7 +410,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             var playerType = engine.GetConfiguration<Type>("player.CharacterType");
             if (!typeof(RpgCharacter).IsAssignableFrom(playerType))
             {
-                throw new InvalidOperationException("Player.CharacterType must be RpgCharacter or a subclass, but was " + playerType.ToString());
+                throw new InvalidOperationException(String.Format("Player.CharacterType must be RpgCharacter or a subclass, but was '{0}'; null means your configuration is wrong.", playerType != null ? playerType.ToString() : "null"));
             }
             var player = Activator.CreateInstance(playerType, engine, 0);
             engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<string>("player.Initializer"), Tuple.Create<string, object>("player", player)).ToObject<RpgCharacter>();

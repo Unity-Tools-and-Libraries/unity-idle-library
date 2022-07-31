@@ -1,6 +1,7 @@
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg;
 using io.github.thisisnozaku.idle.framework.Engine.Persistence;
+using io.github.thisisnozaku.idle.framework.Events;
 using MoonSharp.Interpreter;
 using MoonSharp.Interpreter.Interop;
 using System;
@@ -126,17 +127,19 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
 
         public static BigDouble DynValueToBigDouble(DynValue dynValue)
         {
-            if (dynValue.CastToNumber().HasValue)
+            switch(dynValue.Type)
             {
-                return new BigDouble(dynValue.Number);
-            }
-            else if (dynValue.UserData != null)
-            {
-                var userData = dynValue.UserData.Object;
-                if (userData is BigDouble)
-                {
-                    return (BigDouble)userData;
-                }
+                case DataType.Nil:
+                    return BigDouble.Zero;
+                case DataType.UserData:
+                    var userData = dynValue.UserData.Object;
+                    if (userData is BigDouble)
+                    {
+                        return (BigDouble)userData;
+                    }
+                    break;
+                case DataType.Number:
+                    return new BigDouble(dynValue.Number);
             }
             throw new InvalidOperationException();
         }
@@ -159,6 +162,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
                 }
             }
             contextTable.MetaTable = defaultMetatable;
+            contextTable["engine"] = engine;
             return contextTable;
         }
 
@@ -182,29 +186,21 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
         }
         public DynValue EvaluateStringAsScript(string script, KeyValuePair<string, object> localContext)
         {
-            if (script == null)
-            {
-                throw new ArgumentNullException("script");
-            }
-            return Evaluate(DynValue.NewString(script), new Dictionary<string, object>() {
+            return EvaluateStringAsScript(script, new Dictionary<string, object>() {
                 { localContext.Key, localContext.Value }});
         }
         public DynValue EvaluateStringAsScript(string script, Tuple<string, object> localContext)
         {
-            if (script == null)
-            {
-                throw new ArgumentNullException("script");
-            }
-            return Evaluate(DynValue.NewString(script), new Dictionary<string, object>() {
+            return EvaluateStringAsScript(script, new Dictionary<string, object>() {
                 { localContext.Item1, localContext.Item2 }});
         }
 
-        public DynValue Evaluate(DynValue toEvaluate, params object[] callbackArgs)
+        public DynValue Evaluate(DynValue toEvaluate, ScriptingContext context)
         {
-            return Evaluate(toEvaluate, (IDictionary<string, object>)null, callbackArgs);
+            return Evaluate(toEvaluate, context.GetScriptingProperties());
         }
 
-        public DynValue Evaluate(DynValue toEvaluate, IDictionary<string, object> localContext = null, params object[] callbackArgs)
+        public DynValue Evaluate(DynValue toEvaluate, IDictionary<string, object> localContext = null)
         {
             if (toEvaluate == null)
             {
@@ -217,24 +213,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
                     result = script.DoString(toEvaluate.String, SetupContext(localContext));
                     break;
                 case DataType.ClrFunction:
-                    result = script.Call(toEvaluate.Callback, callbackArgs != null ? callbackArgs : new object[0]);
+                    result = script.Call(toEvaluate.Callback, SetupContext(localContext));
                     break;
                 default:
-                    throw new InvalidOperationException();
+                    throw new InvalidOperationException(String.Format("The DynValue must contains a string to interpret or a function to call, but was {0}", toEvaluate.Type));
             }
             if (result.Type == DataType.Number)
             {
                 return DynValue.FromObject(null, new BigDouble(result.Number));
             }
             return result;
-        }
-
-        public DynValue Evaluate(DynValue toEvaluate, Tuple<string, object> localContext = null, params object[] callbackArgs)
-        {
-            return Evaluate(toEvaluate, new Dictionary<string, object>()
-            {
-                { localContext.Item1, localContext.Item2 }
-            }, callbackArgs);
         }
 
         private class WrappedDictionary : IUserDataType, ITraversableType

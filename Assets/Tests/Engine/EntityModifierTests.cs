@@ -59,12 +59,23 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         public void EnityModifierCanClearAFlagOnAnEntity()
         {
             var entity = new TestEntity(engine, 1);
-            var modifier = new TestModifier(engine, 2, new Dictionary<string, Tuple<string, string>>()
-        {
-            { "clearFlag", Tuple.Create<string, string>("foo", null) }
-        });
+            var modifier = new TestModifier(engine, 2, new Dictionary<string, Tuple<string, string>>() {
+                { "clearFlag", Tuple.Create<string, string>("foo", null) }
+            });
             entity.AddModifier(modifier);
             Assert.False(entity.GetFlag("foo"));
+        }
+
+        [Test]
+        public void UnapplyModifierThatClearsFlagReSetsItAgain()
+        {
+            var entity = new TestEntity(engine, 1);
+            var modifier = new TestModifier(engine, 2, new Dictionary<string, Tuple<string, string>>() {
+                { "clearFlag", Tuple.Create<string, string>("foo", "foo") }
+            });
+            entity.AddModifier(modifier);
+            entity.RemoveModifier(modifier);
+            Assert.True(entity.GetFlag("foo"));
         }
 
         [Test]

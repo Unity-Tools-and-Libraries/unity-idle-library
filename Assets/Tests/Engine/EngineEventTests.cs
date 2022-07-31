@@ -32,7 +32,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         public void CanWatchWithACallbackForEngineReadyInvokesImmediatelyWhenEngineReady()
         {
             engine.Start();
-            engine.Watch(EngineReadyEvent.EventName, "test", DynValue.FromObject(null, (Action<IdleEngine>)(ie =>
+            engine.Watch(EngineReadyEvent.EventName, "test", DynValue.FromObject(null, (Action<IDictionary<string, object>>)(ie =>
             {
                 Assert.NotNull(ie);
                 engine.GlobalProperties["triggered"] = true;
@@ -103,6 +103,15 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
             engine.Watch("event", "test", "triggered = true");
             engine.StopWatching("event", "test");
             engine.Emit("test", new Dictionary<string, object>());
+            Assert.IsFalse(engine.Scripting.EvaluateStringAsScript("return triggered").Boolean);
+        }
+
+        [Test]
+        public void CanEmitUsingTupleContext()
+        {
+            engine.Watch("event", "test", "triggered = true");
+            engine.StopWatching("event", "test");
+            engine.Emit("test", Tuple.Create<string, object>("foo", "bar"));
             Assert.IsFalse(engine.Scripting.EvaluateStringAsScript("return triggered").Boolean);
         }
     }

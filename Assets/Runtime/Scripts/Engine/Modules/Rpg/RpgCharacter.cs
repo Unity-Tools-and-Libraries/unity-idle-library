@@ -63,6 +63,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public virtual Dictionary<string, CharacterItem[]> ItemSlots { get; set; }
         public virtual Dictionary<long, Duration> Statuses { get; set; }
         public virtual Dictionary<string, List<string>> OnEventTriggers { get; private set; }
+        public string NextAction;
 
         public void Act(IdleEngine engine)
         {
@@ -71,7 +72,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             {
                 engine.MakeAttack(this, target);
             }
-            var ev = new CharacterActedEvent(this);
+            var ev = new CharacterActedEvent(this, NextAction);
             Emit(CharacterActedEvent.EventName, ev);
             engine.Emit(CharacterActedEvent.EventName, ev);
         }

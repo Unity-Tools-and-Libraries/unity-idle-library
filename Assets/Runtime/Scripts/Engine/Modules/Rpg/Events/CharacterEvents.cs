@@ -12,17 +12,20 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public const string EventName = "character_acted";
 
         private RpgCharacter character;
+        private string action;
 
-        public CharacterActedEvent(RpgCharacter character)
+        public CharacterActedEvent(RpgCharacter character, string action)
         {
             this.character = character;
+            this.action = action;
         }
 
         public Dictionary<string, object> GetScriptingProperties()
         {
             return new Dictionary<string, object>()
             {
-                { "character", character }
+                { "character", character },
+                { "action", action }
             };
         }
     }

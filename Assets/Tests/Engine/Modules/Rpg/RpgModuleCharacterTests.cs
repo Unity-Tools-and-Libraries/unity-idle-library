@@ -313,5 +313,19 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             Assert.AreEqual(new BigDouble(1), engine.GetPlayer<RpgCharacter>().Xp);
         }
+
+        [Test]
+        public void WhenGenerateCreatureReturnsNullThrow()
+        {
+            random.SetNextValues(0);
+            
+            Configure();
+
+            engine.GlobalProperties["GenerateCreature"] = (Func<object>)(() => null);
+            Assert.Throws(typeof(InvalidOperationException), () =>
+            {
+            engine.StartEncounter();
+            });
+        }
     }
 }

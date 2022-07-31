@@ -112,5 +112,17 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             engine.Update(0);
             Assert.IsTrue(engine.GetPlayer().Producers[3].IsEnabled);
         }
+
+        [Test]
+        public void CanAffordReturnsTrueIfCostBelowPoints()
+        {
+            module.AddProducer(new Producer(engine, 3, "", 1, 1, "return true", "return target.GetFlag('set')"));
+
+            Configure();
+
+            engine.Start();
+            engine.GetPlayer().ChangePoints(10000);
+            Assert.IsTrue(engine.GetPlayer().CanAfford(engine.GetProducers()[3]));
+        }
     }
 }

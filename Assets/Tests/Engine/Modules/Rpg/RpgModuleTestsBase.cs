@@ -31,6 +31,7 @@ public abstract class RpgModuleTestsBase : TestsRequiringEngine
     public class RiggedRandom : System.Random
     {
         private Queue<double> nextValues = new Queue<double>();
+        private int callCount = 0;
 
         public void SetNextValues(params double[] values)
         {
@@ -42,15 +43,17 @@ public abstract class RpgModuleTestsBase : TestsRequiringEngine
 
         public override int Next()
         {
+            callCount++;
             return (int)nextValues.Dequeue();
         }
 
         public override int Next(int maxValue)
         {
+            callCount++;
             int next = (int)nextValues.Dequeue();
             if(next >= maxValue)
             {
-                throw new InvalidOperationException(String.Format("Tried to return a value less than {0} but next forced value was {1}", maxValue, next));
+                throw new InvalidOperationException(String.Format("Tried to return a value less than {0} but next forced value was {1} on call {2}", maxValue, next, callCount));
             }
             return next;
         }

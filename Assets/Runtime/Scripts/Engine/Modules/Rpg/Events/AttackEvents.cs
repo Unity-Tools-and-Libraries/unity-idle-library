@@ -1,4 +1,5 @@
 ﻿using BreakInfinity;
+using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Combat;
 using System;
 using System.Collections.Generic;
 
@@ -9,9 +10,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
      */
     public abstract class AttackEvent : CombatInteractionEvent
     {
-        private BigDouble attackDamage;
+        private AttackResultDescription attackResultDescription;
 
-        protected AttackEvent(RpgCharacter attacker, RpgCharacter defender, BigDouble attackDamage): base(attacker, defender)
+        protected AttackEvent(RpgCharacter attacker, RpgCharacter defender, AttackResultDescription attackResultDescription): base(attacker, defender)
         {
             if(attacker == null)
             {
@@ -21,7 +22,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             {
                 throw new ArgumentNullException("defender");
             }
-            this.attackDamage = attackDamage;
         }
 
         public override Dictionary<string, object> GetScriptingProperties()
@@ -30,7 +30,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             {
                 { "attacker", source },
                 { "defender", target },
-                { "damage", attackDamage }
+                { "attack", attackResultDescription }
             };
         }
     }
@@ -41,7 +41,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
     {
         public const string EventName = "attack_failed";
 
-        public AttackMissedEvent(RpgCharacter attacker, RpgCharacter defender, BigDouble attackDamage) : base(attacker, defender, attackDamage)
+        public AttackMissedEvent(RpgCharacter attacker, RpgCharacter defender, AttackResultDescription attackResultDescription) : base(attacker, defender, attackResultDescription)
         {
         }
     }
@@ -52,7 +52,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
     {
         public const string EventName = "attack_missed";
 
-        public MissedByAttackEvent(RpgCharacter attacker, RpgCharacter defender, BigDouble attackDamage) : base(attacker, defender, attackDamage)
+        public MissedByAttackEvent(RpgCharacter attacker, RpgCharacter defender, AttackResultDescription attackResultDescription) : base(attacker, defender, attackResultDescription)
         {
         }
     }
@@ -63,7 +63,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
     {
         public const string EventName = "attack_hit";
 
-        public AttackHitEvent(RpgCharacter attacker, RpgCharacter defender, BigDouble attackDamage) : base(attacker, defender, attackDamage)
+        public AttackHitEvent(RpgCharacter attacker, RpgCharacter defender, AttackResultDescription attackResultDescription) : base(attacker, defender, attackResultDescription)
         {
         }
     }
@@ -72,7 +72,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
     {
         public const string EventName = "attack_hit";
 
-        public HitByAttackEvent(RpgCharacter attacker, RpgCharacter defender, BigDouble attackDamage) : base(attacker, defender, attackDamage)
+        public HitByAttackEvent(RpgCharacter attacker, RpgCharacter defender, AttackResultDescription attackResultDescription) : base(attacker, defender, attackResultDescription)
         {
         }
     } 

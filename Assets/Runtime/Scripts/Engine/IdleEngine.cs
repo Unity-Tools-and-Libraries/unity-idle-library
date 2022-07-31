@@ -53,7 +53,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         public void RegisterEntity(Entity entity)
         {
-            if(Entities.ContainsKey(entity.Id))
+            if (Entities.ContainsKey(entity.Id))
             {
                 throw new InvalidOperationException(String.Format("Attempting to use entity id {0}, which is already in use.", entity.Id));
             }
@@ -242,53 +242,45 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         public IEnumerable<DynValue> TraverseObjectGraph()
         {
-            Queue<object> queue = new Queue<object>();
-            foreach (var global in GlobalProperties.Values)
+            Queue<DynValue> queue = new Queue<DynValue>();
+            foreach (var global in GlobalProperties)
             {
-                var globalType = DynValue.FromObject(null, global).Type;
-                if (globalType == DataType.UserData || globalType == DataType.Table || globalType == DataType.Tuple)
+                DynValue globalValue = DynValue.FromObject(null, global.Value);
+                if (globalValue.Type == DataType.Table || globalValue.Type == DataType.Tuple || (globalValue.Type == DataType.UserData && globalValue.ToObject() is ITraversableType))
                 {
-                    queue.Enqueue(global);
+                    queue.Enqueue(globalValue);
                 }
             }
             while (queue.Count > 0)
             {
-                DynValue next = DynValue.FromObject(null, queue.Dequeue());
+                DynValue next = queue.Dequeue();
+                IEnumerable children = null;
                 switch (next.Type)
                 {
                     case DataType.Table:
-                        foreach (var child in next.Table.Values)
-                        {
-                            if (child.Type == DataType.UserData || child.Type == DataType.Table || child.Type == DataType.Tuple)
-                            {
-                                queue.Enqueue(child);
-                            }
-                        }
+                        children = next.Table.Values;
                         break;
                     case DataType.Tuple:
-                        foreach (var item in next.Tuple)
-                        {
-                            if (item.Type == DataType.UserData || item.Type == DataType.Table || item.Type == DataType.Tuple)
-                            {
-                                queue.Enqueue(item);
-                            }
-                        }
+                        children = next.Tuple;
                         break;
                     case DataType.UserData:
                         var asObject = next.ToObject();
                         if (asObject is ITraversableType)
                         {
-                            foreach(var value in (asObject as ITraversableType).GetTraversableFields())
-                            {
-                                var item = DynValue.FromObject(null, value);
-                                if (item.Type == DataType.UserData || item.Type == DataType.Table || item.Type == DataType.Tuple)
-                                {
-                                    queue.Enqueue(item);
-                                }
-                            }
+                            children = (asObject as ITraversableType).GetTraversableFields();
                         }
                         break;
-
+                }
+                if(children != null)
+                {
+                    foreach (var child in children)
+                    {
+                        var value = DynValue.FromObject(null, child);
+                        if (value.Type == DataType.UserData || value.Type == DataType.Table || value.Type == DataType.Tuple)
+                        {
+                            queue.Enqueue(value);
+                        }
+                    }
                 }
                 yield return next;
             }
@@ -303,45 +295,32 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         {
             if (IsReady)
             {
-                string updateScript = GetConfiguration<string>("UpdateScript");
-                if (updateScript != null)
+                foreach (var nextToUpdate in TraverseObjectGraph())
                 {
-                    scripting.EvaluateStringAsScript(updateScript);
-                }
-                else
-                {
-                    foreach (var nextToUpdate in TraverseObjectGraph())
+                    switch (nextToUpdate.Type)
                     {
-                        switch (nextToUpdate.Type)
-                        {
-                            case DataType.UserData:
-                                var updateable = nextToUpdate.ToObject() as Entity;
-                                if (updateable != null)
-                                {
-                                    updateable.Update(this, deltaTime);
-                                }
-                                break;
-                        }
+                        case DataType.UserData:
+                            var updateable = nextToUpdate.ToObject() as IUpdateable;
+                            if (updateable != null)
+                            {
+                                updateable.Update(this, deltaTime);
+                            }
+                            break;
                     }
-                    foreach (var calculator in propertyCalculators)
-                    {
-                        GlobalProperties[calculator.Key] = scripting.EvaluateStringAsScript(calculator.Value, new Dictionary<string, object>()
+                }
+                foreach (var calculator in propertyCalculators)
+                {
+                    GlobalProperties[calculator.Key] = scripting.EvaluateStringAsScript(calculator.Value, new Dictionary<string, object>()
                     {
                         { "value", GlobalProperties.ContainsKey(calculator.Key) ? GlobalProperties[calculator.Key] : null },
                         { "deltaTime", deltaTime }
                     }).ToObject();
-                    }
-                }
-                string afterUpdateScript = GetConfiguration<string>("AfterUpdateScript");
-                if (afterUpdateScript != null)
-                {
-                    Scripting.EvaluateStringAsScript(afterUpdateScript);
                 }
 
-                foreach(var timer in timers.ToArray())
+                foreach (var timer in timers.ToArray())
                 {
                     timer.Update(this, deltaTime);
-                    if(timer.Triggered)
+                    if (timer.Triggered)
                     {
                         timers.Remove(timer);
                     }

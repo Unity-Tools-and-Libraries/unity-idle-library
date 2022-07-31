@@ -94,6 +94,15 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             Assert.IsInstanceOf<CustomRpgCharacter>(engine.GetPlayer<CustomRpgCharacter>());
         }
 
+        [Test]
+        public void GeneratePlayerGeneratesOnceAndReturnsAfterwards()
+        {
+            Configure();
+            var player = engine.GeneratePlayer();
+
+            Assert.AreEqual(player, engine.GeneratePlayer());
+        }
+
         public class CustomRpgCharacter : RpgCharacter
         {
             public CustomRpgCharacter(IdleEngine engine, long id) : base(engine, id)

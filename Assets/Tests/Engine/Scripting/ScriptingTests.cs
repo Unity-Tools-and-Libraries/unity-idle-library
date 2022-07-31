@@ -163,7 +163,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
         [Test]
         public void DoesntLikeNullScript()
         {
-            Assert.Throws(typeof(ArgumentNullException), () => {
+            Assert.Throws(typeof(ArgumentNullException), () =>
+            {
                 engine.Scripting.EvaluateStringAsScript(null);
             });
         }
@@ -186,6 +187,61 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
             engine.GlobalProperties["triggered"] = false;
             engine.Update(1);
             Assert.IsFalse((bool)engine.GlobalProperties["triggered"]);
+        }
+
+        [Test]
+        public void ErrorFunctionInScriptThrows()
+        {
+            Assert.Throws(typeof(ScriptRuntimeException), () =>
+            {
+                engine.Scripting.EvaluateStringAsScript("error('foo')");
+            });
+        }
+
+        [Test]
+        public void TryingToEvaluateNullForScriptThrows()
+        {
+            Assert.Throws(typeof(ArgumentNullException), () =>
+            {
+                engine.Scripting.EvaluateStringAsScript(null);
+            });
+        }
+
+        [Test]
+        public void TryingToEvaluateNullObjectThrows()
+        {
+            Assert.Throws(typeof(ArgumentNullException), () =>
+            {
+                engine.Scripting.Evaluate(null);
+            });
+        }
+
+        [Test]
+        public void TryingToEvaluateWrongTypeThrows()
+        {
+            Assert.Throws(typeof(InvalidOperationException), () =>
+            {
+                engine.Scripting.Evaluate(DynValue.Nil);
+            });
+        }
+
+        [Test]
+        public void CallbackReceivesContextDictionary()
+        {
+            var context = new Dictionary<string, object>();
+            engine.Scripting.Evaluate(DynValue.FromObject(null, (Action<IDictionary<string, object>>)(ctx =>
+            {
+                Assert.IsTrue(ctx is IDictionary<string, object>);
+            })), context);
+        }
+
+        [Test]
+        public void CallbackContextContainsEngineProperty()
+        {
+            engine.Scripting.Evaluate(DynValue.FromObject(null, (Action<IDictionary<string, object>>)(ctx =>
+            {
+                Assert.IsTrue(ctx.ContainsKey("engine"));
+            })));
         }
     }
 }

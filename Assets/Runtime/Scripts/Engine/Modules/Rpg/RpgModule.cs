@@ -72,9 +72,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public string PostUpdateHook;
         // FIXME: Externalize
         private string defaultAttackHitScript =
-            "return {hit=true, description='hit', damageToTarget=attacker.damage - defender.defense}";
-        private string defaultAttackMissScript = "return {hit=false, description='miss', damageToTarget=0}";
-        private string defaultAttackCriticalHitScript = "return {hit=true, description='critical hit', damageToTarget=(attacker.damage - defender.defense) * attacker.criticalHitDamageMultiplier}";
+            "return {hit=true, description='hit', damageToTarget=attacker.damage - defender.defense, attacker=attacker}";
+        private string defaultAttackMissScript = "return {hit=false, description='miss', damageToTarget=0, attacker=attacker}";
+        private string defaultAttackCriticalHitScript = "return {hit=true, description='critical hit', damageToTarget=(attacker.damage - defender.defense) * attacker.criticalHitDamageMultiplier, attacker=attacker}";
 
         public RpgModule()
         {
@@ -111,7 +111,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 bool hit = (bool)table["hit"];
                 string description = (string)table["description"];
                 BigDouble damageToTarget = table.Get("damageToTarget").ToObject<BigDouble>();
-                return new AttackResultDescription(hit, description, damageToTarget, 0, null, null);
+                return new AttackResultDescription(hit, description, damageToTarget, table["attacker"] as RpgCharacter, null, null);
             });
         }
 
@@ -324,6 +324,15 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             {
                 attacker.Emit(AttackMissedEvent.EventName, new AttackMissedEvent(attacker, defender, attackResultDescription));
                 defender.Emit(MissedByAttackEvent.EventName, new MissedByAttackEvent(attacker, defender, attackResultDescription));
+            }
+
+            if(attackResultDescription.DamageToAttacker.Count > 0)
+            {
+                
+            }
+            if (attackResultDescription.DamageToDefender.Count > 0)
+            {
+
             }
 
             return attackResultDescription;

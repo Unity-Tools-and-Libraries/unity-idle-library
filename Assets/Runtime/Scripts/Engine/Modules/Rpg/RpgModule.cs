@@ -103,6 +103,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
             engine.SetConfiguration("PlayerAttackScript", Player.AttackScript);
 
+            engine.SetConfiguration("default_tohit", 50);
+
             engine.Scripting.SetScriptToClrCustomConversion(DataType.Table, typeof(AttackResultDescription), value =>
             {
                 var table = value.Table;

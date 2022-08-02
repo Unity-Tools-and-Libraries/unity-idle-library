@@ -329,11 +329,17 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
             if(attackResultDescription.DamageToAttacker.Count > 0)
             {
-                
+                foreach(var damage in attackResultDescription.DamageToAttacker)
+                {
+                    attacker.InflictDamage(damage.Item1, damage.Item2);
+                }
             }
             if (attackResultDescription.DamageToDefender.Count > 0)
             {
-
+                foreach (var damage in attackResultDescription.DamageToDefender)
+                {
+                    defender.InflictDamage(damage.Item1, damage.Item2);
+                }
             }
 
             return attackResultDescription;

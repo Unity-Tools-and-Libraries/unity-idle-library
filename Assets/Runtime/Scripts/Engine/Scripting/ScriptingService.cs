@@ -97,10 +97,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             {
                 return DynValue.FromObject(script, new WrappedDictionary(arg as Dictionary<string, object>));
             });
-            SetClrToScriptCustomConversion(typeof(IList), (script, arg) =>
-            {
-                return DynValue.FromObject(script, new WrappedDictionary(arg as IList));
-            });
 
             ConfigureBuiltIns(engine);
             EngineAwareIndexMethod = DynValue.NewCallback((Func<ScriptExecutionContext, CallbackArguments, DynValue>)((ctx, args) =>

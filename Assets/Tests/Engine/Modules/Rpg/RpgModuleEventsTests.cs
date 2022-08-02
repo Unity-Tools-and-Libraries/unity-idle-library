@@ -30,7 +30,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             });
             Assert.DoesNotThrow(() =>
             {
-                new AttackHitEvent(attacker, defender, new AttackResultDescription(true, "", BigDouble.Zero, BigDouble.Zero,
+                new AttackHitEvent(attacker, defender, new AttackResultDescription(true, "", BigDouble.Zero, attacker,
                     new List<long>(), new List<long>()));
             });
         }

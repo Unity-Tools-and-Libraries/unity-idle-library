@@ -1,5 +1,6 @@
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine;
+using io.github.thisisnozaku.idle.framework.Engine.Scripting;
 using MoonSharp.Interpreter;
 using NUnit.Framework;
 using System;
@@ -242,6 +243,24 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
             {
                 Assert.IsTrue(ctx.ContainsKey("engine"));
             })));
+        }
+
+        [Test]
+        public void TryingToInsertIntoNonTableThrows()
+        {
+            var table = false;
+            Assert.Throws(typeof(InvalidOperationException), () =>
+            {
+                engine.Scripting.EvaluateStringAsScript("table.insert(tbl, 'foo')", new Dictionary<string, object>() {
+                    { "tbl", table }
+                });
+            });
+        }
+
+        [Test]
+        public void NilToBigDoubleIsZero()
+        {
+            Assert.AreEqual(BigDouble.Zero, ScriptingService.DynValueToBigDouble(DynValue.Nil));
         }
     }
 }

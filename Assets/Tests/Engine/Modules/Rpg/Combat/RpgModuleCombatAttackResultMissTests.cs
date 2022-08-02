@@ -1,6 +1,7 @@
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg;
 using NUnit.Framework;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -27,7 +28,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg.Combat.
         {
             random.SetNextValues(1, 1, 1, 1, 1);
             rpgModule.AddAbility(new CharacterAbility.Builder()
-                .WithEventTrigger("IsAttacking", "attack.isHit = true; attack.description = 'hit'; attack.damageToDefender = 0")
+                .WithEventTrigger("IsAttacking", "attack.isHit = true; attack.description = 'hit'; table.insert(attack.DamageToDefender, attack.OriginalDamageToDefender)")
                 .Build(engine, 5));
 
             Configure();
@@ -39,7 +40,10 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg.Combat.
             var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
 
             Assert.IsTrue(result.IsHit);
-            Assert.AreEqual(BigDouble.Zero, result.DamageToDefender);
+            Assert.AreEqual(new List<Tuple<BigDouble, RpgCharacter>>()
+            {
+                Tuple.Create(new BigDouble(10), engine.GetPlayer<RpgCharacter>())
+            }, result.DamageToDefender);
         }
 
         [Test]
@@ -57,7 +61,9 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg.Combat.
             var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
 
             Assert.IsTrue(result.IsHit);
-            Assert.AreEqual(new BigDouble(10), result.DamageToDefender);
+            Assert.AreEqual(new List<Tuple<BigDouble, RpgCharacter>>() {
+                Tuple.Create(new BigDouble(10), engine.GetPlayer<RpgCharacter>())
+            }, result.DamageToDefender);
         }
     }
 }

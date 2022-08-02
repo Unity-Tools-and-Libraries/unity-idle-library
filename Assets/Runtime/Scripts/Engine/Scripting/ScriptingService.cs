@@ -5,6 +5,7 @@ using io.github.thisisnozaku.idle.framework.Events;
 using MoonSharp.Interpreter;
 using MoonSharp.Interpreter.Interop;
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -35,7 +36,15 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
                     return DynValue.FromObject(ctx.GetScript(), BigDouble.Pow(lhv, rhv));
                 }) }
             }},
-            { "BigDouble", typeof(BigDouble) },
+            { "table", new Dictionary<string, object>() {
+                { "insert", (Action<DynValue, DynValue>)((tbl, value)=> {
+                    if(tbl.Type != DataType.Table)
+                    {
+                        throw new InvalidOperationException("Tried to insert into a non-table");
+                    }
+                    tbl.Table.Append(value);
+                }) }
+            }},
             { "error", (Action<string>)((message) => throw new ScriptRuntimeException(message)) }
         };
         internal Script script;
@@ -87,6 +96,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             SetClrToScriptCustomConversion(typeof(Dictionary<string, object>), (script, arg) =>
             {
                 return DynValue.FromObject(script, new WrappedDictionary(arg as Dictionary<string, object>));
+            });
+            SetClrToScriptCustomConversion(typeof(IList), (script, arg) =>
+            {
+                return DynValue.FromObject(script, new WrappedDictionary(arg as IList));
             });
 
             ConfigureBuiltIns(engine);
@@ -232,6 +245,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             {
                 this.underlying = underlying;
             }
+
             public DynValue Index(Script script, DynValue index, bool isDirectIndexing)
             {
                 object value;

@@ -32,5 +32,15 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Combat
             StatusesToApplyToAttacker = statusesToApplyToAttacker;
             StatusesToApplyToDefender = statusesToApplyToDefender;
         }
+
+        public void ClearAttackerDamage()
+        {
+            DamageToAttacker.Clear();
+        }
+
+        public void ClearDefenderDamage()
+        {
+            DamageToDefender.Clear();
+        }
     }
 }

@@ -93,6 +93,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             UserData.RegisterType<AttackResultDescription>();
             UserData.RegisterType<CharacterItem>();
             UserData.RegisterType<CharacterAbility>();
+            UserData.RegisterType<Tuple<BigDouble, RpgCharacter>>();
             UserData.RegisterExtensionType(typeof(RpgExtensionMethods));
 
             engine.SetConfiguration("player", Player);

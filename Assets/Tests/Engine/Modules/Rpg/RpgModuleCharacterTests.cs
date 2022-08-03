@@ -327,5 +327,19 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             engine.StartEncounter();
             });
         }
+
+        [Test]
+        public void WhenGenerateCreatureReturnsCreatureWith0HealthThrow()
+        {
+            random.SetNextValues(0);
+
+            Configure();
+
+            engine.GlobalProperties["GenerateCreature"] = (Func<object>)(() => new RpgCharacter(engine, 100));
+            Assert.Throws(typeof(InvalidOperationException), () =>
+            {
+                engine.StartEncounter();
+            });
+        }
     }
 }

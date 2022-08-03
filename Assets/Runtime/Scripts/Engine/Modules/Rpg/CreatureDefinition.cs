@@ -31,7 +31,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 { RpgCharacter.Attributes.MAXIMUM_HEALTH,              1 },
                 { RpgCharacter.Attributes.ACCURACY,                    0 },
                 { RpgCharacter.Attributes.ACTION,                      ""},
-                { RpgCharacter.Attributes.ACTION_SPEED,          0 },
+                { RpgCharacter.Attributes.ACTION_SPEED,                0 },
                 { RpgCharacter.Attributes.PRECISION,                   0 },
                 { RpgCharacter.Attributes.DEFENSE,                     0 },
                 { RpgCharacter.Attributes.EVASION,                     0 },

@@ -8,9 +8,9 @@ end
 creature.party = 1
 creature.level = level
 creature.accuracy = ScaleCreatureAttribute(configuration.default_creature_stats.accuracy, level) * definition.Properties.accuracy
-creature.criticalHitChance = ScaleCreatureAttribute(configuration.default_creature_stats.criticalHitChance, level) * definition.Properties.criticalHitChance
-creature.criticalHitDamageMultiplier = ScaleCreatureAttribute(configuration.default_creature_stats.criticalHitDamageMultiplier, level) * definition.Properties.criticalHitDamageMultiplier
-creature.maximumHealth = ScaleCreatureAttribute(configuration.default_creature_stats.maximumHealth, level) * definition.Properties.maximumHealth
+creature.criticalHitChance = ScaleCreatureAttribute(configuration.default_creature_stats.criticalHitChance, level) * definition.Properties.critical_hit_chance
+creature.criticalHitDamageMultiplier = ScaleCreatureAttribute(configuration.default_creature_stats.criticalHitDamageMultiplier, level) * definition.Properties.critical_damage_multiplier
+creature.maximumHealth = ScaleCreatureAttribute(configuration.default_creature_stats.maximumHealth, level) * definition.Properties.maximum_health
 creature.currentHealth = creature.maximumHealth
 creature.damage = ScaleCreatureAttribute(configuration.default_creature_stats.damage, level) * definition.Properties.damage
 creature.defense = ScaleCreatureAttribute(configuration.default_creature_stats.defense, level) * definition.Properties.defense

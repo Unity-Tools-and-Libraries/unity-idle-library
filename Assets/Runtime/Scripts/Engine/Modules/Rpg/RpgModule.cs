@@ -76,6 +76,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         private string defaultAttackMissScript = "return {hit=false, description='miss', damageToTarget=0, attacker=attacker}";
         private string defaultAttackCriticalHitScript = "return {hit=true, description='critical hit', damageToTarget=(attacker.damage - defender.defense) * attacker.criticalHitDamageMultiplier, attacker=attacker}";
 
+        private string defaultCreatureValidator = "if(creature.maximumHealth <= 0) then error('creature health must be at least 1') end";
+
         public RpgModule()
         {
             //PostUpdateHook = Resources.Load<TextAsset>("Lua/Rpg/DefaultPostUpdateHook").text;
@@ -107,6 +109,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             engine.SetConfiguration("base_tohit", 50);
 
             engine.SetConfiguration("minimum_attack_damage", 1);
+
+            engine.GlobalProperties["CreatureValidator"] = defaultCreatureValidator;
 
             engine.Scripting.SetScriptToClrCustomConversion(DataType.Table, typeof(AttackResultDescription), value =>
             {
@@ -396,6 +400,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                     { "definition", creatureDefinition },
                     { "level", level }
                 }).ToObject<RpgCharacter>();
+                try {
+                    engine.Scripting.EvaluateStringAsScript(engine.GetProperty<string>("CreatureValidator"), Tuple.Create<string, object>("creature", creature));
+                } catch(ScriptRuntimeException ex)
+                {
+                    throw new InvalidOperationException("Validation failed when generating a creature", ex);
+                }
                 if(creature == null)
                 {
                     throw new InvalidOperationException("GenerateCreature returned null! Ensure your implementation of GenerateCreature returns an object of type RpgCharacter or a subclass.");

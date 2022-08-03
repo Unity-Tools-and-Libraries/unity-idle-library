@@ -179,7 +179,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         public void AttackThatDealsLessThanMinimumDamageIsMinimum()
         {
             random.SetNextValues(1, 1, 1, 1, 1);
-            rpgModule.AddItem(new CharacterItem.Builder().WithEventTrigger("IsAttacking", "attack.isHit = false; attack.description = 'miss'; attack.damageToDefender = 0")
+            rpgModule.AddItem(new CharacterItem.Builder().WithEventTrigger("IsAttacking", "attack.isHit = false; attack.description = 'miss'; attack.ClearDefenderDamage(); attack.DamageDefender(0, attacker);")
                 .Build(engine, 5));
 
             Configure();

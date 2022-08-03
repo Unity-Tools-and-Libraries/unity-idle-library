@@ -1,0 +1,1 @@
+if(player.maximumHealth <= 0) then error('player health needs to be at least 1') end

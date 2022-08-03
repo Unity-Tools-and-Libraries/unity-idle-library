@@ -42,7 +42,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg.Combat.
             Assert.IsTrue(result.IsHit);
             Assert.AreEqual(new List<Tuple<BigDouble, RpgCharacter>>()
             {
-                Tuple.Create(new BigDouble(10), engine.GetPlayer<RpgCharacter>())
+                Tuple.Create(new BigDouble(12), engine.GetPlayer<RpgCharacter>())
             }, result.DamageToDefender);
         }
 
@@ -62,7 +62,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg.Combat.
 
             Assert.IsTrue(result.IsHit);
             Assert.AreEqual(new List<Tuple<BigDouble, RpgCharacter>>() {
-                Tuple.Create(new BigDouble(10), engine.GetPlayer<RpgCharacter>())
+                Tuple.Create(new BigDouble(12), engine.GetPlayer<RpgCharacter>())
             }, result.DamageToDefender);
 
             Assert.AreEqual(new List<Tuple<BigDouble, RpgCharacter>>() {

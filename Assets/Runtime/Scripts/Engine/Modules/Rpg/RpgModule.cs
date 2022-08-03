@@ -74,7 +74,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         private string defaultAttackHitScript =
             "return {hit=true, description='hit', damageToTarget=math.max(attacker.damage - defender.defense, configuration.minimum_attack_damage), attacker=attacker}";
         private string defaultAttackMissScript = "return {hit=false, description='miss', damageToTarget=0, attacker=attacker}";
-        private string defaultAttackCriticalHitScript = "return {hit=true, description='critical hit', damageToTarget=(attacker.damage - defender.defense) * attacker.criticalHitDamageMultiplier, attacker=attacker}";
+        private string defaultAttackCriticalHitScript = "return {hit=true, description='critical hit', damageToTarget=math.max((attacker.damage - defender.defense) * attacker.criticalHitDamageMultiplier, 1), attacker=attacker}";
 
         private string defaultCreatureValidator = "if(creature.maximumHealth <= 0) then error('creature health must be at least 1') end";
 
@@ -450,6 +450,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             }
             var player = Activator.CreateInstance(playerType, engine, 0);
             engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<string>("player.Initializer"), Tuple.Create<string, object>("player", player)).ToObject<RpgCharacter>();
+            try
+            {
+                engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<string>("player.ValidationScript"), Tuple.Create<string, object>(
+                    "player", player));
+            } catch (ScriptRuntimeException ex)
+            {
+                throw new InvalidOperationException("Player failed validation after initialization", ex);
+            }
             engine.GlobalProperties["player"] = player;
             return player as RpgCharacter;
         }

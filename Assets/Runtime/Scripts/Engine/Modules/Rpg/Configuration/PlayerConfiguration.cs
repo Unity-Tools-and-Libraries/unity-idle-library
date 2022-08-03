@@ -10,6 +10,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Configuration
             AttackScript = Resources.Load<TextAsset>("Lua/Rpg/DefaultToHitScript").text;
             Initializer = Resources.Load<TextAsset>("Lua/Rpg/DefaultPlayerInitializer").text;
             OnCreatureDiedScript = Resources.Load<TextAsset>("Lua/Rpg/DefaultCreatureDiedScript").text;
+            ValidationScript = Resources.Load<TextAsset>("Lua/Rpg/DefaultPlayerValidationScript").text;
         }
 
         /*
@@ -31,5 +32,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Configuration
          * 
          */
         public string OnCreatureDiedScript;
+
+        public string ValidationScript;
     }
 }

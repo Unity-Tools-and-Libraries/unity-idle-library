@@ -34,6 +34,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
                     BigDouble lhv = ScriptingService.DynValueToBigDouble(args[0]);
                     BigDouble rhv = ScriptingService.DynValueToBigDouble(args[1]);
                     return DynValue.FromObject(ctx.GetScript(), BigDouble.Pow(lhv, rhv));
+                }) },
+                { "ceil", new CallbackFunction((ctx, args) =>
+                {
+                    return DynValue.FromObject(null, BigDouble.Ceiling(DynValueToBigDouble(args[0])));
+                }) },
+                { "floor", new CallbackFunction((ctx, args) =>
+                {
+                    return DynValue.FromObject(null, BigDouble.Floor(DynValueToBigDouble(args[0])));
                 }) }
             }},
             { "table", new Dictionary<string, object>() {

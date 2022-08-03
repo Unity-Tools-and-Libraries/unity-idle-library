@@ -33,7 +33,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         public void AbilitiesOnTheDefenderCanModifyAnAttackBeingMade()
         {
             random.SetNextValues(1, 1, 1, 1, 1);
-            rpgModule.AddAbility(new CharacterAbility.Builder().WithEventTrigger("IsAttacking", "attack.isHit = false; attack.description = 'miss'; attack.clearDefenderDamage()")
+            rpgModule.AddAbility(new CharacterAbility.Builder().WithEventTrigger("IsBeingAttacked", "attack.isHit = false; attack.description = 'miss'; attack.clearDefenderDamage()")
                 .Build(engine, 5));
 
             Configure();
@@ -88,7 +88,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         public void StatusesOnTheDefenderCanModifyAnAttackBeingMade()
         {
             random.SetNextValues(1, 1, 1, 1, 1);
-            rpgModule.AddStatus(new CharacterStatus.Builder().WithEventTrigger("IsAttacking", "attack.isHit = false; attack.description = 'miss'; attack.ClearDefenderDamage()")
+            rpgModule.AddStatus(new CharacterStatus.Builder().WithEventTrigger("IsBeingAttacked", "attack.isHit = false; attack.description = 'miss'; attack.ClearDefenderDamage()")
                 .Build(engine, 5));
 
             Configure();
@@ -143,7 +143,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         public void ItemsOnTheDefenderCanModifyAnAttackBeingMade()
         {
             random.SetNextValues(1, 1, 1, 1, 1);
-            rpgModule.AddItem(new CharacterItem.Builder().WithEventTrigger("IsAttacking", "attack.isHit = false; attack.description = 'miss'; attack.ClearDefenderDamage()")
+            rpgModule.AddItem(new CharacterItem.Builder().WithEventTrigger("IsBeingAttacked", "attack.isHit = false; attack.description = 'miss'; attack.ClearDefenderDamage()")
                 .Build(engine, 5));
 
             Configure();

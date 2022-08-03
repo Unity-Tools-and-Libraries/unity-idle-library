@@ -29,16 +29,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             {
                 { RpgCharacter.Attributes.DAMAGE,                      1 },
                 { RpgCharacter.Attributes.MAXIMUM_HEALTH,              1 },
-                { RpgCharacter.Attributes.ACCURACY,                    0 },
+                { RpgCharacter.Attributes.ACCURACY,                    1 },
                 { RpgCharacter.Attributes.ACTION,                      ""},
-                { RpgCharacter.Attributes.ACTION_SPEED,                0 },
-                { RpgCharacter.Attributes.PRECISION,                   0 },
-                { RpgCharacter.Attributes.DEFENSE,                     0 },
-                { RpgCharacter.Attributes.EVASION,                     0 },
-                { RpgCharacter.Attributes.RESILIENCE,                  0 },
-                { RpgCharacter.Attributes.PENETRATION,                 0 },
-                { RpgCharacter.Attributes.CRITICAL_HIT_CHANCE,         0 },
-                { RpgCharacter.Attributes.CRITICAL_DAMAGE_MULTIPLIER,  0 }
+                { RpgCharacter.Attributes.ACTION_SPEED,                1 },
+                { RpgCharacter.Attributes.PRECISION,                   1 },
+                { RpgCharacter.Attributes.DEFENSE,                     1 },
+                { RpgCharacter.Attributes.EVASION,                     1 },
+                { RpgCharacter.Attributes.RESILIENCE,                  1 },
+                { RpgCharacter.Attributes.PENETRATION,                 1 },
+                { RpgCharacter.Attributes.CRITICAL_HIT_CHANCE,         1 },
+                { RpgCharacter.Attributes.CRITICAL_DAMAGE_MULTIPLIER,  1 }
             };
             public CreatureDefinition Build(long withId)
             {

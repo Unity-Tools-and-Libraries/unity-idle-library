@@ -175,5 +175,22 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             Assert.IsTrue(result.IsHit);
         }
 
+        [Test]
+        public void AttackThatDealsLessThanMinimumDamageIsMinimum()
+        {
+            random.SetNextValues(1, 1, 1, 1, 1);
+            rpgModule.AddItem(new CharacterItem.Builder().WithEventTrigger("IsAttacking", "attack.isHit = false; attack.description = 'miss'; attack.damageToDefender = 0")
+                .Build(engine, 5));
+
+            Configure();
+
+            var defender = new RpgCharacter(engine, 7);
+            defender.Defense = 100_000;
+
+            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
+
+            Assert.AreEqual(new BigDouble(1), result.DamageToDefender[0].Item1);
+        }
+
     }
 }

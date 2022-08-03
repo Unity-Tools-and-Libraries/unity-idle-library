@@ -72,7 +72,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public string PostUpdateHook;
         // FIXME: Externalize
         private string defaultAttackHitScript =
-            "return {hit=true, description='hit', damageToTarget=attacker.damage - defender.defense, attacker=attacker}";
+            "return {hit=true, description='hit', damageToTarget=math.max(attacker.damage - defender.defense, configuration.minimum_attack_damage), attacker=attacker}";
         private string defaultAttackMissScript = "return {hit=false, description='miss', damageToTarget=0, attacker=attacker}";
         private string defaultAttackCriticalHitScript = "return {hit=true, description='critical hit', damageToTarget=(attacker.damage - defender.defense) * attacker.criticalHitDamageMultiplier, attacker=attacker}";
 
@@ -105,6 +105,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             engine.SetConfiguration("PlayerAttackScript", Player.AttackScript);
 
             engine.SetConfiguration("base_tohit", 50);
+
+            engine.SetConfiguration("minimum_attack_damage", 1);
 
             engine.Scripting.SetScriptToClrCustomConversion(DataType.Table, typeof(AttackResultDescription), value =>
             {

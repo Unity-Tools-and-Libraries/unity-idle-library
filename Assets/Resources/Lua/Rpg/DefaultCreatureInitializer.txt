@@ -8,9 +8,9 @@ end
 creature.party = 1
 creature.level = level
 creature.accuracy = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.accuracy, level) * definition.Properties.accuracy)
-creature.criticalHitChance = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.criticalHitChance, level) * definition.Properties.critical_hit_chance)
-creature.criticalHitDamageMultiplier = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.criticalHitDamageMultiplier, level) * definition.Properties.critical_damage_multiplier)
-creature.maximumHealth = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.maximumHealth, level) * definition.Properties.maximum_health)
+creature.criticalHitChance = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.critical_hit_chance, level) * definition.Properties.critical_hit_chance)
+creature.criticalHitDamageMultiplier = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.critical_damage_multiplier, level) * definition.Properties.critical_damage_multiplier)
+creature.maximumHealth = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.maximum_health, level) * definition.Properties.maximum_health)
 creature.currentHealth = creature.maximumHealth
 creature.damage = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.damage, level) * definition.Properties.damage)
 creature.defense = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.defense, level) * definition.Properties.defense)

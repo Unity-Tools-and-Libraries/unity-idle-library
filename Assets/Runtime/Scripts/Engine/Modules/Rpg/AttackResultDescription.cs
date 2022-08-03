@@ -42,5 +42,15 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Combat
         {
             DamageToDefender.Clear();
         }
+
+        public void DamageAttacker(BigDouble damage, RpgCharacter source)
+        {
+            DamageToAttacker.Add(Tuple.Create(damage, source));
+        }
+
+        public void DamageDefender(BigDouble damage, RpgCharacter source)
+        {
+            DamageToDefender.Add(Tuple.Create(damage, source));
+        }
     }
 }

@@ -294,6 +294,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 { "attacker", attacker },
                 { "defender", defender }
             };
+            engine.Logging.Log(LogType.Log, () => String.Format("Character {0} is attacking {1}", attacker.Id, defender.Id), "combat.attack");
             var attackResult = engine.Scripting.EvaluateStringAsScript(attacker.AttackScript, context).String;
             if (attackResult == null)
             {
@@ -303,6 +304,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             Dictionary<string, string> resultHandlerScripts = engine.GlobalProperties["AttackHandlerScripts"] as Dictionary<string, string>;
             AttackResultDescription attackResultDescription;
             attackResultDescription = engine.Scripting.EvaluateStringAsScript(resultHandlerScripts[attackResult], context).ToObject<AttackResultDescription>();
+            engine.Logging.Log(LogType.Log, () => String.Format("Attack result was {0}", attackResultDescription), "combat.attack");
             context["attack"] = attackResultDescription;
             // Call IsAttacking triggers on attacker
             List<string> IsAttackingTriggers;
@@ -312,10 +314,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             }
             // Call IsBeingAttacked triggers on defender
             List<string> IsBeingAttackedTriggers;
-            if (defender.OnEventTriggers.TryGetValue("IsAttacking", out IsBeingAttackedTriggers))
+            if (defender.OnEventTriggers.TryGetValue("IsBeingAttacked", out IsBeingAttackedTriggers))
             {
                 IsBeingAttackedTriggers.Aggregate(attackResultDescription, (result, trigger) => engine.Scripting.EvaluateStringAsScript(trigger, context).ToObject<AttackResultDescription>());
             }
+
             if (attackResultDescription.IsHit)
             {
                 attacker.Emit(AttackHitEvent.EventName, new AttackHitEvent(attacker, defender, attackResultDescription));
@@ -329,13 +332,15 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
             if(attackResultDescription.DamageToAttacker.Count > 0)
             {
-                foreach(var damage in attackResultDescription.DamageToAttacker)
+                engine.Logging.Log(LogType.Log, () => String.Format("Applying #{0} damage effects to {1}", attackResultDescription.DamageToAttacker.Count, attacker.Id), "combat.attack");
+                foreach (var damage in attackResultDescription.DamageToAttacker)
                 {
                     attacker.InflictDamage(damage.Item1, damage.Item2);
                 }
             }
             if (attackResultDescription.DamageToDefender.Count > 0)
             {
+                engine.Logging.Log(LogType.Log, () => String.Format("Applying #{0} damage effects to {1}", attackResultDescription.DamageToDefender.Count, defender.Id), "combat.attack");
                 foreach (var damage in attackResultDescription.DamageToDefender)
                 {
                     defender.InflictDamage(damage.Item1, damage.Item2);
@@ -423,6 +428,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         {
             if (engine.GlobalProperties.ContainsKey("player"))
             {
+                engine.Logging.Log(LogType.Log, "Player already generated, returning it");
                 return engine.GlobalProperties["player"] as RpgCharacter;
             }
             var playerType = engine.GetConfiguration<Type>("player.CharacterType");

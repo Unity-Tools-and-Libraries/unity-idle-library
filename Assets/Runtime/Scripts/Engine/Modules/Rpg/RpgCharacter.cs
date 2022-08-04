@@ -84,7 +84,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
             if (CurrentHealth <= actualDamage)
             {
-                Kill(source);
+                actualDamage = CurrentHealth;
             }
             else
             {
@@ -95,13 +95,17 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             if (source != null)
             {
                 source.Emit(DamageInflictedEvent.EventName, damageInflicted);
-                Engine.Emit(DamageInflictedEvent.EventName, damageInflicted);
             }
+            Engine.Emit(DamageInflictedEvent.EventName, damageInflicted);
 
             var damagedTaken = new DamageTakenEvent(source, attackDamage, this);
             Emit(DamageTakenEvent.EventName, damagedTaken);
             Engine.Emit(DamageTakenEvent.EventName, damagedTaken);
 
+            if(CurrentHealth == 0)
+            {
+                Kill(source);
+            }
 
             return actualDamage;
         }

@@ -73,14 +73,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         // FIXME: Externalize
         private string defaultAttackHitScript =
             "return {hit=true, description='hit', damageToTarget=math.max(attacker.damage - defender.defense, configuration.minimum_attack_damage), attacker=attacker}";
-        private string defaultAttackMissScript = "return {hit=false, description='miss', damageToTarget=0, attacker=attacker}";
+        private string defaultAttackMissScript = "return {hit=false, description='miss', attacker=attacker}";
         private string defaultAttackCriticalHitScript = "return {hit=true, description='critical hit', damageToTarget=math.max((attacker.damage - defender.defense) * attacker.criticalHitDamageMultiplier, 1), attacker=attacker}";
 
         private string defaultCreatureValidator = "if(creature.maximumHealth <= 0) then error('creature health must be at least 1') end";
 
         public RpgModule()
         {
-            //PostUpdateHook = Resources.Load<TextAsset>("Lua/Rpg/DefaultPostUpdateHook").text;
+            
         }
 
         public void SetConfiguration(IdleEngine engine)
@@ -339,7 +339,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             if(attackResultDescription.DamageToAttacker.Count > 0)
             {
                 engine.Logging.Log(LogType.Log, () => String.Format("Applying #{0} damage effects to {1}", attackResultDescription.DamageToAttacker.Count, attacker.Id), "combat.attack");
-                foreach (var damage in attackResultDescription.DamageToAttacker)
+                foreach (var damage in attackResultDescription.DamageToAttacker.Where(x => x != null))
                 {
                     attacker.InflictDamage(damage.Item1, damage.Item2);
                 }
@@ -347,7 +347,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             if (attackResultDescription.DamageToDefender.Count > 0)
             {
                 engine.Logging.Log(LogType.Log, () => String.Format("Applying #{0} damage effects to {1}", attackResultDescription.DamageToDefender.Count, defender.Id), "combat.attack");
-                foreach (var damage in attackResultDescription.DamageToDefender)
+                foreach (var damage in attackResultDescription.DamageToDefender.Where(x => x != null))
                 {
                     defender.InflictDamage(damage.Item1, damage.Item2);
                 }

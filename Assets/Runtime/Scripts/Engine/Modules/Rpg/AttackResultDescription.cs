@@ -22,12 +22,18 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Combat
         {
             IsHit = isHit;
             Description = description;
-            OriginalDamageToDefender = Tuple.Create(attackDamage, attacker);
-            DamageToAttacker = new List<Tuple<BigDouble, RpgCharacter>>();
-            DamageToDefender = new List<Tuple<BigDouble, RpgCharacter>>()
+            if (attackDamage > 0)
             {
-                OriginalDamageToDefender
-            };
+                OriginalDamageToDefender = Tuple.Create(attackDamage, attacker);
+                DamageToDefender = new List<Tuple<BigDouble, RpgCharacter>>()
+                {
+                    OriginalDamageToDefender
+                };
+            } else
+            {
+                DamageToDefender = new List<Tuple<BigDouble, RpgCharacter>>();
+            }
+            DamageToAttacker = new List<Tuple<BigDouble, RpgCharacter>>();
             
             StatusesToApplyToAttacker = statusesToApplyToAttacker;
             StatusesToApplyToDefender = statusesToApplyToDefender;

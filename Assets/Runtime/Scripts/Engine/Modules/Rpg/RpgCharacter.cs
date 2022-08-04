@@ -86,10 +86,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             {
                 actualDamage = CurrentHealth;
             }
-            else
-            {
-                CurrentHealth -= actualDamage;
-            }
+            CurrentHealth -= actualDamage;
 
             var damageInflicted = new DamageInflictedEvent(source, attackDamage, this);
             if (source != null)

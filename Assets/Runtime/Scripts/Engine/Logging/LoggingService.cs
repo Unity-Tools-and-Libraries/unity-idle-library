@@ -60,6 +60,36 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Logging
             }
         }
 
+        public void Log(string message, string logContext = null)
+        {
+            Log(LogType.Log, message, logContext);
+        }
+
+        public void Log(Func<string> messageGenerator, string logContext = null)
+        {
+            Log(LogType.Log, messageGenerator, logContext);
+        }
+
+        public void Warning(string message, string logContext = null)
+        {
+            Log(LogType.Warning, message, logContext);
+        }
+
+        public void Warning(Func<string> messageGenerator, string logContext = null)
+        {
+            Log(LogType.Warning, messageGenerator, logContext);
+        }
+
+        public void Exception(string message, string logContext = null)
+        {
+            Log(LogType.Exception, message, logContext);
+        }
+
+        public void Exception(Func<string> messageGenerator, string logContext = null)
+        {
+            Log(LogType.Exception, messageGenerator, logContext);
+        }
+
         public void ConfigureLogging(string logContext, LogType? logLevel, bool enabled = true)
         {
             Dictionary<LogType, bool> contexts;

@@ -315,6 +315,40 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         }
 
         [Test]
+        public void CalculatedCreatureHealth()
+        {
+            Configure();
+
+            engine.Logging.ConfigureLogging("creature.generate", UnityEngine.LogType.Log);
+
+            var creature = new RpgCharacter(engine, 10);
+            engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<string>("creatures.Initializer"), new Dictionary<string, object>() {
+                { "creature", creature },
+                { "level", 1 },
+                { "definition", engine.GetCreatures()[1] }
+                });
+
+            Assert.AreEqual(new BigDouble(10), creature.CurrentHealth);
+            Assert.AreEqual(new BigDouble(10), creature.MaximumHealth);
+        }
+
+        [Test]
+        public void CalculatedPlayerHealth()
+        {
+            Configure();
+
+            var creature = new RpgCharacter(engine, 10);
+            engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<string>("creatures.Initializer"), new Dictionary<string, object>() {
+                {"creature", creature },
+                { "level", 1 },
+                { "definition", engine.GetCreatures()[1] }
+                });
+
+            Assert.AreEqual(new BigDouble(25), engine.GetPlayer<RpgCharacter>().CurrentHealth);
+            Assert.AreEqual(new BigDouble(25), engine.GetPlayer<RpgCharacter>().MaximumHealth);
+        }
+
+        [Test]
         public void WhenGenerateCreatureReturnsNullThrow()
         {
             random.SetNextValues(0);
@@ -340,6 +374,21 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             {
                 engine.StartEncounter();
             });
+        }
+
+        [Test]
+        public void CreatureScaling()
+        {
+            Configure();
+            var baseValue = new BigDouble(10);
+
+            var result = engine.Scripting.EvaluateStringAsScript("return ScaleCreatureAttribute(value, level)",
+                new Dictionary<string, object>()
+                {
+                    { "value", baseValue },
+                    { "level", 1 }
+                }).ToObject<BigDouble>();
+            Assert.AreEqual(new BigDouble(10), result);
         }
     }
 }

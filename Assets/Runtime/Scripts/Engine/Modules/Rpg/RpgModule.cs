@@ -260,6 +260,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         {
             public const string ActionPhase = "action_phase";
         }
+
+        public Dictionary<string, object> GetDefinitions() => definitions;
     }
 
     public static class RpgExtensionMethods

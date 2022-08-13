@@ -14,11 +14,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 {
     public class RpgModule : IModule
     {
-        private Dictionary<long, EncounterDefinition> encounters = new Dictionary<long, EncounterDefinition>();
-        private Dictionary<long, CreatureDefinition> creatures = new Dictionary<long, CreatureDefinition>();
-        private Dictionary<long, CharacterStatus> statuses = new Dictionary<long, CharacterStatus>();
-        private Dictionary<long, CharacterAbility> abilities = new Dictionary<long, CharacterAbility>();
-        private Dictionary<long, CharacterItem> items = new Dictionary<long, CharacterItem>();
+        private Dictionary<string, object> definitions = new Dictionary<string, object>()
+        {
+            { "encounters", new Dictionary<long, EncounterDefinition>() },
+            { "creatures", new Dictionary<long, CreatureDefinition>() },
+            { "statuses", new Dictionary<long, CharacterStatus>() },
+            { "abilities", new Dictionary<long, CharacterAbility>() },
+            { "items", new Dictionary<long, CharacterItem>() },
+        };
 
         public PlayerConfiguration Player { get; } = new PlayerConfiguration();
         public CreaturesConfiguration Creatures { get; } = new CreaturesConfiguration();
@@ -124,11 +127,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
         public void SetDefinitions(IdleEngine engine)
         {
-            engine.GetDefinitions()["encounters"] = encounters;
-            engine.GetDefinitions()["creatures"] = creatures;
-            engine.GetDefinitions()["statuses"] = statuses;
-            engine.GetDefinitions()["abilities"] = abilities;
-            engine.GetDefinitions()["items"] = items;
+            foreach(var definitionCategory in definitions)
+            {
+                engine.GetDefinitions()[definitionCategory.Key] = definitionCategory.Value;
+            }
         }
 
         public void SetGlobalProperties(IdleEngine engine)
@@ -212,19 +214,19 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
         public void AddCreature(CreatureDefinition creatureDefinition)
         {
-            creatures[creatureDefinition.Id] = creatureDefinition;
+            (definitions["creatures"] as Dictionary<long, CreatureDefinition>)[creatureDefinition.Id] = creatureDefinition;
         }
 
         public void AddAbility(CharacterAbility ability)
         {
-            abilities[ability.Id] = ability;
+            (definitions["abilities"] as Dictionary<long, CharacterAbility>)[ability.Id] = ability;
         }
 
         public void AddEncounter(EncounterDefinition encounterDefinition)
         {
             foreach (var option in encounterDefinition.CreatureOptions)
             {
-                if (!creatures.ContainsKey(option.Item1))
+                if (!(definitions["creatures"] as Dictionary<long, CreatureDefinition>).ContainsKey(option.Item1))
                 {
                     throw new InvalidOperationException("Add a creature with id " + option.Item1 + " first!");
                 }
@@ -233,22 +235,22 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             {
                 throw new InvalidOperationException("Encounter needs at least one option.");
             }
-            encounters[encounterDefinition.Id] = encounterDefinition;
+            (definitions["encounters"] as Dictionary<long, EncounterDefinition>)[encounterDefinition.Id] = encounterDefinition;
         }
 
         public void AddStatus(CharacterStatus status)
         {
-            statuses[status.Id] = status;
+            (definitions["statuses"] as Dictionary<long, CharacterStatus>)[status.Id] = status;
         }
 
         public void AddItem(CharacterItem item)
         {
-            items[item.Id] = item;
+            (definitions["items"] as Dictionary<long, CharacterItem>)[item.Id] = item;
         }
 
         public void AssertReady()
         {
-            if (encounters.Count == 0)
+            if ((definitions["encounters"] as Dictionary<long, EncounterDefinition>).Count == 0)
             {
                 throw new InvalidOperationException("Need to define at least 1 encounter");
             }

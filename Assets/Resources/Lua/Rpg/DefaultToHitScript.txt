@@ -1,7 +1,7 @@
 local toHitRoll = engine.RandomInt(100) + 1
-if toHitRoll <= (configuration.base_tohit + attacker.accuracy - defender.evasion) then
+if toHitRoll <= (configuration.base_tohit + attacker.accuracy.Total - defender.evasion.Total) then
 	local critRoll = engine.RandomInt(1000)
-	if critRoll <= attacker.CriticalHitChance then
+	if critRoll <= attacker.CriticalHitChance.Total then
 		return 'critical hit'
 	else
 		return 'hit'

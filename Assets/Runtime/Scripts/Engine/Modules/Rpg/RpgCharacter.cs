@@ -41,22 +41,22 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         /*
          * The maximum amount of health this character has.
          */
-        public virtual BigDouble MaximumHealth { get; set; }
-        public virtual BigDouble Damage { get; set; }
+        public readonly NumericAttribute MaximumHealth = new NumericAttribute(0);
+        public readonly NumericAttribute Damage = new NumericAttribute(0);
         public virtual BigDouble ActionMeter { get; set; }
-        public virtual BigDouble Accuracy { get; set; }
-        public virtual BigDouble Evasion { get; set; }
-        public virtual BigDouble Defense { get; set; }
-        public virtual BigDouble Penetration { get; set; }
-        public virtual BigDouble Precision { get; set; }
-        public virtual BigDouble Resilience { get; set; }
-        public virtual BigDouble ActionMeterSpeed { get; set; }
-        public virtual BigDouble CriticalHitDamageMultiplier { get; set; }
+        public readonly NumericAttribute Accuracy = new NumericAttribute(0);
+        public readonly NumericAttribute Evasion = new NumericAttribute(0);
+        public readonly NumericAttribute Defense = new NumericAttribute(0);
+        public readonly NumericAttribute Penetration = new NumericAttribute(0);
+        public readonly NumericAttribute Precision = new NumericAttribute(0);
+        public readonly NumericAttribute Resilience = new NumericAttribute(0);
+        public readonly NumericAttribute ActionMeterSpeed = new NumericAttribute(0);
+        public readonly NumericAttribute CriticalHitDamageMultiplier = new NumericAttribute(0);
         public virtual bool Targetable { get; set; }
         public virtual BigDouble Party { get; set; }
         public virtual bool IsAlive { get; set; }
         public string Action { get; set; }
-        public virtual BigDouble CriticalHitChance { get; set; }
+        public readonly NumericAttribute CriticalHitChance = new NumericAttribute(0);
         public virtual BigDouble Xp { get; set; }
         public virtual BigDouble Gold { get; set; }
         public virtual Dictionary<long, CharacterAbility> Abilities { get; set; }

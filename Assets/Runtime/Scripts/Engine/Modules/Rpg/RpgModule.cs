@@ -75,11 +75,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public string PostUpdateHook;
         // FIXME: Externalize
         private string defaultAttackHitScript =
-            "return {hit=true, description='hit', damageToTarget=math.max(attacker.damage - defender.defense, configuration.minimum_attack_damage), attacker=attacker}";
+            "return {hit=true, description='hit', damageToTarget=math.max(attacker.damage.Total - defender.defense.Total, configuration.minimum_attack_damage), attacker=attacker}";
         private string defaultAttackMissScript = "return {hit=false, description='miss', attacker=attacker}";
-        private string defaultAttackCriticalHitScript = "return {hit=true, description='critical hit', damageToTarget=math.max((attacker.damage - defender.defense) * attacker.criticalHitDamageMultiplier, 1), attacker=attacker}";
+        private string defaultAttackCriticalHitScript = "return {hit=true, description='critical hit', damageToTarget=math.max((attacker.damage.Total - defender.defense.Total) * attacker.criticalHitDamageMultiplier.Total, 1), attacker=attacker}";
 
-        private string defaultCreatureValidator = "if(creature.maximumHealth <= 0) then error('creature health must be at least 1') end";
+        private string defaultCreatureValidator = "if(creature.maximumHealth.Total <= 0) then error('creature health must be at least 1') end";
 
         public RpgModule()
         {
@@ -100,6 +100,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             UserData.RegisterType<CharacterAbility>();
             UserData.RegisterType<Tuple<BigDouble, RpgCharacter>>();
             UserData.RegisterExtensionType(typeof(RpgExtensionMethods));
+            UserData.RegisterType<NumericAttribute>();
 
             engine.SetConfiguration("player", Player);
             engine.SetConfiguration("creatures", Creatures);
@@ -460,7 +461,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                     "player", player));
             } catch (ScriptRuntimeException ex)
             {
-                throw new InvalidOperationException("Player failed validation after initialization", ex);
+                throw new InvalidOperationException("Player failed validation after initialization.", ex);
             }
             engine.GlobalProperties["player"] = player;
             return player as RpgCharacter;

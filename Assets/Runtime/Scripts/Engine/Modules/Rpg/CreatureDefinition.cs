@@ -1,9 +1,6 @@
 
 using Newtonsoft.Json;
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 {
@@ -20,7 +17,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             {
                 this.Properties[property.Key] = property.Value;
             }
-            
         }
 
         public class Builder

@@ -1,15 +1,15 @@
 player.party = 0
-player.accuracy = configuration.default_player_stats.accuracy
-player.criticalHitChance = configuration.default_player_stats.critical_hit_chance
-player.criticalHitDamageMultiplier = configuration.default_player_stats.critical_damage_multiplier
-player.maximumHealth = configuration.default_player_stats.maximum_health
-player.currentHealth = player.maximum_health
-player.damage = configuration.default_player_stats.damage
-player.defense = configuration.default_player_stats.defense
-player.evasion = configuration.default_player_stats.evasion
-player.penetration = configuration.default_player_stats.penetration
-player.precision = configuration.default_player_stats.precision
-player.resilience = configuration.default_player_stats.resilience
+player.accuracy.BaseValue = configuration.default_player_stats.accuracy
+player.criticalHitChance.BaseValue = configuration.default_player_stats.critical_hit_chance
+player.criticalHitDamageMultiplier.BaseValue = configuration.default_player_stats.critical_damage_multiplier
+player.maximumHealth.BaseValue = configuration.default_player_stats.maximum_health
+player.currentHealth = player.maximum_health.Total
+player.damage.BaseValue = configuration.default_player_stats.damage
+player.defense.BaseValue = configuration.default_player_stats.defense
+player.evasion.BaseValue = configuration.default_player_stats.evasion
+player.penetration.BaseValue = configuration.default_player_stats.penetration
+player.precision.BaseValue = configuration.default_player_stats.precision
+player.resilience.BaseValue = configuration.default_player_stats.resilience
 
 player.xp = 0
 player.gold = 0

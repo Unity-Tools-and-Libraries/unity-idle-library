@@ -185,7 +185,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             Configure();
 
             var defender = new RpgCharacter(engine, 7);
-            defender.Defense = 100_000;
+            defender.Defense.BaseValue = 100_000;
 
             var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
 

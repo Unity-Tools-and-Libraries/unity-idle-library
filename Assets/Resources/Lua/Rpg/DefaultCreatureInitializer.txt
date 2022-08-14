@@ -7,17 +7,18 @@ end
 
 creature.party = 1
 creature.level = level
-creature.accuracy = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.accuracy, level) * definition.Properties.accuracy)
-creature.criticalHitChance = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.critical_hit_chance, level) * definition.Properties.critical_hit_chance)
-creature.criticalHitDamageMultiplier = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.critical_damage_multiplier, level) * definition.Properties.critical_damage_multiplier)
-creature.maximumHealth = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.maximum_health, level) * definition.Properties.maximum_health)
-creature.currentHealth = creature.maximumHealth
-creature.damage = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.damage, level) * definition.Properties.damage)
-creature.defense = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.defense, level) * definition.Properties.defense)
-creature.evasion = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.evasion, level) * definition.Properties.evasion)
-creature.penetration = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.penetration, level) * definition.Properties.penetration)
-creature.precision = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.precision, level) * definition.Properties.precision)
-creature.resilience = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.resilience, level) * definition.Properties.resilience)
+creature.accuracy.BaseValue = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.accuracy, level) * definition.Properties.accuracy)
+creature.criticalHitChance.BaseValue = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.critical_hit_chance, level) * definition.Properties.critical_hit_chance)
+creature.criticalHitDamageMultiplier.BaseValue = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.critical_damage_multiplier, level) * definition.Properties.critical_damage_multiplier)
+
+creature.maximumHealth.BaseValue = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.maximum_health, level) * definition.Properties.maximum_health)
+creature.currentHealth = creature.maximumHealth.Total
+creature.damage.BaseValue = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.damage, level) * definition.Properties.damage)
+creature.defense.BaseValue = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.defense, level) * definition.Properties.defense)
+creature.evasion.BaseValue = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.evasion, level) * definition.Properties.evasion)
+creature.penetration.BaseValue = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.penetration, level) * definition.Properties.penetration)
+creature.precision.BaseValue = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.precision, level) * definition.Properties.precision)
+creature.resilience.BaseValue = math.ceil(ScaleCreatureAttribute(configuration.default_creature_stats.resilience, level) * definition.Properties.resilience)
 
 creature.xp = CalculateXpValue(creature)
 creature.gold = CalculateGoldValue(creature)

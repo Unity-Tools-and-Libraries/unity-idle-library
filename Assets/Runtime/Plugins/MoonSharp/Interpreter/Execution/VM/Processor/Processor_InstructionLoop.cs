@@ -762,9 +762,7 @@ namespace MoonSharp.Interpreter.Execution.VM
 				return Internal_ExecCall(argsCount + 1, instructionPtr, handler, continuation);
 			}
 
-			debugText = String.Join(".", m_DebugNameStack.Select(x => x).ToArray());
-
-			throw ScriptRuntimeException.AttemptToCallNonFunc(fn.Type, debugText);
+			throw ScriptRuntimeException.AttemptToCallNonFunc(fn.Type, GenerateDebugPath());
 		}
 
 		private int PerformTCO(int instructionPtr, int argsCount)
@@ -902,7 +900,7 @@ namespace MoonSharp.Interpreter.Execution.VM
 			{
 				int ip = Internal_InvokeBinaryMetaMethod(l, r, "__add", instructionPtr);
 				if (ip >= 0) return ip;
-				else throw ScriptRuntimeException.ArithmeticOnNonNumber(l, r);
+				else throw ScriptRuntimeException.ArithmeticOnNonNumber(l, r, GenerateDebugPath());
 			}
 		}
 
@@ -923,7 +921,7 @@ namespace MoonSharp.Interpreter.Execution.VM
 			{
 				int ip = Internal_InvokeBinaryMetaMethod(l, r, "__sub", instructionPtr);
 				if (ip >= 0) return ip;
-				else throw ScriptRuntimeException.ArithmeticOnNonNumber(l, r);
+				else throw ScriptRuntimeException.ArithmeticOnNonNumber(l, r, GenerateDebugPath());
 			}
 		}
 
@@ -945,7 +943,7 @@ namespace MoonSharp.Interpreter.Execution.VM
 			{
 				int ip = Internal_InvokeBinaryMetaMethod(l, r, "__mul", instructionPtr);
 				if (ip >= 0) return ip;
-				else throw ScriptRuntimeException.ArithmeticOnNonNumber(l, r);
+				else throw ScriptRuntimeException.ArithmeticOnNonNumber(l, r, GenerateDebugPath());
 			}
 		}
 
@@ -1255,7 +1253,7 @@ namespace MoonSharp.Interpreter.Execution.VM
 
 					if (!ud.Descriptor.SetIndex(this.GetScript(), ud.Object, originalIdx, value, isNameIndex))
 					{
-						throw ScriptRuntimeException.UserDataMissingField(ud.Descriptor.Name, idx.String);
+						throw ScriptRuntimeException.UserDataMissingField(ud.Descriptor.Name, idx.String, GenerateDebugPath());
 					}
 					m_DebugNameStack.Clear();
 					return instructionPtr;
@@ -1266,7 +1264,7 @@ namespace MoonSharp.Interpreter.Execution.VM
 
 					m_DebugNameStack.Push(idx.CastToString());
 					if (h == null || h.IsNil())
-						throw ScriptRuntimeException.IndexType(obj, String.Join(".", m_DebugNameStack));
+						throw ScriptRuntimeException.IndexType(obj, String.Join(".", m_DebugNameStack.Where(x => x != null)));
 				}
 
 				if (h.Type == DataType.Function || h.Type == DataType.ClrFunction)
@@ -1289,7 +1287,12 @@ namespace MoonSharp.Interpreter.Execution.VM
 			throw ScriptRuntimeException.LoopInNewIndex();
 		}
 
-		private int ExecIndex(Instruction i, int instructionPtr)
+        private string GenerateDebugPath()
+        {
+			return String.Join(".", m_DebugNameStack.Select(x => x).ToArray());
+		}
+
+        private int ExecIndex(Instruction i, int instructionPtr)
 		{
 			int nestedMetaOps = 100; // sanity check, to avoid potential infinite loop here
 
@@ -1342,7 +1345,7 @@ namespace MoonSharp.Interpreter.Execution.VM
 
 					if (v == null)
 					{
-						throw ScriptRuntimeException.UserDataMissingField(ud.Descriptor.Name, idx.String);
+						throw ScriptRuntimeException.UserDataMissingField(ud.Descriptor.Name, idx.String, GenerateDebugPath());
 					}
 
 					m_ValueStack.Push(v.AsReadOnly());

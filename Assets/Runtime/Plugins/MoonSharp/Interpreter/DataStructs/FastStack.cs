@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MoonSharp.Interpreter.DataStructs
 {
@@ -163,7 +164,9 @@ namespace MoonSharp.Interpreter.DataStructs
 
 		IEnumerator<T> IEnumerable<T>.GetEnumerator()
 		{
-			throw new NotImplementedException();
+			return m_Storage
+				.Select(x => x)
+				.GetEnumerator();
 		}
 
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
@@ -171,9 +174,9 @@ namespace MoonSharp.Interpreter.DataStructs
 			throw new NotImplementedException();
 		}
 
-		#endregion
+        #endregion
 
-	}
+    }
 }
 
 #endif

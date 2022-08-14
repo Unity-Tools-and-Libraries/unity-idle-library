@@ -63,12 +63,10 @@ namespace MoonSharp.Interpreter
 		/// <param name="r">The right operand (or null).</param>
 		/// <returns>The exception to be raised.</returns>
 		/// <exception cref="InternalErrorException">If both are numbers</exception>
-		public static ScriptRuntimeException ArithmeticOnNonNumber(DynValue l, DynValue r = null)
+		public static ScriptRuntimeException ArithmeticOnNonNumber(DynValue l, DynValue r = null, string debugPath = null)
 		{
-			if (l.Type != DataType.Number && l.Type != DataType.String)
-				return new ScriptRuntimeException("attempt to perform arithmetic on a {0} value", l.Type.ToLuaTypeString());
-			else if (r != null && r.Type != DataType.Number && r.Type != DataType.String)
-				return new ScriptRuntimeException("attempt to perform arithmetic on a {0} value", r.Type.ToLuaTypeString());
+			if (l.Type != DataType.Number && l.Type != DataType.String || (r != null && r.Type != DataType.Number && r.Type != DataType.String))
+				return new ScriptRuntimeException("attempt to perform arithmetic between a {0} value and a {1} value at {2}", l.Type.ToLuaTypeString(), r != null ? r.Type.ToLuaTypeString() : DataType.Nil, debugPath);
 			else if (l.Type == DataType.String || (r != null && r.Type == DataType.String))
 				return new ScriptRuntimeException("attempt to perform arithmetic on a string value");
 			else
@@ -421,9 +419,9 @@ namespace MoonSharp.Interpreter
 		/// <returns>
 		/// The exception to be raised.
 		/// </returns>
-		public static ScriptRuntimeException UserDataMissingField(string typename, string fieldname)
+		public static ScriptRuntimeException UserDataMissingField(string typename, string fieldname, string debugPath)
 		{
-			return new ScriptRuntimeException("cannot access field {0} of userdata<{1}>", fieldname, typename);
+			return new ScriptRuntimeException("cannot access field {0} of userdata<{1}> at {2}", fieldname, typename, debugPath);
 		}
 
 		/// <summary>

@@ -27,7 +27,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
 
         private string Concat(DynValue lhs, DynValue rhs)
         {
-            return (lhs.Type == DataType.UserData ? lhs.ToObject().ToString() : lhs.String) + rhs.String;
+            return (lhs.Type == DataType.UserData ? lhs.ToObject().ToString() : lhs.String) +
+                (rhs.Type == DataType.UserData ? lhs.ToObject().ToString() : rhs.String);
         }
     }
 }

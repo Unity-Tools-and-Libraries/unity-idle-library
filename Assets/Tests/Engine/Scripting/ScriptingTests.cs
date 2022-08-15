@@ -262,5 +262,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
         {
             Assert.AreEqual(BigDouble.Zero, ScriptingService.DynValueToBigDouble(DynValue.Nil));
         }
+
+        [Test]
+        public void CanConcatenateBigDoubleAndString()
+        {
+            Assert.AreEqual("1 + 2", engine.Scripting.EvaluateStringAsScript("return num .. ' + 2'", Tuple.Create<string, object>("num", BigDouble.One)).String);
+        }
     }
 }

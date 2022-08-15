@@ -1,11 +1,8 @@
 using BreakInfinity;
-using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg;
-using io.github.thisisnozaku.idle.framework.Engine.Persistence;
 using io.github.thisisnozaku.idle.framework.Events;
 using MoonSharp.Interpreter;
 using MoonSharp.Interpreter.Interop;
 using System;
-using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using io.github.thisisnozaku.idle.framework.Engine.Logging;
@@ -64,7 +61,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             script = new Script(CoreModules.Preset_HardSandbox ^ CoreModules.Math);
 
             UserData.RegisterType<IdleEngine>();
-            UserData.RegisterType<BigDouble>();
+            UserData.RegisterType(new BigDoubleTypeDescriptor(typeof(BigDouble), InteropAccessMode.Default));
             UserData.RegisterType<WrappedDictionary>();
             UserData.RegisterType<Type>();
             UserData.RegisterType<LoggingService>();

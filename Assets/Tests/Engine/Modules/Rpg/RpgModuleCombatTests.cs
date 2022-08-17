@@ -50,7 +50,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         [Test]
         public void RemovingAbilityRemovesTriggers()
         {
-            random.SetNextValues(1, 1, 1, 1, 1);
+            random.SetNextValues(1, 1, 0, 1, 1);
             rpgModule.AddAbility(new CharacterAbility.Builder().WithEventTrigger("IsAttacking", "attack.isHit = false; attack.description = 'miss'; attack.clearDefenderDamage()")
                 .Build(engine, 5));
 
@@ -105,7 +105,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         [Test]
         public void RemovingStatusRemovesTriggers()
         {
-            random.SetNextValues(1, 1, 1, 1, 1);
+            random.SetNextValues(1, 1, 0, 1, 1);
             rpgModule.AddStatus(new CharacterStatus.Builder().WithEventTrigger("IsAttacking", "attack.isHit = false; attack.description = 'miss'; attack.ClearDefenderDamage()")
                 .Build(engine, 5));
 
@@ -160,7 +160,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         [Test]
         public void RemovingItemRemovesTrigger()
         {
-            random.SetNextValues(1, 1, 1, 1, 1);
+            random.SetNextValues(1, 1, 0, 1, 1);
             rpgModule.AddItem(new CharacterItem.Builder().WithEventTrigger("IsAttacking", "attack.isHit = false; attack.description = 'miss'; attack.damageToDefender = 0")
                 .Build(engine, 5));
 
@@ -178,7 +178,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         [Test]
         public void AttackThatDealsLessThanMinimumDamageIsMinimum()
         {
-            random.SetNextValues(1, 1, 1, 1, 1);
+            random.SetNextValues(1, 1, 0, 1, 1);
             rpgModule.AddItem(new CharacterItem.Builder().WithEventTrigger("IsAttacking", "attack.isHit = false; attack.description = 'miss'; attack.ClearDefenderDamage(); attack.DamageDefender(0, attacker);")
                 .Build(engine, 5));
 

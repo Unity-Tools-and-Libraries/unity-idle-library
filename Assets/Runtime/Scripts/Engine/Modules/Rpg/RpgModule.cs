@@ -151,6 +151,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 if(!engine.GetCurrentEncounter().IsActive)
                 {
                     engine.Emit(EncounterEndedEvent.EventName, (Dictionary<string, object>)null);
+                    engine.StartEncounter();
                 }
             });
 

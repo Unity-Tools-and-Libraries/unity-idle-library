@@ -8,45 +8,67 @@ using MoonSharp.Interpreter;
 using NUnit.Framework;
 using UnityEngine;
 
-public class RpgModuleEncounterTests : RpgModuleTestsBase
+namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 {
-    [Test]
-    public void EncounterUpdateCallsUpdateOnCreatures()
+    public class RpgModuleEncounterTests : RpgModuleTestsBase
     {
-        random.SetNextValues(0);
-        Configure();
-        engine.Start();
-        engine.StartEncounter();
-
-        engine.SetActionPhase("combat");
-
-        engine.Update(1f);
-
-        Assert.AreEqual(new BigDouble(1), engine.GetPlayer<RpgCharacter>().ActionMeter);
-        Assert.AreEqual(new BigDouble(1), engine.GetCurrentEncounter().Creatures[0].ActionMeter);
-    }
-
-    [Test]
-    public void OnFinalEnemyKilledEndEncounter()
-    {
-        random.SetNextValues(0);
-        Configure();
-        engine.Start();
-        engine.StartEncounter();
-
-        engine.SetActionPhase("combat");
-
-        engine.Update(1f);
-
-        bool called = false;
-
-        engine.Watch(EncounterEndedEvent.EventName, "test", DynValue.FromObject(null, (Action)(() =>
+        [Test]
+        public void EncounterUpdateCallsUpdateOnCreatures()
         {
-            called = true;
-        })));
+            random.SetNextValues(0);
+            Configure();
+            engine.Start();
+            engine.StartEncounter();
 
-        engine.GetCurrentEncounter().Creatures[0].Kill();
+            engine.SetActionPhase("combat");
 
-        Assert.True(called);
+            engine.Update(1f);
+
+            Assert.AreEqual(new BigDouble(1), engine.GetPlayer<RpgCharacter>().ActionMeter);
+            Assert.AreEqual(new BigDouble(1), engine.GetCurrentEncounter().Creatures[0].ActionMeter);
+        }
+
+        [Test]
+        public void OnFinalEnemyKilledEndEncounter()
+        {
+            random.SetNextValues(0, 0);
+            Configure();
+            engine.Start();
+            engine.StartEncounter();
+
+            engine.SetActionPhase("combat");
+
+            engine.Update(1f);
+
+            bool called = false;
+
+            engine.Watch(EncounterEndedEvent.EventName, "test", DynValue.FromObject(null, (Action)(() =>
+            {
+                called = true;
+            })));
+
+            engine.GetCurrentEncounter().Creatures[0].Kill();
+
+            Assert.True(called);
+        }
+
+        [Test]
+        public void OnEncounterEndStartNewEncounter()
+        {
+            random.SetNextValues(0, 0);
+            Configure();
+            engine.Start();
+            engine.StartEncounter();
+
+            engine.SetActionPhase("combat");
+
+            engine.Update(1f);
+
+            var currentEncounter = engine.GetCurrentEncounter();
+
+            engine.GetCurrentEncounter().Creatures[0].Kill();
+
+            Assert.AreNotEqual(currentEncounter, engine.GetCurrentEncounter());
+        }
     }
 }

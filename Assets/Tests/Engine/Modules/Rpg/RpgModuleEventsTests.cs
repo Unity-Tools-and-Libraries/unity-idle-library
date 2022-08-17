@@ -38,6 +38,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         [Test]
         public void InflictingDamageToCharacterEmitsOnSource()
         {
+            random.SetNextValues(0);
             Configure();
 
             var source = new RpgCharacter(engine, 100);

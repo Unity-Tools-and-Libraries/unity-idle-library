@@ -26,7 +26,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg.Combat.
         [Test]
         public void AbilitiesOnTheAttackerCanModifyAMissedAttack()
         {
-            random.SetNextValues(1, 1, 1, 1, 1);
+            random.SetNextValues(1, 1, 0, 1, 1);
             rpgModule.AddAbility(new CharacterAbility.Builder()
                 .WithEventTrigger("IsAttacking", "attack.isHit = true; attack.description = 'hit'; table.insert(attack.DamageToDefender, attack.OriginalDamageToDefender)")
                 .Build(engine, 5));
@@ -49,7 +49,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg.Combat.
         [Test]
         public void AbilitiesOnTheDefenderCanModifyAnAttackBeingMade()
         {
-            random.SetNextValues(1, 1, 1, 1, 1);
+            random.SetNextValues(1, 1, 0, 1, 1);
             rpgModule.AddAbility(new CharacterAbility.Builder().WithEventTrigger("IsBeingAttacked", "attack.isHit = true; attack.description = 'miss'; attack.DamageAttacker(10, attacker);")
                 .Build(engine, 5));
 

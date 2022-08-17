@@ -194,6 +194,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         [Test]
         public void WhenPlayerDiesPlayerActionChangedToResurrecting()
         {
+            random.SetNextValues(0);
             Configure();
 
             engine.GetPlayer<RpgCharacter>().Kill();
@@ -203,6 +204,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         [Test]
         public void CharacterResetRemovesStatuses()
         {
+            random.SetNextValues(0);
             var status = new CharacterStatus.Builder().SetFlag("test", true).Build(engine, 1);
             rpgModule.AddStatus(status);
             Configure();
@@ -218,9 +220,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         [Test]
         public void WhenCreatureDiesPlayerEarnsXpAndGold()
         {
+            random.SetNextValues(0, 0);
             Configure();
-
-            random.SetNextValues(0);
 
             var encounter = engine.StartEncounter();
 
@@ -285,6 +286,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         [Test]
         public void WhenDamageWouldReduceHealthToOrBelowZeroKillTheCharacter()
         {
+            random.SetNextValues(0);
             Configure();
 
             engine.GetPlayer<RpgCharacter>().Watch(CharacterDiedEvent.EventName, "test", "triggered = true");
@@ -299,6 +301,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         [Test]
         public void CanConfigureCreatureXpValueCalculationScript()
         {
+            random.SetNextValues(0);
             rpgModule.Creatures.XpValueCalculationScript = "return 1";
 
             Configure();

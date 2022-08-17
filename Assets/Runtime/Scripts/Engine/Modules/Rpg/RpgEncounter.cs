@@ -10,7 +10,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         {
         }
 
-        public bool IsActive { get; internal set; }
+        public bool IsActive { get; set; }
         [TraversableFieldOrProperty]
         public IList<RpgCharacter> Creatures { get; internal set; } = new List<RpgCharacter>();
     }

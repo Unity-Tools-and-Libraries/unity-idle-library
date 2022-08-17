@@ -146,6 +146,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             engine.GlobalProperties["stage"] = new BigDouble(1);
             engine.GlobalProperties["OnCreatureDied"] = (Action<RpgCharacter>)(creature => {
                 engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<string>("player.OnCreatureDiedScript"), Tuple.Create("died", (object)creature)).ToObject<BigDouble>();
+
+                
+                if(!engine.GetCurrentEncounter().IsActive)
+                {
+                    engine.Emit(EncounterEndedEvent.EventName, (Dictionary<string, object>)null);
+                }
             });
 
             engine.Watch(CharacterDiedEvent.EventName, "rpg", "OnCreatureDied(died)");
@@ -195,6 +201,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             SetDefaultAttributeConfiguration(engine);
 
             engine.GlobalProperties["startEncounter"] = (Func<EncounterDefinition, RpgEncounter>)engine.StartEncounter;
+
+            engine.GlobalProperties["encounter"] = new RpgEncounter(engine, -1)
+            {
+                IsActive = false
+            };
 
             engine.GeneratePlayer();
         }

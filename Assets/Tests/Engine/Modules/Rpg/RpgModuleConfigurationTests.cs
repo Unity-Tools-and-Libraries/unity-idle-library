@@ -21,6 +21,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             Assert.NotNull(engine.GetConfiguration("characterItemSlots"));
             Assert.AreEqual(new BigDouble(1), engine.GetProperty("stage"));
             Assert.AreEqual(new BigDouble(2), engine.GetConfiguration()["action_meter_required_to_act"]);
+            Assert.AreEqual(new BigDouble(.5), engine.GetConfiguration()["next_encounter_delay"]);
 
             Assert.NotNull(engine.GetProperty<RpgCharacter>("player"));
             Assert.NotNull(engine.GetDefinitions()["statuses"]);

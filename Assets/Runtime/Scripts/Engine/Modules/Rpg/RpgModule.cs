@@ -113,6 +113,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             engine.SetConfiguration("base_tohit", 50);
 
             engine.SetConfiguration("minimum_attack_damage", 1);
+            engine.SetConfiguration("next_encounter_delay", new BigDouble(.5f));
 
             engine.GlobalProperties["CreatureValidator"] = defaultCreatureValidator;
 
@@ -151,7 +152,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 if(!engine.GetCurrentEncounter().IsActive)
                 {
                     engine.Emit(EncounterEndedEvent.EventName, (Dictionary<string, object>)null);
-                    engine.StartEncounter();
+                    BigDouble nextEncounterDelay = engine.GetConfiguration<BigDouble>("next_encounter_delay");
+                    engine.Schedule(nextEncounterDelay.ToDouble(), "StartEncounter()");
                 }
             });
 

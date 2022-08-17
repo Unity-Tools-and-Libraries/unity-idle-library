@@ -153,7 +153,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 {
                     engine.Emit(EncounterEndedEvent.EventName, (Dictionary<string, object>)null);
                     BigDouble nextEncounterDelay = engine.GetConfiguration<BigDouble>("next_encounter_delay");
-                    engine.Schedule(nextEncounterDelay.ToDouble(), "StartEncounter()");
+                    engine.Schedule(nextEncounterDelay.ToDouble(), "engine.StartEncounter()");
                 }
             });
 

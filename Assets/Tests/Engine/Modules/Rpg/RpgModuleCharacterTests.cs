@@ -11,8 +11,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         [Test]
         public void OnUpdateActionMeterIncreasesInCombat()
         {
+            random.SetNextValues(0);
+
             Configure();
             engine.SetActionPhase("combat");
+            engine.StartEncounter();
             engine.GetPlayer<RpgCharacter>().Update(engine, 1);
             Assert.AreEqual(new BigDouble(1), engine.GetPlayer<RpgCharacter>().ActionMeter);
         }
@@ -73,10 +76,13 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         [Test]
         public void UpdateChangesRemainingDurationOfAppliedStatuses()
         {
+            random.SetNextValues(0);
             var status = new CharacterStatus.Builder().SetFlag("test", true).Build(engine, 1);
             rpgModule.AddStatus(status);
             Configure();
             engine.Start();
+
+            engine.StartEncounter();
             
             engine.GetPlayer<RpgCharacter>().AddStatus(status, new BigDouble(5));
             engine.GlobalProperties[RpgModule.Properties.ActionPhase] = "combat";
@@ -89,12 +95,14 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         [Test]
         public void UpdateReducingTimeTo0RemoveStatus()
         {
+            random.SetNextValues(0);
             var status = new CharacterStatus.Builder().SetFlag("test", true).Build(engine, 1);
             rpgModule.AddStatus(status);
             Configure();
             
-            
             engine.Start();
+
+            engine.StartEncounter();
             
             engine.GetPlayer<RpgCharacter>().AddStatus(status, new BigDouble(1));
             engine.GetPlayer<RpgCharacter>().Watch(StatusRemovedEvent.EventName, "test", "triggered = true");

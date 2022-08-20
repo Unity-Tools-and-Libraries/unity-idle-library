@@ -53,7 +53,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         }
 
         [Test]
-        public void OnEncounterEndStartNewEncounter()
+        public void OnEncounterEndSchedulesStartOfNewEncounter()
         {
             random.SetNextValues(0, 0);
             Configure();
@@ -67,6 +67,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             var currentEncounter = engine.GetCurrentEncounter();
 
             engine.GetCurrentEncounter().Creatures[0].Kill();
+
+            engine.Update(1);
 
             Assert.AreNotEqual(currentEncounter, engine.GetCurrentEncounter());
         }

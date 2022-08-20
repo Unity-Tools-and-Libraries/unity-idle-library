@@ -1,5 +1,4 @@
 
-using io.github.thisisnozaku.idle.framework.Events;
 using MoonSharp.Interpreter;
 using System;
 using System.Linq;
@@ -148,7 +147,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             engine.GlobalProperties["OnCreatureDied"] = (Action<RpgCharacter>)(creature => {
                 engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<string>("player.OnCreatureDiedScript"), Tuple.Create("died", (object)creature)).ToObject<BigDouble>();
 
-                
+                engine.GetCurrentEncounter().IsActive = engine.GetCurrentEncounter().Creatures.Any(x => x.IsAlive);
+
                 if(!engine.GetCurrentEncounter().IsActive)
                 {
                     engine.Emit(EncounterEndedEvent.EventName, (Dictionary<string, object>)null);
@@ -431,6 +431,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 }
 
                 currentEncounter.Creatures.Add(creature);
+                currentEncounter.IsActive = true;
             }
             engine.Emit(EncounterStartedEvent.EventName, new EncounterStartedEvent());
             return currentEncounter;

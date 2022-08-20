@@ -1,0 +1,1 @@
+return engine.PickRandom(definitions.encounters).value

@@ -65,6 +65,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             UserData.RegisterType<WrappedDictionary>();
             UserData.RegisterType<Type>();
             UserData.RegisterType<LoggingService>();
+            UserData.RegisterType<KeyValuePair<object, object>>();
 
             SetScriptToClrCustomConversion(DataType.Number, typeof(BigDouble), (arg) =>
             {
@@ -99,6 +100,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             SetClrToScriptCustomConversion(typeof(BigDouble), (script, arg) =>
             {
                 return UserData.Create(arg);
+            });
+            SetClrToScriptCustomConversion(typeof(IDictionary), (script, arg) =>
+            {
+                return DynValue.FromObject(script, new WrappedDictionary(arg as IDictionary));
             });
             SetClrToScriptCustomConversion(typeof(Dictionary<string, object>), (script, arg) =>
             {
@@ -243,17 +248,20 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
 
         private class WrappedDictionary : IUserDataType, ITraversableType
         {
-            private Dictionary<string, object> underlying;
-            public WrappedDictionary(Dictionary<string, object> underlying)
+            private IDictionary underlying;
+            public WrappedDictionary(IDictionary underlying)
             {
                 this.underlying = underlying;
             }
 
             public DynValue Index(Script script, DynValue index, bool isDirectIndexing)
             {
-                object value;
-                underlying.TryGetValue(index.CastToString(), out value);
-                return DynValue.FromObject(script, value);
+                if(underlying.Contains(index.ToObject()))
+                {
+                    return DynValue.FromObject(script, underlying[index.ToObject()]);
+                }
+                return DynValue.Nil;
+                
             }
 
             public DynValue MetaIndex(Script script, string metaname)
@@ -263,7 +271,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
 
             public bool SetIndex(Script script, DynValue index, DynValue value, bool isDirectIndexing)
             {
-                underlying[index.CastToString()] = value.ToObject();
+                underlying[index.ToObject()] = value.ToObject();
                 return true;
             }
 

@@ -115,6 +115,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             engine.SetConfiguration("next_encounter_delay", new BigDouble(.5f));
 
             engine.GlobalProperties["CreatureValidator"] = defaultCreatureValidator;
+            engine.GlobalProperties["EncounterSelector"] = Resources.Load<TextAsset>("Lua/Rpg/DefaultEncounterSelectorScript").text;
 
             engine.Scripting.SetScriptToClrCustomConversion(DataType.Table, typeof(AttackResultDescription), value =>
             {
@@ -209,6 +210,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             {
                 IsActive = false
             };
+
+            engine.GlobalProperties["SelectEncounter"] = (Func<EncounterDefinition>)(() =>
+            {
+                return engine.Scripting.EvaluateStringAsScript(engine.GlobalProperties["EncounterSelector"] as string).ToObject<EncounterDefinition>();
+            });
 
             engine.GeneratePlayer();
         }

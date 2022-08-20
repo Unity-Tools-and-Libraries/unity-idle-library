@@ -238,6 +238,21 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             return new BigDouble(random.Next(count));
         }
 
+        public object PickRandom(ICollection options)
+        {
+            var index = random.Next(options.Count);
+            int i = 0;
+            foreach(var option in options)
+            {
+                if(i == index)
+                {
+                    return option;
+                }
+                i++;
+            }
+            return null;
+        }
+
         private Dictionary<Type, List<Tuple<FieldInfo, PropertyInfo>>> typeTraversableFields = new Dictionary<Type, List<Tuple<FieldInfo, PropertyInfo>>>();
 
         public IEnumerable<DynValue> TraverseObjectGraph()

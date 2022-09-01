@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using UnityEngine;
 using MoonSharp.Interpreter;
+using io.github.thisisnozaku.scripting.context;
 
 namespace io.github.thisisnozaku.idle.framework.Engine
 {
@@ -164,7 +165,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             eventListeners.Emit(eventName, contextToUse);
         }
 
-        public virtual void Emit(string eventName, ScriptingContext contextToUse = null)
+        public virtual void Emit(string eventName, IScriptingContext contextToUse = null)
         {
             eventListeners.Emit(eventName, contextToUse);
         }

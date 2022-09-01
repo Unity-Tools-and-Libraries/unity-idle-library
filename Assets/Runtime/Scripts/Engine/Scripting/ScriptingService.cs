@@ -6,11 +6,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using io.github.thisisnozaku.idle.framework.Engine.Logging;
+using io.github.thisisnozaku.scripting;
+using io.github.thisisnozaku.scripting.context;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
 {
     public class ScriptingService
     {
+        private ScriptingModule module;
         private IdleEngine engine;
         private Table defaultMetatable;
         private Dictionary<string, object> BuiltIns = new Dictionary<string, object>()
@@ -53,14 +56,19 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             }},
             { "error", (Action<string>)((message) => throw new ScriptRuntimeException(message)) }
         };
-        internal Script script;
-        public Table Globals => script.Globals;
         public ScriptingService(IdleEngine engine)
         {
             this.engine = engine;
-            script = new Script(CoreModules.Preset_HardSandbox ^ CoreModules.Math);
+            module = new ScriptingModule(ScriptingModuleConfigurationFlag.DICTIONARY_WRAPPING);
 
-            UserData.RegisterType<IdleEngine>();
+            module.AddTypeAdapter(new scripting.types.TypeAdapter<IdleEngine>.AdapterBuilder<IdleEngine>().Build());
+            module.AddTypeAdapter(new scripting.types.TypeAdapter<IdleEngine>.AdapterBuilder<IdleEngine>().Build());
+
+            module.ContextCustomizer = ctx => {
+
+                return ctx;
+            };
+
             UserData.RegisterType(new BigDoubleTypeDescriptor(typeof(BigDouble), InteropAccessMode.Default));
             UserData.RegisterType<WrappedDictionary>();
             UserData.RegisterType<Type>();
@@ -111,7 +119,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             });
 
             ConfigureBuiltIns(engine);
-            EngineAwareIndexMethod = DynValue.NewCallback((Func<ScriptExecutionContext, CallbackArguments, DynValue>)((ctx, args) =>
+
+            defaultMetatable = new Table(null);
+            defaultMetatable.Set("__index", DynValue.NewCallback((Func<ScriptExecutionContext, CallbackArguments, DynValue>)((ctx, args) =>
             {
                 string locationArg = args[1].CastToString();
                 object value;
@@ -120,8 +130,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
                     engine.GlobalProperties.TryGetValue(locationArg, out value);
                 }
                 return DynValue.FromObject(null, value);
-            }));
-            EngineAwareIndexSetMethod = DynValue.NewCallback((Func<ScriptExecutionContext, CallbackArguments, DynValue>)((ctx, args) =>
+            })));
+            defaultMetatable.Set("__newindex", DynValue.NewCallback((Func<ScriptExecutionContext, CallbackArguments, DynValue>)((ctx, args) =>
             {
                 string locationArg = args[1].CastToString();
                 if (args[2].Type == DataType.Number)
@@ -134,11 +144,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
                 }
 
                 return DynValue.Nil;
-            }));
-
-            defaultMetatable = new Table(script);
-            defaultMetatable.Set("__index", EngineAwareIndexMethod);
-            defaultMetatable.Set("__newindex", EngineAwareIndexSetMethod);
+            })));
         }
 
         private void ConfigureBuiltIns(IdleEngine engine)
@@ -163,28 +169,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
                     return new BigDouble(dynValue.Number);
             }
             throw new InvalidOperationException();
-        }
-
-        private DynValue EngineAwareIndexMethod;
-        private DynValue EngineAwareIndexSetMethod;
-
-        public Table SetupContext(IDictionary<string, object> contextVariables = null)
-        {
-            var contextTable = new Table(script);
-            foreach (var global in engine.GlobalProperties)
-            {
-                contextTable[global.Key] = global.Value;
-            }
-            if (contextVariables != null)
-            {
-                foreach (var contextVariable in contextVariables)
-                {
-                    contextTable[contextVariable.Key] = contextVariable.Value;
-                }
-            }
-            contextTable.MetaTable = defaultMetatable;
-            contextTable["engine"] = engine;
-            return contextTable;
         }
 
         public void SetClrToScriptCustomConversion(Type clrType, Func<Script, object, DynValue> converter)
@@ -216,36 +200,17 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
                 { localContext.Item1, localContext.Item2 }});
         }
 
-        public DynValue Evaluate(DynValue toEvaluate, ScriptingContext context)
+        public DynValue Evaluate(DynValue toEvaluate, IScriptingContext context)
         {
-            return Evaluate(toEvaluate, context.GetScriptingProperties());
+            return module.Evaluate(toEvaluate, context);
         }
 
         public DynValue Evaluate(DynValue toEvaluate, IDictionary<string, object> localContext = null)
         {
-            if (toEvaluate == null)
-            {
-                throw new ArgumentNullException("valueExpression");
-            }
-            DynValue result;
-            switch (toEvaluate.Type)
-            {
-                case DataType.String:
-                    result = script.DoString(toEvaluate.String, SetupContext(localContext));
-                    break;
-                case DataType.ClrFunction:
-                    result = script.Call(toEvaluate.Callback, SetupContext(localContext));
-                    break;
-                default:
-                    throw new InvalidOperationException(String.Format("The DynValue must contains a string to interpret or a function to call, but was {0}", toEvaluate.Type));
-            }
-            if (result.Type == DataType.Number)
-            {
-                return DynValue.FromObject(null, new BigDouble(result.Number));
-            }
-            return result;
+            return module.Evaluate(toEvaluate, localContext);
         }
 
+        /*
         private class WrappedDictionary : IUserDataType, ITraversableType
         {
             private IDictionary underlying;
@@ -280,5 +245,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
                 return underlying.Values;
             }
         }
+    */
     }
 }

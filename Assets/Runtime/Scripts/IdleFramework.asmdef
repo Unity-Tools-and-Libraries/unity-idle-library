@@ -3,7 +3,8 @@
     "rootNamespace": "",
     "references": [
         "RuntimePlugins",
-        "RuntimeLibraries"
+        "RuntimeLibraries",
+        "Scripting_Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

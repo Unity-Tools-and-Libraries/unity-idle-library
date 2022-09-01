@@ -1,4 +1,5 @@
 ﻿using io.github.thisisnozaku.idle.framework.Events;
+using io.github.thisisnozaku.scripting.context;
 using MoonSharp.Interpreter;
 using Newtonsoft.Json;
 using System;
@@ -49,9 +50,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             }
         }
 
-        public void Emit(string eventName, ScriptingContext contextToUse)
+        public void Emit(string eventName, IScriptingContext contextToUse)
         {
-            Emit(eventName, contextToUse != null ? contextToUse.GetScriptingProperties() : null);
+            Emit(eventName, contextToUse != null ? contextToUse.GetContextVariables() : null);
         }
 
         public void Emit(string eventName, Tuple<string, object> contextToUse)

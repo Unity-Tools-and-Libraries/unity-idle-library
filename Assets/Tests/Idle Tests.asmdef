@@ -6,7 +6,8 @@
         "UnityEditor.TestRunner",
         "IdleFramework",
         "RuntimePlugins",
-        "RuntimeLibraries"
+        "RuntimeLibraries",
+        "Scripting_Runtime"
     ],
     "includePlatforms": [
         "Editor"
@@ -16,8 +17,7 @@
     "overrideReferences": true,
     "precompiledReferences": [
         "nunit.framework.dll",
-        "Newtonsoft.Json.dll",
-        "MoonSharp.Interpreter.dll"
+        "Newtonsoft.Json.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [

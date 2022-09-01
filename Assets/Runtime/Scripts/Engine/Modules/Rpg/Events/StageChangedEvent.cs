@@ -1,11 +1,9 @@
 using BreakInfinity;
-using io.github.thisisnozaku.idle.framework.Events;
-using System.Collections;
+using io.github.thisisnozaku.scripting.context;
 using System.Collections.Generic;
-using UnityEngine;
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Events
 {
-    public class StageChangedEvent : ScriptingContext
+    public class StageChangedEvent : IScriptingContext
     {
         public const string EventName = "stageChanged";
         public readonly BigDouble stage;
@@ -15,7 +13,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Events
             this.stage = stage;
         }
 
-        public Dictionary<string, object> GetScriptingProperties()
+        public Dictionary<string, object> GetContextVariables()
         {
             return new Dictionary<string, object>()
             {

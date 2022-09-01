@@ -12,10 +12,11 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using BreakInfinity;
+using io.github.thisisnozaku.scripting.context;
 
 namespace io.github.thisisnozaku.idle.framework.Engine
 {
-    public partial class IdleEngine : ScriptingContext, IEventSource
+    public partial class IdleEngine : IScriptingContext, IEventSource
     {
         private System.Random random;
         public bool IsReady { get; private set; }
@@ -194,9 +195,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         /*
          * Notify all listeners watching the global scope that the given event has occurred.
          */
-        public void Emit(string eventName, ScriptingContext context)
+        public void Emit(string eventName, IScriptingContext context)
         {
-            listeners.Emit(eventName, context != null ? context.GetScriptingProperties() : null);
+            listeners.Emit(eventName, context != null ? context.GetContextVariables() : null);
         }
 
         /*
@@ -379,7 +380,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             newModule.SetDefinitions(this);
             newModule.SetGlobalProperties(this);
         }
-        public Dictionary<string, object> GetScriptingProperties()
+        public Dictionary<string, object> GetContextVariables()
         {
             return new Dictionary<string, object>();
         }

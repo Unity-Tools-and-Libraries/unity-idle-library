@@ -18,7 +18,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Events
             this.ability = ability;
         }
 
-        public override Dictionary<string, object> GetScriptingProperties()
+        public override Dictionary<string, object> GetContextVariables()
         {
             return new Dictionary<string, object>()
             {
@@ -40,7 +40,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Events
             this.ability = ability;
         }
 
-        public override Dictionary<string, object> GetScriptingProperties()
+        public override Dictionary<string, object> GetContextVariables()
         {
             return new Dictionary<string, object>()
             {

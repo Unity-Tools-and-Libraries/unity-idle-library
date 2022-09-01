@@ -6,6 +6,8 @@
     "com.unity.ide.vscode": "1.2.5",
     "com.unity.nuget.newtonsoft-json": "3.0.2",
     "com.unity.test-framework": "1.1.31",
-    "com.unity.testtools.codecoverage": "1.0.1"
+    "com.unity.testtools.codecoverage": "1.0.1",
+    "lua-scripting-wrapper-module": "https://github.com/ThisIsNoZaku/unity-lua-scripting-module.git?path=Assets",
+    "simple-logging-module": "https://github.com/ThisIsNoZaku/unity-simple-logging.git?path=Assets"
   }
 }

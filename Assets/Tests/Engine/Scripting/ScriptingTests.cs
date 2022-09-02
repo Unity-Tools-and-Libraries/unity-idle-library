@@ -9,12 +9,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
 {
     public class ScriptingTests : TestsRequiringEngine
     {
-        [SetUp]
-        public void setup()
-        {
-            base.InitializeEngine();
-        }
-
         [Test]
         public void CanAssignValue()
         {
@@ -261,13 +255,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
         public void NilToBigDoubleIsZero()
         {
             Assert.AreEqual(BigDouble.Zero, ScriptingService.DynValueToBigDouble(DynValue.Nil));
-        }
-
-        [Test]
-        public void CanConcatenateBigDoubleAndString()
-        {
-            Assert.AreEqual("1 + 2", engine.Scripting.EvaluateStringAsScript("return num .. ' + 2'", Tuple.Create<string, object>("num", BigDouble.One)).String);
-            Assert.AreEqual("2 + 1", engine.Scripting.EvaluateStringAsScript("return '2 + ' .. num", Tuple.Create<string, object>("num", BigDouble.One)).String);
         }
     }
 }

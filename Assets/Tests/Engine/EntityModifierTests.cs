@@ -11,7 +11,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         [SetUp]
         public void Setup()
         {
-            base.InitializeEngine();
+            //base.InitializeEngine();
             UserData.RegisterType<TestEntity>();
             UserData.RegisterType<TestModifier>();
         }

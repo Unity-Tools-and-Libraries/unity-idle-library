@@ -10,6 +10,7 @@ using System.Runtime.Serialization;
 using UnityEngine;
 using MoonSharp.Interpreter;
 using io.github.thisisnozaku.scripting.context;
+using BreakInfinity;
 
 namespace io.github.thisisnozaku.idle.framework.Engine
 {
@@ -122,7 +123,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                         {
                             object currentValue = fieldInfo.GetValue(this);
                             updateScriptContext["value"] = currentValue;
-                            fieldInfo.SetValue(this, Engine.Scripting.EvaluateStringAsScript(child.Value, updateScriptContext).ToObject());
+                            var method = typeof(DynValue).GetMethod("ToObject", 1, new Type[0]).MakeGenericMethod(fieldInfo.FieldType);
+                            fieldInfo.SetValue(this, method.Invoke(Engine.Scripting.EvaluateStringAsScript(child.Value, updateScriptContext), null));
                         };
                     }
 

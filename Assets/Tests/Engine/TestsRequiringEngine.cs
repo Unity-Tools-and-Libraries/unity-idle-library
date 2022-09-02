@@ -19,6 +19,12 @@ public abstract class TestsRequiringEngine
         UserData.RegisterType<TestModifier>();
     }
 
+    [TearDown]
+    public void Teardow()
+    {
+        Script.GlobalOptions.CustomConverters.Clear();
+    }
+
     public class TestEntity : Entity
     {
         [TraversableFieldOrProperty]

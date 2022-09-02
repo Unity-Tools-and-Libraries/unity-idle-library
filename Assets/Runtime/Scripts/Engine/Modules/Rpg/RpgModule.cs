@@ -117,14 +117,17 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             engine.GlobalProperties["CreatureValidator"] = defaultCreatureValidator;
             engine.GlobalProperties["EncounterSelector"] = Resources.Load<TextAsset>("Lua/Rpg/DefaultEncounterSelectorScript").text;
 
-            engine.Scripting.SetScriptToClrCustomConversion(DataType.Table, typeof(AttackResultDescription), value =>
-            {
-                var table = value.Table;
-                bool hit = (bool)table["hit"];
-                string description = (string)table["description"];
-                BigDouble damageToTarget = table.Get("damageToTarget").ToObject<BigDouble>();
-                return new AttackResultDescription(hit, description, damageToTarget, table["attacker"] as RpgCharacter, null, null);
-            });
+            engine.Scripting.AddTypeAdaptor<AttackResultDescription>(
+                new scripting.types.TypeAdapter<AttackResultDescription>.AdapterBuilder<AttackResultDescription>()
+                .WithScriptConversion(DataType.Table, value =>
+                {
+                    var table = value.Table;
+                    bool hit = (bool)table["hit"];
+                    string description = (string)table["description"];
+                    BigDouble damageToTarget = table.Get("damageToTarget").ToObject<BigDouble>();
+                    return new AttackResultDescription(hit, description, damageToTarget, table["attacker"] as RpgCharacter, null, null);
+                })
+                .Build());
         }
 
         public void SetDefinitions(IdleEngine engine)

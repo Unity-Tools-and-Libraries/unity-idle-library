@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using io.github.thisisnozaku.idle.framework.Engine.Logging;
 using io.github.thisisnozaku.scripting;
 using io.github.thisisnozaku.scripting.context;
+using io.github.thisisnozaku.scripting.types;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
 {
@@ -58,69 +59,57 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
         };
         public ScriptingService(IdleEngine engine)
         {
+            Script.GlobalOptions.CustomConverters.Clear();
             this.engine = engine;
             module = new ScriptingModule(ScriptingModuleConfigurationFlag.DICTIONARY_WRAPPING);
 
             module.AddTypeAdapter(new scripting.types.TypeAdapter<IdleEngine>.AdapterBuilder<IdleEngine>().Build());
-            module.AddTypeAdapter(new scripting.types.TypeAdapter<IdleEngine>.AdapterBuilder<IdleEngine>().Build());
+            module.AddTypeAdapter(new scripting.types.TypeAdapter<BigDouble>.AdapterBuilder<BigDouble>()
+                .WithScriptConversion(DataType.Number, arg => BigDouble.Parse(arg.CastToString()))
+                .WithScriptConversion(DataType.UserData, arg => {
+                    var obj = arg.ToObject();
+                    if (obj is BigDouble)
+                    {
+                        return (BigDouble)obj;
+                    }
+                    return null;
+                })
+                .WithScriptConversion(DataType.String, arg =>
+                {
+                    var converted = arg.CastToNumber();
+                    if (converted != null)
+                    {
+                        return new BigDouble(converted.Value);
+                    }
+                    return BigDouble.NaN;
+                })
+                .WithScriptConversion(DataType.Nil, arg => BigDouble.Zero)
+                .WithScriptConversion(DataType.Void, arg => BigDouble.Zero)
+                .WithClrConversion((script, arg) => UserData.Create(arg))
+                .Build());
 
             module.ContextCustomizer = ctx => {
-
+                ctx.MetaTable = defaultMetatable;
+                ctx["engine"] = engine;
+                foreach(var global in engine.GlobalProperties)
+                {
+                    ctx[global.Key] = global.Value;
+                }
                 return ctx;
             };
 
             UserData.RegisterType(new BigDoubleTypeDescriptor(typeof(BigDouble), InteropAccessMode.Default));
-            UserData.RegisterType<WrappedDictionary>();
             UserData.RegisterType<Type>();
             UserData.RegisterType<LoggingService>();
             UserData.RegisterType<KeyValuePair<object, object>>();
 
-            SetScriptToClrCustomConversion(DataType.Number, typeof(BigDouble), (arg) =>
+            foreach(var builtIn in BuiltIns)
             {
-                return BigDouble.Parse(arg.CastToString());
-            });
-            SetScriptToClrCustomConversion(DataType.UserData, typeof(BigDouble), (arg) =>
-            {
-                var obj = arg.ToObject();
-                if (obj is BigDouble)
-                {
-                    return (BigDouble)obj;
-                }
-                return null;
-            });
-            SetScriptToClrCustomConversion(DataType.String, typeof(BigDouble), (arg) =>
-            {
-                var converted = arg.CastToNumber();
-                if (converted != null)
-                {
-                    return new BigDouble(converted.Value);
-                }
-                return BigDouble.NaN;
-            });
-            SetScriptToClrCustomConversion(DataType.Void, typeof(BigDouble), (arg) =>
-            {
-                return BigDouble.Zero;
-            });
-            SetScriptToClrCustomConversion(DataType.Nil, typeof(BigDouble), (arg) =>
-            {
-                return BigDouble.Zero;
-            });
-            SetClrToScriptCustomConversion(typeof(BigDouble), (script, arg) =>
-            {
-                return UserData.Create(arg);
-            });
-            SetClrToScriptCustomConversion(typeof(IDictionary), (script, arg) =>
-            {
-                return DynValue.FromObject(script, new WrappedDictionary(arg as IDictionary));
-            });
-            SetClrToScriptCustomConversion(typeof(Dictionary<string, object>), (script, arg) =>
-            {
-                return DynValue.FromObject(script, new WrappedDictionary(arg as Dictionary<string, object>));
-            });
-
-            ConfigureBuiltIns(engine);
+                module.Globals[builtIn.Key] = builtIn.Value;
+            }
 
             defaultMetatable = new Table(null);
+            /*
             defaultMetatable.Set("__index", DynValue.NewCallback((Func<ScriptExecutionContext, CallbackArguments, DynValue>)((ctx, args) =>
             {
                 string locationArg = args[1].CastToString();
@@ -131,6 +120,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
                 }
                 return DynValue.FromObject(null, value);
             })));
+            */
             defaultMetatable.Set("__newindex", DynValue.NewCallback((Func<ScriptExecutionContext, CallbackArguments, DynValue>)((ctx, args) =>
             {
                 string locationArg = args[1].CastToString();
@@ -145,11 +135,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
 
                 return DynValue.Nil;
             })));
-        }
-
-        private void ConfigureBuiltIns(IdleEngine engine)
-        {
-            BuiltIns["engine"] = engine;
         }
 
         public static BigDouble DynValueToBigDouble(DynValue dynValue)
@@ -171,23 +156,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             throw new InvalidOperationException();
         }
 
-        public void SetClrToScriptCustomConversion(Type clrType, Func<Script, object, DynValue> converter)
+        public void AddTypeAdaptor<T>(TypeAdapter<T> typeAdapter)
         {
-            Script.GlobalOptions.CustomConverters.SetClrToScriptCustomConversion(clrType, converter);
-        }
-
-        public void SetScriptToClrCustomConversion(DataType scriptDataType, Type clrDataType, Func<DynValue, object> converter)
-        {
-            Script.GlobalOptions.CustomConverters.SetScriptToClrCustomConversion(scriptDataType, clrDataType, converter);
+            module.AddTypeAdapter(typeAdapter);
         }
 
         public DynValue EvaluateStringAsScript(string script, IDictionary<string, object> localContext = null)
         {
-            if (script == null)
-            {
-                throw new ArgumentNullException("script");
-            }
-            return Evaluate(DynValue.NewString(script), localContext);
+            return module.EvaluateStringAsScript(script, localContext);
         }
         public DynValue EvaluateStringAsScript(string script, KeyValuePair<string, object> localContext)
         {

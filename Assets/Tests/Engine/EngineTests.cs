@@ -71,7 +71,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
             engine.CalculateProperty("global", "return 1");
             engine.Start();
             engine.Update(1f);
-            Assert.AreEqual(new BigDouble(1), (BigDouble)engine.GlobalProperties["global"]);
+            Assert.AreEqual(1, engine.GlobalProperties["global"]);
         }
 
         [Test]
@@ -80,10 +80,10 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
             engine.CalculateProperty("global", "if value == nil then return deltaTime else return value + deltaTime end");
             engine.Start();
             engine.Update(1.5f);
-            Assert.AreEqual(new BigDouble(1.5), (BigDouble)engine.GlobalProperties["global"]);
+            Assert.AreEqual(1.5, engine.GlobalProperties["global"]);
             engine.CalculateProperty("global", null);
             engine.Update(1f);
-            Assert.AreEqual(new BigDouble(1.5), (BigDouble)engine.GlobalProperties["global"]);
+            Assert.AreEqual(1.5, engine.GlobalProperties["global"]);
         }
 
         [Test]

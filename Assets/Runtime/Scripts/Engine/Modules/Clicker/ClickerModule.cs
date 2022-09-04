@@ -32,6 +32,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             UserData.RegisterType<Upgrade>();
             UserData.RegisterType<PointsHolder>();
 
+            engine.Scripting.AddTypeAdaptor(new scripting.types.TypeAdapter<IDictionary<long, Producer>>.AdapterBuilder<IDictionary<long, Producer>>()
+                .WithClrConversion(DictionaryTypeAdapter.Converter)
+                .Build());
+
+
             engine.GetDefinitions()["producers"] = new Dictionary<long, Producer>();
             engine.GetDefinitions()["upgrades"] = new Dictionary<long, Upgrade>();
             engine.GlobalProperties["DoClick"] = (Action)(() => DoClick(engine));

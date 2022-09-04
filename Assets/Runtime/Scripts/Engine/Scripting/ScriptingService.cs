@@ -109,18 +109,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             }
 
             defaultMetatable = new Table(null);
-            /*
-            defaultMetatable.Set("__index", DynValue.NewCallback((Func<ScriptExecutionContext, CallbackArguments, DynValue>)((ctx, args) =>
-            {
-                string locationArg = args[1].CastToString();
-                object value;
-                if (!BuiltIns.TryGetValue(locationArg, out value))
-                {
-                    engine.GlobalProperties.TryGetValue(locationArg, out value);
-                }
-                return DynValue.FromObject(null, value);
-            })));
-            */
             defaultMetatable.Set("__newindex", DynValue.NewCallback((Func<ScriptExecutionContext, CallbackArguments, DynValue>)((ctx, args) =>
             {
                 string locationArg = args[1].CastToString();
@@ -185,42 +173,5 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
         {
             return module.Evaluate(toEvaluate, localContext);
         }
-
-        /*
-        private class WrappedDictionary : IUserDataType, ITraversableType
-        {
-            private IDictionary underlying;
-            public WrappedDictionary(IDictionary underlying)
-            {
-                this.underlying = underlying;
-            }
-
-            public DynValue Index(Script script, DynValue index, bool isDirectIndexing)
-            {
-                if(underlying.Contains(index.ToObject()))
-                {
-                    return DynValue.FromObject(script, underlying[index.ToObject()]);
-                }
-                return DynValue.Nil;
-                
-            }
-
-            public DynValue MetaIndex(Script script, string metaname)
-            {
-                throw new NotImplementedException();
-            }
-
-            public bool SetIndex(Script script, DynValue index, DynValue value, bool isDirectIndexing)
-            {
-                underlying[index.ToObject()] = value.ToObject();
-                return true;
-            }
-
-            public IEnumerable GetTraversableFields()
-            {
-                return underlying.Values;
-            }
-        }
-    */
     }
 }

@@ -5,10 +5,10 @@ using MoonSharp.Interpreter.Interop;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using io.github.thisisnozaku.idle.framework.Engine.Logging;
 using io.github.thisisnozaku.scripting;
 using io.github.thisisnozaku.scripting.context;
 using io.github.thisisnozaku.scripting.types;
+using io.github.thisisnozaku.logging;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
 {
@@ -100,7 +100,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
 
             UserData.RegisterType(new BigDoubleTypeDescriptor(typeof(BigDouble), InteropAccessMode.Default));
             UserData.RegisterType<Type>();
-            UserData.RegisterType<LoggingService>();
+            UserData.RegisterType<LoggingModule>();
             UserData.RegisterType<KeyValuePair<object, object>>();
 
             foreach(var builtIn in BuiltIns)

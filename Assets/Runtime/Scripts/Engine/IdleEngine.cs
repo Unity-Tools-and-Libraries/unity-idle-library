@@ -1,5 +1,4 @@
-﻿using io.github.thisisnozaku.idle.framework.Engine.Logging;
-using io.github.thisisnozaku.idle.framework.Engine.Modules;
+﻿using io.github.thisisnozaku.idle.framework.Engine.Modules;
 using io.github.thisisnozaku.idle.framework.Engine.Persistence;
 using io.github.thisisnozaku.idle.framework.Engine.Scripting;
 using io.github.thisisnozaku.idle.framework.Events;
@@ -13,6 +12,7 @@ using System.Reflection;
 using UnityEngine;
 using BreakInfinity;
 using io.github.thisisnozaku.scripting.context;
+using io.github.thisisnozaku.logging;
 
 namespace io.github.thisisnozaku.idle.framework.Engine
 {
@@ -26,11 +26,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         private readonly EventListeners listeners;
 
-        private LoggingService logging;
+        private LoggingModule logging;
         private ScriptingService scripting;
         // Services
         public ScriptingService Scripting => scripting;
-        public LoggingService Logging => logging;
+        public LoggingModule Logging => logging;
         public Dictionary<long, Entity> Entities = new Dictionary<long, Entity>();
 
         public void OverrideRandomNumberGenerator(System.Random rng)
@@ -42,7 +42,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         {
             random = new System.Random();
             scripting = new ScriptingService(this);
-            logging = new LoggingService();
+            logging = new LoggingModule();
             listeners = new EventListeners(this);
             GlobalProperties["configuration"] = new Dictionary<string, object>();
             GlobalProperties["definitions"] = new Dictionary<string, object>();

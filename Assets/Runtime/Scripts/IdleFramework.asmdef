@@ -4,7 +4,8 @@
     "references": [
         "RuntimePlugins",
         "RuntimeLibraries",
-        "Scripting_Runtime"
+        "Scripting_Runtime",
+        "Logging_Module_Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

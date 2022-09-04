@@ -13,7 +13,6 @@ public abstract class RpgModuleTestsBase : TestsRequiringEngine
     [SetUp]
     public void Setup()
     {
-        base.InitializeEngine();
         rpgModule = new RpgModule();
         random = new RiggedRandom();
 

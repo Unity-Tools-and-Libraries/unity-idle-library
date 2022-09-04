@@ -100,6 +100,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             UserData.RegisterType<Tuple<BigDouble, RpgCharacter>>();
             UserData.RegisterExtensionType(typeof(RpgExtensionMethods));
             UserData.RegisterType<NumericAttribute>();
+            UserData.RegisterType<KeyValuePair<long, EncounterDefinition>>();
+
+            engine.Scripting.AddTypeAdaptor(new scripting.types.TypeAdapter<IDictionary<long, EncounterDefinition>>.AdapterBuilder<IDictionary<long, EncounterDefinition>>()
+                .WithClrConversion(DictionaryTypeAdapter.Converter)
+                .Build());
+
 
             engine.SetConfiguration("player", Player);
             engine.SetConfiguration("creatures", Creatures);

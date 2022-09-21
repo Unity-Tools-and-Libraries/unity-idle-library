@@ -108,5 +108,23 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             Assert.AreEqual(new BigDouble(100), engine.GetProducers()[100].TotalOutput);
 
         }
+
+        [Test]
+        public void CostToBuyWithNoneOwnedCostsBase()
+        {
+            module.AddProducer(new Producer(engine, 100, "", 100, 1));
+            Configure();
+
+            Assert.AreEqual(new BigDouble(100), engine.CalculatePurchaseCost(engine.GetProducers()[100], 0));
+        }
+
+        [Test]
+        public void CostToBuyWithSomeOwnedScalesUp()
+        {
+            module.AddProducer(new Producer(engine, 100, "", 100, 1));
+            Configure();
+
+            Assert.AreEqual(new BigDouble(115), engine.CalculatePurchaseCost(engine.GetProducers()[100], 1));
+        }
     }
 }

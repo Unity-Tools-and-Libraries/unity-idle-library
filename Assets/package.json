@@ -2,6 +2,8 @@
 	"name" : "nozaku-idle-framework",
 	"version" : "0.0.1",
 	"dependencies" : {
-		"com.unity.nuget.newtonsoft-json" : "2.0.0"
+		"com.unity.nuget.newtonsoft-json" : "2.0.0",
+		"lua-scripting-wrapper-module" : "0.0.1",
+		"simple-logging-module" : "0.0.1"
 	}
 }

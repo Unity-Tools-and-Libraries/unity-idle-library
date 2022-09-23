@@ -125,6 +125,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             })));
         }
 
+        public Table Globals => module.Globals;
+
         public static BigDouble DynValueToBigDouble(DynValue dynValue)
         {
             switch(dynValue.Type)

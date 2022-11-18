@@ -12,7 +12,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Events
         }
     }
 
-    public class EncounterEntedEvent : IScriptingContext
+    public class EncounterEndedEvent : IScriptingContext
     {
         public const string EventName = "encounterEnded";
 

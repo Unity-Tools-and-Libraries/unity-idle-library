@@ -496,5 +496,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             engine.GlobalProperties["player"] = player;
             return player as RpgCharacter;
         }
+
+        public static IDictionary<long, CreatureDefinition> GetCreatureDefinitions(this IdleEngine engine)
+        {
+            return engine.GetDefinitions()["creatures"] as IDictionary<long, CreatureDefinition>;
+        }
     }
 }

@@ -261,10 +261,13 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             Queue<DynValue> queue = new Queue<DynValue>();
             foreach (var global in GlobalProperties)
             {
-                DynValue globalValue = DynValue.FromObject(null, global.Value);
-                if (globalValue.Type == DataType.Table || globalValue.Type == DataType.Tuple || (globalValue.Type == DataType.UserData && globalValue.ToObject() is ITraversableType))
+                if (global.Key != "configuration" && global.Key != "definitions")
                 {
-                    queue.Enqueue(globalValue);
+                    DynValue globalValue = DynValue.FromObject(null, global.Value);
+                    if (globalValue.Type == DataType.Table || globalValue.Type == DataType.Tuple || (globalValue.Type == DataType.UserData && globalValue.ToObject() is ITraversableType))
+                    {
+                        queue.Enqueue(globalValue);
+                    }
                 }
             }
             while (queue.Count > 0)

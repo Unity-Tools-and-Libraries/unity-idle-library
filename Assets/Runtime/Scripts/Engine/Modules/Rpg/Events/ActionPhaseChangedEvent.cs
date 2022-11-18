@@ -9,10 +9,22 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Events
     public class ActionPhaseChangedEvent : IScriptingContext
     {
         public const string EventName = "action_phase_changed";
+        public const string NewActionPhase = "newActionPhase";
+        public const string PreviousActionPhase = "previousActionPhase";
+
+        private Dictionary<string, object> vars;
+        public ActionPhaseChangedEvent(string newActionPhase, string previousActionPhase)
+        {
+            vars = new Dictionary<string, object>()
+            {
+                { NewActionPhase, newActionPhase },
+                { PreviousActionPhase, previousActionPhase }
+            };
+        }
 
         public Dictionary<string, object> GetContextVariables()
         {
-            throw new NotImplementedException();
+            return vars;
         }
     }
 }

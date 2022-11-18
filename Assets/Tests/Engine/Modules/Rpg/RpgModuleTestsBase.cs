@@ -22,6 +22,7 @@ public abstract class RpgModuleTestsBase : TestsRequiringEngine
     public void Configure()
     {
         rpgModule.AddCreature(new CreatureDefinition.Builder().Build(1));
+        rpgModule.AddCreature(new CreatureDefinition.Builder().WithProperty("foo", "bar").Build(2));
         rpgModule.AddEncounter(new EncounterDefinition(1, Tuple.Create(1L, 0)));
 
         engine.AddModule(rpgModule);

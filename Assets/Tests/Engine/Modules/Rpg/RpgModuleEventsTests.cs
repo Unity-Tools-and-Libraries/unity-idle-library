@@ -74,5 +74,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             Assert.IsTrue((bool)engine.GlobalProperties["triggered"]);
         }
+
+        [Test]
+        public void ChangingActionPhaseEmitsEvent()
+        {
+
+        }
     }
 }

@@ -50,7 +50,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg.Combat.
         public void AbilitiesOnTheDefenderCanModifyAnAttackBeingMade()
         {
             random.SetNextValues(1, 1, 0, 1, 1);
-            rpgModule.AddAbility(new CharacterAbility.Builder().WithEventTrigger("IsBeingAttacked", "attack.isHit = true; attack.description = 'miss'; attack.DamageAttacker(10, attacker);")
+            rpgModule.AddAbility(new CharacterAbility.Builder().WithEventTrigger("IsBeingAttacked", "attack.isHit = true; attack.description = 'hit'; attack.DamageAttacker(10, attacker);")
                 .Build(engine, 5));
 
             Configure();
@@ -61,6 +61,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg.Combat.
             var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
 
             Assert.IsTrue(result.IsHit);
+            Assert.AreEqual("hit", result.Description);
             Assert.AreEqual(new List<Tuple<BigDouble, RpgCharacter>>() {
                 Tuple.Create(new BigDouble(12), engine.GetPlayer<RpgCharacter>())
             }, result.DamageToDefender);

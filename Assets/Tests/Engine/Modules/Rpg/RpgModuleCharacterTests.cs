@@ -388,6 +388,16 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         }
 
         [Test]
+        public void WhenGenerateCreatureReturnsCreatureWithAdditionalAttributes()
+        {
+            random.SetNextValues(0);
+
+            Configure();
+
+            Assert.AreEqual("bar", engine.GetCreatureDefinitions()[2].Properties["foo"]);
+        }
+
+        [Test]
         public void CreatureScaling()
         {
             Configure();

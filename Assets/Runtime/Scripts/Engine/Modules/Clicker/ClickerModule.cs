@@ -2,10 +2,12 @@ using BreakInfinity;
 
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitions;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Events;
+using io.github.thisisnozaku.idle.framework.Engine.State;
 using MoonSharp.Interpreter;
 using MoonSharp.Interpreter.Interop.RegistrationPolicies;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using static io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Producer.PropertyNames;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
@@ -30,7 +32,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             UserData.RegisterType<ClickerPlayer>();
             UserData.RegisterType<Producer>();
             UserData.RegisterType<Upgrade>();
-            UserData.RegisterType<PointsHolder>();
+            UserData.RegisterType<ResourceHolder>();
 
             engine.Scripting.AddTypeAdaptor(new scripting.types.TypeAdapter<IDictionary<long, Producer>>.AdapterBuilder<IDictionary<long, Producer>>()
                 .WithClrConversion(DictionaryTypeAdapter.Converter)
@@ -69,7 +71,142 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 
         public void SetConfiguration(IdleEngine engine)
         {
-            
+            engine.State.AddHandler(StateMachine.DEFAULT_STATE, "gainResource", (ie, args) =>
+            {
+                if(args.Length < 2)
+                {
+                    throw new InvalidOperationException("Need resource id in position 1.");
+                }
+                if(args.Length < 3)
+                {
+                    throw new InvalidOperationException("Need resource quantity in position 2.");
+                }
+                engine.Scripting.EvaluateStringAsScript("player.Points.Quantity = player.Points.Quantity + quantity", Tuple.Create<string, object>("quantity", BigDouble.Parse(args[2])));
+            }, "gainResource [resourceId] [quantity]");
+
+            engine.State.AddHandler(StateMachine.DEFAULT_STATE, "spendResource", (ie, args) =>
+            {
+                if (args.Length < 2)
+                {
+                    throw new InvalidOperationException("Need resource id in position 1.");
+                }
+                if (args.Length < 3)
+                {
+                    throw new InvalidOperationException("Need resource quantity in position 2.");
+                }
+                var neededQuantity = BigDouble.Parse(args[2]);
+                if(ie.GetPlayer().Points.Quantity < neededQuantity)
+                {
+                    throw new InvalidOperationException(String.Format("Need {0} {1} but had {2}.", neededQuantity, args[1], ie.GetPlayer().Points.Quantity));
+                }
+                engine.Scripting.EvaluateStringAsScript("player.Points.Quantity = player.Points.Quantity - quantity", Tuple.Create<string, object>("quantity", neededQuantity));
+            }, "spendResource [resourceId] [quantity]");
+
+            engine.State.AddHandler(StateMachine.DEFAULT_STATE, "loseResource", (ie, args) =>
+            {
+                if (args.Length < 2)
+                {
+                    throw new InvalidOperationException("Need resource id in position 1.");
+                }
+                if (args.Length < 3)
+                {
+                    throw new InvalidOperationException("Need resource quantity in position 2.");
+                }
+                var neededQuantity = BigDouble.Parse(args[2]);
+                engine.Scripting.EvaluateStringAsScript("player.Points.Quantity = player.Points.Quantity - quantity", Tuple.Create<string, object>("quantity", neededQuantity));
+            }, "loseResource [resourceId] [quantity]");
+
+            engine.State.AddHandler(StateMachine.DEFAULT_STATE, "gainProducer", (ie, args) =>
+            {
+                if (args.Length < 2)
+                {
+                    throw new InvalidOperationException("Need producer id in position 1.");
+                }
+                if (args.Length < 3)
+                {
+                    throw new InvalidOperationException("Need producer quantity in position 2.");
+                }
+                engine.GetPlayer().Producers[long.Parse(args[1])].Quantity += BigDouble.Parse(args[2]);
+            }, "gainProducer [producerId] [quantity]");
+
+            engine.State.AddHandler(StateMachine.DEFAULT_STATE, "buyProducer", (ie, args) =>
+
+            {
+                if (args.Length < 2)
+                {
+                    throw new InvalidOperationException("Need producer id in position 1.");
+                }
+                if (args.Length < 3)
+                {
+                    throw new InvalidOperationException("Need producer quantity in position 2.");
+                }
+                var producer = engine.GetProducers()[long.Parse(args[1])];
+                var neededQuantity = BigDouble.Parse(args[2]);
+                if(!engine.GetPlayer().CanAfford(producer, neededQuantity))
+                {
+                    throw new InvalidOperationException(String.Format("Need {0} points but had {1}.", engine.GetPlayer().CalculateCost(producer, neededQuantity), engine.GetPlayer().Points.Quantity));
+                }
+                ie.GetPlayer().BuyProducer(producer.Id);
+            }, "buyProducer [producerId] [quantity]");
+
+            engine.State.AddHandler(StateMachine.DEFAULT_STATE, "loseProducer", (ie, args) =>
+            {
+                if (args.Length < 2)
+                {
+                    throw new InvalidOperationException("Need producer id in position 1.");
+                }
+                if (args.Length < 3)
+                {
+                    throw new InvalidOperationException("Need producer quantity in position 2.");
+                }
+                engine.GetPlayer().Producers[long.Parse(args[1])].Quantity -= BigDouble.Parse(args[2]);
+            }, "loseProducer [producerId] [quantity]");
+
+            engine.State.AddHandler(StateMachine.DEFAULT_STATE, "gainUpgrade", (ie, args) =>
+            {
+                if (args.Length < 2)
+                {
+                    throw new InvalidOperationException("Need upgrade id in position 1.");
+                }
+                if (args.Length < 3)
+                {
+                    throw new InvalidOperationException("Need upgrade quantity in position 2.");
+                }
+                engine.GetPlayer().Upgrades[long.Parse(args[1])].Quantity += BigDouble.Parse(args[2]);
+            }, "gainUpgrade [upgradeId] [quantity]");
+
+            engine.State.AddHandler(StateMachine.DEFAULT_STATE, "buyUpgrade", (ie, args) =>
+
+            {
+                if (args.Length < 2)
+                {
+                    throw new InvalidOperationException("Need upgrade id in position 1.");
+                }
+                if (args.Length < 3)
+                {
+                    throw new InvalidOperationException("Need upgrade quantity in position 2.");
+                }
+                var upgrade = engine.GetUpgrades()[long.Parse(args[1])];
+                var neededQuantity = BigDouble.Parse(args[2]);
+                if (!engine.GetPlayer().CanAfford(upgrade, neededQuantity))
+                {
+                    throw new InvalidOperationException(String.Format("Need {0} points but had {1}.", engine.GetPlayer().CalculateCost(upgrade, neededQuantity), engine.GetPlayer().Points.Quantity));
+                }
+                ie.GetPlayer().BuyUpgrade(upgrade.Id);
+            }, "buyUpgrade [upgradeId] [quantity]");
+
+            engine.State.AddHandler(StateMachine.DEFAULT_STATE, "loseUpgrade", (ie, args) =>
+            {
+                if (args.Length < 2)
+                {
+                    throw new InvalidOperationException("Need upgrade id in position 1.");
+                }
+                if (args.Length < 3)
+                {
+                    throw new InvalidOperationException("Need upgrade quantity in position 2.");
+                }
+                engine.GetPlayer().Upgrades[long.Parse(args[1])].Quantity = BigDouble.Max(BigDouble.Zero, engine.GetPlayer().Upgrades[long.Parse(args[1])].Quantity - BigDouble.Parse(args[2]));
+            }, "loseUpgrade [upgradeId] [quantity]");
         }
 
         public void SetDefinitions(IdleEngine engine)
@@ -100,9 +237,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             return engine.GlobalProperties["player"] as ClickerPlayer;
         }
 
-        public static BigDouble CalculatePurchaseCost(this IdleEngine engine, IBuyable buyable, BigDouble alreadyOwnedQuantity)
+        public static BigDouble CalculatePurchaseCost(this IdleEngine engine, IBuyable buyable, BigDouble alreadyOwnedQuantity, BigDouble toBuyQuantity)
         {
-            return (engine.Scripting.EvaluateStringAsScript(buyable.CostExpression).ToObject<BigDouble>() * new BigDouble(1.15).Pow(alreadyOwnedQuantity)).Ceiling();
+            BigDouble total = 0;
+            BigDouble nextQuantity = alreadyOwnedQuantity;
+            while(nextQuantity < toBuyQuantity + alreadyOwnedQuantity)
+            {
+                total += engine.Scripting.EvaluateStringAsScript(buyable.CostExpression).ToObject<BigDouble>() * new BigDouble(1.15).Pow(nextQuantity);
+                nextQuantity++;
+            }
+            return total;
         }
 
     }

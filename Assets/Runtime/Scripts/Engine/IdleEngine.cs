@@ -13,10 +13,12 @@ using UnityEngine;
 using BreakInfinity;
 using io.github.thisisnozaku.scripting.context;
 using io.github.thisisnozaku.logging;
+using io.github.thisisnozaku.idle.framework.Engine.State;
+using System.Text.RegularExpressions;
 
 namespace io.github.thisisnozaku.idle.framework.Engine
 {
-    public partial class IdleEngine : IScriptingContext, IEventSource
+    public partial class IdleEngine : IScriptingContext, IEventSource, CommandReceiver
     {
         private System.Random random;
         public bool IsReady { get; private set; }
@@ -33,6 +35,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         public LoggingModule Logging => logging;
         public Dictionary<long, Entity> Entities = new Dictionary<long, Entity>();
 
+        public StateMachine State { get; }
+
         public void OverrideRandomNumberGenerator(System.Random rng)
         {
             random = rng;
@@ -46,6 +50,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             listeners = new EventListeners(this);
             GlobalProperties["configuration"] = new Dictionary<string, object>();
             GlobalProperties["definitions"] = new Dictionary<string, object>();
+
+            State = new StateMachine();
 
             SerializationSettings = new JsonSerializerSettings();
             SerializationSettings.TypeNameHandling = TypeNameHandling.All;
@@ -125,7 +131,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         public object GetProperty(string path, IDictionary<string, object> startingFrom = null)
         {
-            string[] tokens = path.Split('.');
+            string[] tokens = GeneratePathTokens(path);
             startingFrom = startingFrom == null ? GlobalProperties : startingFrom;
             object currentObject;
             if (!startingFrom.TryGetValue(tokens[0], out currentObject))
@@ -135,9 +141,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             for (int i = 1; i < tokens.Length; i++)
             {
                 string token = tokens[i];
+                object key = token;
                 if (typeof(IDictionary).IsAssignableFrom(currentObject.GetType()))
                 {
-                    currentObject = (currentObject as IDictionary)[token];
+                    var genericArgs = currentObject.GetType().GetGenericArguments();
+
+                    if (genericArgs[0] == typeof(long))
+                    {
+                        key = long.Parse((string)key);
+                    }
+                    currentObject = (currentObject as IDictionary)[key];
                     continue;
                 }
 
@@ -155,8 +168,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                     continue;
                 }
 
-                currentObject = null;
-                continue;
+                return null;
             }
             return currentObject;
         }
@@ -243,9 +255,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         {
             var index = random.Next(options.Count);
             int i = 0;
-            foreach(var option in options)
+            foreach (var option in options)
             {
-                if(i == index)
+                if (i == index)
                 {
                     return option;
                 }
@@ -290,7 +302,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                         }
                         break;
                 }
-                if(children != null)
+                if (children != null)
                 {
                     foreach (var child in children)
                     {
@@ -396,6 +408,30 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         public void StopWatching(string eventName, string subscriptionDescription)
         {
             listeners.StopWatching(eventName, subscriptionDescription);
+        }
+
+        public void EvaluateCommand(string command, IdleEngine engine = null)
+        {
+            this.State.EvaluateCommand(command, this);
+        }
+
+        public static string[] GeneratePathTokens(string path)
+        {
+            return path.Split('.')
+                .SelectMany(t =>
+                {
+                    if (t.Contains("[")) {
+                        return new string[]
+                        {
+                            t.Substring(0, t.IndexOf("[")),
+                            t.Substring(t.IndexOf("[") + 1 , t.IndexOf("]") - t.IndexOf("[") - 1)
+                        };
+                    }
+                    else
+                    {
+                        return new string[] { t };
+                    }
+                }).ToArray();
         }
     }
 }

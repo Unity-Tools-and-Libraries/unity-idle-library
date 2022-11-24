@@ -115,7 +115,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             module.AddProducer(new Producer(engine, 100, "", 100, 1));
             Configure();
 
-            Assert.AreEqual(new BigDouble(100), engine.CalculatePurchaseCost(engine.GetProducers()[100], 0));
+            Assert.AreEqual(new BigDouble(100), engine.CalculatePurchaseCost(engine.GetProducers()[100], 0, 1));
         }
 
         [Test]
@@ -124,7 +124,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             module.AddProducer(new Producer(engine, 100, "", 100, 1));
             Configure();
 
-            Assert.AreEqual(new BigDouble(115), engine.CalculatePurchaseCost(engine.GetProducers()[100], 1));
+            Assert.AreEqual(new BigDouble(115), engine.CalculatePurchaseCost(engine.GetProducers()[100], 1, 1));
         }
     }
 }

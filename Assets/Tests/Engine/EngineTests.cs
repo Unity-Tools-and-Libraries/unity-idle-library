@@ -5,6 +5,7 @@ using io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting;
 using MoonSharp.Interpreter;
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace io.github.thisisnozaku.idle.framework.Tests.Engine
@@ -33,11 +34,25 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         }
 
         [Test]
+        public void GetMissingPropertyReturnsNull()
+        {
+            Assert.AreEqual(BigDouble.Zero, engine.GetProperty<BigDouble>("foo"));
+        }
+
+        [Test]
         public void CanGetPropertyThroughFields()
         {
             engine.GlobalProperties["foo"] = new TestEntity(engine, 1);
             (engine.GlobalProperties["foo"] as TestEntity).Bar = new BigDouble(1);
             Assert.AreEqual(new BigDouble(1), engine.GetProperty<BigDouble>("foo.Bar"));
+        }
+
+        [Test]
+        public void CanGetPropertyWithBracketOperator()
+        {
+            engine.GlobalProperties["foo"] = new Dictionary<string, object>();
+            (engine.GlobalProperties["foo"] as IDictionary<string, object>)["bar"] = new BigDouble(1);
+            Assert.AreEqual(new BigDouble(1), engine.GetProperty<BigDouble>("foo[bar]"));
         }
 
         [Test]

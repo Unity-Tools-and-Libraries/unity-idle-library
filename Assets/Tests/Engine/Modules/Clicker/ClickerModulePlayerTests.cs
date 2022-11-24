@@ -129,8 +129,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             Configure();
 
             engine.Start();
-            engine.GetPlayer().ChangePoints(10000);
-            Assert.IsTrue(engine.GetPlayer().CanAfford(engine.GetProducers()[3]));
+            engine.GetPlayer().Points.Change(10000);
+            Assert.IsTrue(engine.GetPlayer().CanAfford(engine.GetProducers()[3], 1));
         }
     }
 }

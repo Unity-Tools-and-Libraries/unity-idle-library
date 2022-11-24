@@ -13,7 +13,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.State {
         [SetUp]
         public void Setup()
         {
-            stateMachine = new StateMachine();
+            stateMachine = new StateMachine(engine);
         }
 
         [Test]

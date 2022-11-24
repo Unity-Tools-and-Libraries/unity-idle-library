@@ -9,6 +9,7 @@ using io.github.thisisnozaku.scripting;
 using io.github.thisisnozaku.scripting.context;
 using io.github.thisisnozaku.scripting.types;
 using io.github.thisisnozaku.logging;
+using io.github.thisisnozaku.idle.framework.Engine.State;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
 {
@@ -102,6 +103,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             UserData.RegisterType<Type>();
             UserData.RegisterType<LoggingModule>();
             UserData.RegisterType<KeyValuePair<object, object>>();
+            UserData.RegisterType<StateChangedEvent>();
 
             foreach(var builtIn in BuiltIns)
             {

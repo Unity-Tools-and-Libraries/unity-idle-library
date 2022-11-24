@@ -11,7 +11,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.State
         [SetUp]
         public void Setup()
         {
-            stateMachine = new StateMachine();
+            stateMachine = new StateMachine(engine);
         }
 
         [Test]
@@ -26,7 +26,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.State
             stateMachine.DefineTransition(StateMachine.DEFAULT_STATE, "destination");
             Assert.DoesNotThrow(() =>
             {
-                stateMachine.Transition("destination", engine);
+                stateMachine.Transition("destination");
             });
             Assert.AreEqual("destination", stateMachine.StateName);
         }
@@ -34,29 +34,33 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.State
         [Test]
         public void StateMachineThrowsTransitioningToUnknownState()
         {
-            Assert.Throws(typeof(InvalidOperationException), () =>
+            stateMachine.DefineTransition(StateMachine.DEFAULT_STATE, "destination");
+            var thrown = Assert.Throws(typeof(InvalidOperationException), () =>
             {
-                stateMachine.Transition("foobar", engine);
+                stateMachine.Transition("foobar");
             });
+            Assert.AreEqual("No transition defined from 'initial' -> 'foobar'.", thrown.Message);
         }
 
         [Test]
         public void StateMachineThrowsTransitioningFromUnknownState()
         {
-            Assert.Throws(typeof(InvalidOperationException), () =>
+            var thrown = Assert.Throws(typeof(InvalidOperationException), () =>
             {
-                stateMachine.Transition("foobar", engine);
+                stateMachine.Transition("foobar");
             });
+            Assert.AreEqual("No transitions are defined from state 'initial'.", thrown.Message);
         }
 
         [Test]
         public void StateMachineCanDefineTransitionGuard()
         {
-            stateMachine.DefineTransition("origin", "destination", ie => "foobar");
-            Assert.Throws(typeof(InvalidOperationException), () =>
+            stateMachine.DefineTransition("initial", "destination", ie => "foobar");
+            var thrown = Assert.Throws(typeof(InvalidOperationException), () =>
             {
-                stateMachine.Transition("destination", engine);
+                stateMachine.Transition("destination");
             });
+            Assert.AreEqual("Blocked transition from 'initial' -> 'destination': foobar.", thrown.Message);
         }
     }
 }

@@ -51,7 +51,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             GlobalProperties["configuration"] = new Dictionary<string, object>();
             GlobalProperties["definitions"] = new Dictionary<string, object>();
 
-            State = new StateMachine();
+            State = new StateMachine(this);
 
             SerializationSettings = new JsonSerializerSettings();
             SerializationSettings.TypeNameHandling = TypeNameHandling.All;

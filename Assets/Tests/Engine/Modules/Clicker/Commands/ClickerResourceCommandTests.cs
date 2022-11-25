@@ -9,10 +9,17 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
 {
     public class ClickerResourceCommandTests : ClickerModuleTestsBase
     {
+
+        [SetUp]
+        public void Setup()
+        {
+            Configure();
+            engine.State.Transition(ClickerModule.States.GAMEPLAY);
+        }
+
         [Test]
         public void GainResourceCommandMustHaveResourceName()
         {
-            Configure();
             var thrown = Assert.Throws(typeof(InvalidOperationException), () =>
             {
                 engine.EvaluateCommand("gainResource");
@@ -23,7 +30,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void GainResourceCommandMustHaveQuantity()
         {
-            Configure();
             var thrown = Assert.Throws(typeof(InvalidOperationException), () =>
             {
                 engine.EvaluateCommand("gainResource resource");
@@ -34,8 +40,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void GainResourceCommandIncreasesResource()
         {
-            Configure();
-
             Assert.AreEqual(BigDouble.Zero, engine.GetProperty<BigDouble>("player.Points.Quantity"));
             engine.EvaluateCommand("gainResource points 1");
             Assert.AreEqual(BigDouble.One, engine.GetProperty<BigDouble>("player.Points.Quantity"));
@@ -44,7 +48,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void SpendResourceCommandMustHaveResourceName()
         {
-            Configure();
             var thrown = Assert.Throws(typeof(InvalidOperationException), () =>
             {
                 engine.EvaluateCommand("spendResource");
@@ -55,7 +58,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void SpendResourceCommandMustHaveQuantity()
         {
-            Configure();
             var thrown = Assert.Throws(typeof(InvalidOperationException), () =>
             {
                 engine.EvaluateCommand("spendResource resource");
@@ -66,8 +68,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void SpendResourceCommandReducesResourcesIfQuantityEnough()
         {
-            Configure();
-
             ClickerPlayer player = engine.GlobalProperties["player"] as ClickerPlayer;
             player.Points.Quantity = BigDouble.One;
 
@@ -79,8 +79,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void SpendResourceCommandThrowsIfQuantityNotEnough()
         {
-            Configure();
-
             Assert.AreEqual(BigDouble.Zero, engine.GetProperty<BigDouble>("player.Points.Quantity"));
             var thrown = Assert.Throws(typeof(InvalidOperationException), () =>
             {
@@ -92,7 +90,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void LoseResourceCommandMustHaveResourceName()
         {
-            Configure();
             var thrown = Assert.Throws(typeof(InvalidOperationException), () =>
             {
                 engine.EvaluateCommand("loseResource");
@@ -103,7 +100,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void LoseResourceCommandMustHaveQuantity()
         {
-            Configure();
             var thrown = Assert.Throws(typeof(InvalidOperationException), () =>
             {
                 engine.EvaluateCommand("loseResource resource");
@@ -114,8 +110,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void LoseResourceCommandReducesResources()
         {
-            Configure();
-
             ClickerPlayer player = engine.GlobalProperties["player"] as ClickerPlayer;
             player.Points.Quantity = BigDouble.One;
 
@@ -127,8 +121,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void LoseResourceCommandReducesResourcesToNegative()
         {
-            Configure();
-
             ClickerPlayer player = engine.GlobalProperties["player"] as ClickerPlayer;
 
             Assert.AreEqual(BigDouble.Zero, engine.GetProperty<BigDouble>("player.Points.Quantity"));

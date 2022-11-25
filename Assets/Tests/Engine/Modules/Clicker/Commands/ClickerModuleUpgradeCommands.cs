@@ -1,5 +1,6 @@
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker;
+using io.github.thisisnozaku.idle.framework.Engine.State;
 using NUnit.Framework;
 using System;
 using System.Collections;
@@ -9,10 +10,16 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
 {
     public class ClickerModuleUpgradeCommands : ClickerModuleTestsBase
     {
+        [SetUp]
+        public void Setup()
+        {
+            Configure();
+            engine.State.Transition(ClickerModule.States.GAMEPLAY);
+        }
+
         [Test]
         public void GainUpgradeCommandMustHaveUpgradeName()
         {
-            Configure();
             var thrown = Assert.Throws(typeof(InvalidOperationException), () =>
             {
                 engine.EvaluateCommand("gainUpgrade");
@@ -23,7 +30,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void GainUpgradeCommandMustHaveQuantity()
         {
-            Configure();
             var thrown = Assert.Throws(typeof(InvalidOperationException), () =>
             {
                 engine.EvaluateCommand("gainUpgrade Upgrade");
@@ -34,8 +40,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void GainUpgradeCommandIncreasesUpgrade()
         {
-            Configure();
-
+            
             Assert.AreEqual(BigDouble.Zero, engine.GetProperty<BigDouble>("player.Upgrades[2].Quantity"));
             engine.EvaluateCommand("gainUpgrade 2 1");
             Assert.AreEqual(BigDouble.One, engine.GetProperty<BigDouble>("player.Upgrades[2].Quantity"));
@@ -44,7 +49,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void buyUpgradeCommandMustHaveUpgradeName()
         {
-            Configure();
             var thrown = Assert.Throws(typeof(InvalidOperationException), () =>
             {
                 engine.EvaluateCommand("buyUpgrade");
@@ -55,7 +59,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void buyUpgradeCommandMustHaveQuantity()
         {
-            Configure();
             var thrown = Assert.Throws(typeof(InvalidOperationException), () =>
             {
                 engine.EvaluateCommand("buyUpgrade Upgrade");
@@ -66,8 +69,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void buyUpgradeCommandReducesUpgradesIfQuantityEnough()
         {
-            Configure();
-
             ClickerPlayer player = engine.GlobalProperties["player"] as ClickerPlayer;
             player.Points.Quantity = BigDouble.One;
 
@@ -79,8 +80,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void buyUpgradeCommandThrowsIfQuantityNotEnough()
         {
-            Configure();
-
             Assert.AreEqual(BigDouble.Zero, engine.GetProperty<BigDouble>("player.Points.Quantity"));
             var thrown = Assert.Throws(typeof(InvalidOperationException), () =>
             {
@@ -92,7 +91,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void LoseUpgradeCommandMustHaveUpgradeName()
         {
-            Configure();
             var thrown = Assert.Throws(typeof(InvalidOperationException), () =>
             {
                 engine.EvaluateCommand("loseUpgrade");
@@ -103,7 +101,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void LoseUpgradeCommandMustHaveQuantity()
         {
-            Configure();
             var thrown = Assert.Throws(typeof(InvalidOperationException), () =>
             {
                 engine.EvaluateCommand("loseUpgrade Upgrade");
@@ -114,8 +111,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void LoseUpgradeCommandReducesUpgrades()
         {
-            Configure();
-
             ClickerPlayer player = engine.GlobalProperties["player"] as ClickerPlayer;
             player.Upgrades[2].Quantity = 1;
 
@@ -127,8 +122,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void LoseUpgradeCommandCannotReduceUpgradesToNegative()
         {
-            Configure();
-
             ClickerPlayer player = engine.GlobalProperties["player"] as ClickerPlayer;
 
             Assert.AreEqual(BigDouble.Zero, engine.GetProperty<BigDouble>("player.Upgrades[2].Quantity"));

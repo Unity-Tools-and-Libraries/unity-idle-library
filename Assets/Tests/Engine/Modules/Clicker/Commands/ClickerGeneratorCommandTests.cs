@@ -10,10 +10,16 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
 {
     public class ClickerProducerCommandTests : ClickerModuleTestsBase
     {
+        [SetUp]
+        public void Setup()
+        {
+            Configure();
+            engine.State.Transition(ClickerModule.States.GAMEPLAY);
+        }
+
         [Test]
         public void GainProducerCommandMustHaveProducerName()
         {
-            Configure();
             var thrown = Assert.Throws(typeof(InvalidOperationException), () =>
             {
                 engine.EvaluateCommand("gainProducer");
@@ -24,7 +30,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void GainProducerCommandMustHaveQuantity()
         {
-            Configure();
             var thrown = Assert.Throws(typeof(InvalidOperationException), () =>
             {
                 engine.EvaluateCommand("gainProducer Producer");
@@ -35,8 +40,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void GainProducerCommandIncreasesProducer()
         {
-            Configure();
-
             Assert.AreEqual(BigDouble.Zero, engine.GetProperty<BigDouble>("player.Producers[1].Quantity"));
             engine.EvaluateCommand("gainProducer 1 1");
             Assert.AreEqual(BigDouble.One, engine.GetProperty<BigDouble>("player.Producers[1].Quantity"));
@@ -45,7 +48,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void buyProducerCommandMustHaveProducerName()
         {
-            Configure();
             var thrown = Assert.Throws(typeof(InvalidOperationException), () =>
             {
                 engine.EvaluateCommand("buyProducer");
@@ -56,7 +58,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void buyProducerCommandMustHaveQuantity()
         {
-            Configure();
             var thrown = Assert.Throws(typeof(InvalidOperationException), () =>
             {
                 engine.EvaluateCommand("buyProducer Producer");
@@ -67,8 +68,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void buyProducerCommandReducesProducersIfQuantityEnough()
         {
-            Configure();
-
             ClickerPlayer player = engine.GlobalProperties["player"] as ClickerPlayer;
             player.Points.Quantity = BigDouble.One;
 
@@ -80,8 +79,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void buyProducerCommandThrowsIfQuantityNotEnough()
         {
-            Configure();
-
             Assert.AreEqual(BigDouble.Zero, engine.GetProperty<BigDouble>("player.Points.Quantity"));
             var thrown = Assert.Throws(typeof(InvalidOperationException), () =>
             {
@@ -93,7 +90,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void LoseProducerCommandMustHaveProducerName()
         {
-            Configure();
             var thrown = Assert.Throws(typeof(InvalidOperationException), () =>
             {
                 engine.EvaluateCommand("loseProducer");
@@ -104,7 +100,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void LoseProducerCommandMustHaveQuantity()
         {
-            Configure();
             var thrown = Assert.Throws(typeof(InvalidOperationException), () =>
             {
                 engine.EvaluateCommand("loseProducer Producer");
@@ -115,7 +110,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void LoseProducerCommandReducesProducers()
         {
-            Configure();
 
             ClickerPlayer player = engine.GlobalProperties["player"] as ClickerPlayer;
             player.Producers[1].Quantity = 1;
@@ -128,7 +122,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void LoseProducerCommandReducesProducersToNegative()
         {
-            Configure();
 
             ClickerPlayer player = engine.GlobalProperties["player"] as ClickerPlayer;
 

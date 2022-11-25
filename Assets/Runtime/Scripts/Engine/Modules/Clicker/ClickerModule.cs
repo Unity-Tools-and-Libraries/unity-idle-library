@@ -71,7 +71,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 
         public void SetConfiguration(IdleEngine engine)
         {
-            engine.State.AddHandler(StateMachine.DEFAULT_STATE, "gainResource", (ie, args) =>
+            engine.State.AddHandler(States.GAMEPLAY, "gainResource", (ie, args) =>
             {
                 if(args.Length < 2)
                 {
@@ -84,7 +84,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 engine.Scripting.EvaluateStringAsScript("player.Points.Quantity = player.Points.Quantity + quantity", Tuple.Create<string, object>("quantity", BigDouble.Parse(args[2])));
             }, "gainResource [resourceId] [quantity]");
 
-            engine.State.AddHandler(StateMachine.DEFAULT_STATE, "spendResource", (ie, args) =>
+            engine.State.AddHandler(States.GAMEPLAY, "spendResource", (ie, args) =>
             {
                 if (args.Length < 2)
                 {
@@ -102,7 +102,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 engine.Scripting.EvaluateStringAsScript("player.Points.Quantity = player.Points.Quantity - quantity", Tuple.Create<string, object>("quantity", neededQuantity));
             }, "spendResource [resourceId] [quantity]");
 
-            engine.State.AddHandler(StateMachine.DEFAULT_STATE, "loseResource", (ie, args) =>
+            engine.State.AddHandler(States.GAMEPLAY, "loseResource", (ie, args) =>
             {
                 if (args.Length < 2)
                 {
@@ -116,7 +116,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 engine.Scripting.EvaluateStringAsScript("player.Points.Quantity = player.Points.Quantity - quantity", Tuple.Create<string, object>("quantity", neededQuantity));
             }, "loseResource [resourceId] [quantity]");
 
-            engine.State.AddHandler(StateMachine.DEFAULT_STATE, "gainProducer", (ie, args) =>
+            engine.State.AddHandler(States.GAMEPLAY, "gainProducer", (ie, args) =>
             {
                 if (args.Length < 2)
                 {
@@ -129,7 +129,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 engine.GetPlayer().Producers[long.Parse(args[1])].Quantity += BigDouble.Parse(args[2]);
             }, "gainProducer [producerId] [quantity]");
 
-            engine.State.AddHandler(StateMachine.DEFAULT_STATE, "buyProducer", (ie, args) =>
+            engine.State.AddHandler(States.GAMEPLAY, "buyProducer", (ie, args) =>
 
             {
                 if (args.Length < 2)
@@ -149,7 +149,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 ie.GetPlayer().BuyProducer(producer.Id);
             }, "buyProducer [producerId] [quantity]");
 
-            engine.State.AddHandler(StateMachine.DEFAULT_STATE, "loseProducer", (ie, args) =>
+            engine.State.AddHandler(States.GAMEPLAY, "loseProducer", (ie, args) =>
             {
                 if (args.Length < 2)
                 {
@@ -162,7 +162,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 engine.GetPlayer().Producers[long.Parse(args[1])].Quantity -= BigDouble.Parse(args[2]);
             }, "loseProducer [producerId] [quantity]");
 
-            engine.State.AddHandler(StateMachine.DEFAULT_STATE, "gainUpgrade", (ie, args) =>
+            engine.State.AddHandler(States.GAMEPLAY, "gainUpgrade", (ie, args) =>
             {
                 if (args.Length < 2)
                 {
@@ -175,7 +175,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 engine.GetPlayer().Upgrades[long.Parse(args[1])].Quantity += BigDouble.Parse(args[2]);
             }, "gainUpgrade [upgradeId] [quantity]");
 
-            engine.State.AddHandler(StateMachine.DEFAULT_STATE, "buyUpgrade", (ie, args) =>
+            engine.State.AddHandler(States.GAMEPLAY, "buyUpgrade", (ie, args) =>
 
             {
                 if (args.Length < 2)
@@ -195,7 +195,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 ie.GetPlayer().BuyUpgrade(upgrade.Id);
             }, "buyUpgrade [upgradeId] [quantity]");
 
-            engine.State.AddHandler(StateMachine.DEFAULT_STATE, "loseUpgrade", (ie, args) =>
+            engine.State.AddHandler(States.GAMEPLAY, "loseUpgrade", (ie, args) =>
             {
                 if (args.Length < 2)
                 {
@@ -207,6 +207,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 }
                 engine.GetPlayer().Upgrades[long.Parse(args[1])].Quantity = BigDouble.Max(BigDouble.Zero, engine.GetPlayer().Upgrades[long.Parse(args[1])].Quantity - BigDouble.Parse(args[2]));
             }, "loseUpgrade [upgradeId] [quantity]");
+
+            engine.State.DefineTransition(StateMachine.DEFAULT_STATE, States.GAMEPLAY);
         }
 
         public void SetDefinitions(IdleEngine engine)
@@ -217,6 +219,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
         public static class DefaultProperties
         {
             public const string PRODUCER_COST_SCALE_FACTOR = "PRODUCER_COST_SCALE_FACTOR";
+        }
+
+        public static class States
+        {
+            public const string GAMEPLAY = "gameplay";
         }
     }
 
@@ -248,6 +255,5 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             }
             return total;
         }
-
     }
 }

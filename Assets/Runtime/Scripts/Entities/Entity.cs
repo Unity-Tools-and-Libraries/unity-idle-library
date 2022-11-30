@@ -44,7 +44,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             this.Id = id;
             
             Flags = new Dictionary<string, bool>();
-            this.eventListeners = new EventListeners(engine);
+            this.eventListeners = new EventListeners(engine, engine);
             this.ExtraProperties = new Dictionary<string, object>();
             if (engine != null)
             {

@@ -14,7 +14,8 @@ using BreakInfinity;
 using io.github.thisisnozaku.scripting.context;
 using io.github.thisisnozaku.logging;
 using io.github.thisisnozaku.idle.framework.Engine.State;
-using System.Text.RegularExpressions;
+using io.github.thisisnozaku.idle.framework.Engine.Achievements;
+using io.github.thisisnozaku.idle.framework.Engine.Achievements.Events;
 
 namespace io.github.thisisnozaku.idle.framework.Engine
 {
@@ -37,6 +38,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         public StateMachine State { get; }
 
+        public AchievementsModule Achievements { get; }
+
         public void OverrideRandomNumberGenerator(System.Random rng)
         {
             random = rng;
@@ -50,6 +53,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             listeners = new EventListeners(this);
             GlobalProperties["configuration"] = new Dictionary<string, object>();
             GlobalProperties["definitions"] = new Dictionary<string, object>();
+            Achievements = new AchievementsModule();
 
             State = new StateMachine(this);
 
@@ -356,6 +360,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                         timers.Remove(timer);
                     }
                 }
+
+                foreach (var achievement in Achievements)
+                {
+                    if(!achievement.Value.Completed)
+                    {
+                        achievement.Value.Completed = scripting.EvaluateStringAsScript(achievement.Value.CompletionExpression).Boolean;
+                        Emit(AchievementCompletedEvent.EventName, new AchievementCompletedEvent(achievement.Value));
+                        Scripting.EvaluateStringAsScript(achievement.Value.CompletionEffect);
+                    }
+                }
             }
             else
             {
@@ -382,6 +396,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                     }
                 }
             }
+            foreach(var achievement in snapshot.Achievements)
+            {
+                Achievements[achievement.Id] = achievement;
+            }
         }
 
         public void AddModule(IModule newModule)
@@ -402,7 +420,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         public EngineSnapshot GetSnapshot()
         {
-            return new EngineSnapshot(GlobalProperties, listeners.GetListeners());
+            return new EngineSnapshot(GlobalProperties, Achievements.Values.ToList(), listeners.GetListeners());
         }
 
         public void StopWatching(string eventName, string subscriptionDescription)
@@ -432,6 +450,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                         return new string[] { t };
                     }
                 }).ToArray();
+        }
+
+        public void DefineAchievement(Achievement achievement)
+        {
+            Achievements[achievement.Id] = achievement;
         }
     }
 }

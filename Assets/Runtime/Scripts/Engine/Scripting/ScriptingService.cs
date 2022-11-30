@@ -91,11 +91,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
 
             module.ContextCustomizer = ctx => {
                 ctx.MetaTable = defaultMetatable;
-                ctx["engine"] = engine;
-                foreach(var global in engine.GlobalProperties)
-                {
-                    ctx[global.Key] = global.Value;
-                }
                 return ctx;
             };
 
@@ -111,6 +106,20 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             }
 
             defaultMetatable = new Table(null);
+            defaultMetatable.Set("__index", DynValue.NewCallback((Func<ScriptExecutionContext, CallbackArguments, DynValue>)((ctx, args) =>
+            {
+                var index = args[1];
+                object output = ctx.CurrentGlobalEnv[args[1]];
+                if(output == null && !engine.GlobalProperties.TryGetValue(args[1].CastToString(), out output))
+                {
+                    if(index.CastToString()  == "engine")
+                    {
+                        return DynValue.FromObject(ctx.GetScript(), engine);
+                    }
+                    return DynValue.Nil;
+                }
+                return DynValue.FromObject(ctx.GetScript(), output);
+            })));
             defaultMetatable.Set("__newindex", DynValue.NewCallback((Func<ScriptExecutionContext, CallbackArguments, DynValue>)((ctx, args) =>
             {
                 string locationArg = args[1].CastToString();

@@ -422,12 +422,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             }
             foreach (var option in nextEncounter.CreatureOptions)
             {
-                CreatureDefinition creatureDefinition;
+                // Won't check for if creature exists, a check was made at configuration time
+                CreatureDefinition creatureDefinition = engine.GetCreatures()[option.Item1];
 
-                if (!engine.GetCreatures().TryGetValue(option.Item1, out creatureDefinition))
-                {
-                    throw new InvalidOperationException(String.Format("No creature definition with id {0}", option.Item1));
-                }
                 var level = (BigDouble)engine.GlobalProperties["stage"] + option.Item2;
                 var creature = engine.Scripting.EvaluateStringAsScript("return GenerateCreature(definition, level)", new Dictionary<string, object>()
                 {

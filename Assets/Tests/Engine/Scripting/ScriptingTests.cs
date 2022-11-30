@@ -99,6 +99,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
             Assert.AreEqual(new BigDouble(2), engine.Scripting.EvaluateStringAsScript("return math.max(foo, 2)").ToObject<BigDouble>());
             Assert.AreEqual(new BigDouble(2), engine.Scripting.EvaluateStringAsScript("return math.max(1, 2)").ToObject<BigDouble>());
         }
+
         [Test]
         public void BuiltInMinReturnsSmallestOfTwoNumbers()
         {
@@ -108,6 +109,13 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
             Assert.AreEqual(new BigDouble(1), engine.Scripting.EvaluateStringAsScript("return math.min(1, bar)").ToObject<BigDouble>());
             Assert.AreEqual(new BigDouble(1), engine.Scripting.EvaluateStringAsScript("return math.min(foo, 2)").ToObject<BigDouble>());
             Assert.AreEqual(new BigDouble(1), engine.Scripting.EvaluateStringAsScript("return math.min(1, 2)").ToObject<BigDouble>());
+        }
+
+        [Test]
+        public void BuiltInFlooRreturnsRoundsDown()
+        {
+            Assert.AreEqual(new BigDouble(1), engine.Scripting.EvaluateStringAsScript("return math.floor(1.1)").ToObject<BigDouble>());
+            Assert.AreEqual(new BigDouble(1), engine.Scripting.EvaluateStringAsScript("return math.floor(1.9)").ToObject<BigDouble>());
         }
 
         [Test]
@@ -228,15 +236,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
             {
                 Assert.IsTrue(ctx is IDictionary<string, object>);
             })), context);
-        }
-
-        [Test]
-        public void CallbackContextContainsEngineProperty()
-        {
-            engine.Scripting.Evaluate(DynValue.FromObject(null, (Action<IDictionary<string, object>>)(ctx =>
-            {
-                Assert.IsTrue(ctx.ContainsKey("engine"));
-            })));
         }
 
         [Test]

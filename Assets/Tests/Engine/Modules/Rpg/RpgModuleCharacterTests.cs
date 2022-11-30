@@ -1,6 +1,8 @@
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg;
+using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Configuration;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Events;
+using MoonSharp.Interpreter;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -410,6 +412,17 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
                     { "level", 1 }
                 }).ToObject<BigDouble>();
             Assert.AreEqual(new BigDouble(10), result);
+        }
+
+        [Test]
+        public void ErrorInPlayerGenerationScriptThrows()
+        {
+            rpgModule.Player.ValidationScript = "throw('foobar')";
+
+            Assert.Throws(typeof(InvalidOperationException), () =>
+            {
+                Configure();
+            });
         }
     }
 }

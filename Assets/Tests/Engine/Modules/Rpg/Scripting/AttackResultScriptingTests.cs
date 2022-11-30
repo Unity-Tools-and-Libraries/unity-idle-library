@@ -24,7 +24,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
                 { "level", 1 }
             }).ToObject<RpgCharacter>();
 
-            Assert.Throws(typeof(ArgumentNullException), () =>
+            Assert.Throws(typeof(InvalidOperationException), () =>
             {
                 engine.MakeAttack(attacker, defender);
             });

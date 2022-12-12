@@ -21,6 +21,19 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         }
 
         [Test]
+        public void ProducerCostToBuyScalesByQuantityAlreadyOwned()
+        {
+            Configure();
+
+            engine.GetPlayer().Points.Quantity = 10000;
+            for (int i = 0; i < 10; i++)
+            {
+                engine.GetPlayer().Producers[1].Quantity = i;
+                Assert.AreEqual(new BigDouble(1) * BigDouble.Pow(1.15, i), engine.GetPlayer().CalculateCost(engine.GetPlayer().Producers[1], 1));
+            }
+        }
+
+        [Test]
         public void TotalIncomeEqualToQuantityTimePerUnitIncome()
         {
             Configure();

@@ -132,5 +132,19 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             engine.GetPlayer().Points.Change(10000);
             Assert.IsTrue(engine.GetPlayer().CanAfford(engine.GetProducers()[3], 1));
         }
+
+        [Test]
+        public void BuyReducesPoints()
+        {
+            module.AddProducer(new Producer(engine, 3, "", 1, 1, "return true", "return target.GetFlag('set')"));
+
+            Configure();
+
+            engine.Start();
+            engine.GetPlayer().Points.Change(10000);
+            engine.GetPlayer().BuyProducer(3);
+            Assert.AreEqual(BigDouble.One, engine.GetPlayer().Producers[3].Quantity);
+            Assert.AreEqual(new BigDouble(9999), engine.GetPlayer().Points.Quantity);
+        }
     }
 }

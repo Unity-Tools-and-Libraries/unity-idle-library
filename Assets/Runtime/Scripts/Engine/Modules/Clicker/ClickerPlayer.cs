@@ -77,11 +77,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 
         public void BuyProducer(long id)
         {
-            Producer producerDefinition = Engine.GetProducers()[id];
-            BigDouble cost = Engine.Scripting.EvaluateStringAsScript(producerDefinition.CostExpression, new Dictionary<string, object>()
-            {
-                { "target", producerDefinition }
-            }).ToObject<BigDouble>();
+            Producer producerDefinition = Engine.GetPlayer().Producers[id];
+            BigDouble cost = Engine.GetPlayer().CalculateCost(producerDefinition, 1);
             if (Points.Spend(cost))
             {
                 producerDefinition.Quantity += 1;
@@ -94,11 +91,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 
         public void BuyUpgrade(long id)
         {
-            Upgrade upgrade = Engine.GetUpgrades()[id];
-            BigDouble cost = Engine.Scripting.EvaluateStringAsScript(upgrade.CostExpression, new Dictionary<string, object>()
-            {
-                { "target", upgrade }
-            }).ToObject<BigDouble>();
+            Upgrade upgrade = Engine.GetPlayer().Upgrades[id];
+            BigDouble cost = Engine.GetPlayer().CalculateCost(upgrade, 1);
             if (!GetModifiers().Contains(upgrade.Id) && Points.Spend(cost))
             {
                 AddModifier(upgrade);

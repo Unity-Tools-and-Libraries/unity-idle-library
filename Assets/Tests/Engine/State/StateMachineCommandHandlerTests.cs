@@ -2,6 +2,7 @@ using NUnit.Framework;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.State {
@@ -19,13 +20,13 @@ namespace io.github.thisisnozaku.idle.framework.Engine.State {
         [Test]
         public void StateMachineThrowsIfCurrentStateCannotHandleCommand()
         {
-            stateMachine.AddHandler(StateMachine.DEFAULT_STATE, "", (ie, cmd) => { }, "");
+            stateMachine.AddHandler(StateMachine.DEFAULT_STATE, "foo", (ie, cmd) => { }, "");
             var thrown = Assert.Throws(typeof(InvalidOperationException), () =>
             {
-                stateMachine.EvaluateCommand("foobar", engine);
+                stateMachine.EvaluateCommand("foobar");
             });
 
-            Assert.AreEqual("Current state 'initial' cannot handle command 'foobar'", thrown.Message);
+            Assert.AreEqual(GenerateCommandErrorDescription("Current state 'initial' cannot handle command 'foobar'. ", "foo : " ), thrown.Message);
         }
 
         [Test]
@@ -34,8 +35,18 @@ namespace io.github.thisisnozaku.idle.framework.Engine.State {
             stateMachine.DefineTransition(StateMachine.DEFAULT_STATE, "destination", ie => null);
             Assert.DoesNotThrow(() =>
             {
-                stateMachine.EvaluateCommand("transition destination", engine);
+                stateMachine.EvaluateCommand("transition destination");
             });
+        }
+
+        private string GenerateCommandErrorDescription(string error, params string[] otherCommands)
+        {
+            string message = error;
+            foreach(var other in otherCommands)
+            {
+                message += Environment.NewLine + other;
+            }
+            return message;
         }
     }
 }

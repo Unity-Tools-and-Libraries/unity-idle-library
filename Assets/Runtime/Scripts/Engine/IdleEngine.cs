@@ -428,9 +428,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             listeners.StopWatching(eventName, subscriptionDescription);
         }
 
-        public void EvaluateCommand(string command, IdleEngine engine = null)
+        public void EvaluateCommand(string command)
         {
-            this.State.EvaluateCommand(command, this);
+            this.State.EvaluateCommand(command);
         }
 
         public static string[] GeneratePathTokens(string path)

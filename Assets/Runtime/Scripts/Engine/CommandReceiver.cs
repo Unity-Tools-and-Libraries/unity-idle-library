@@ -5,6 +5,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.State
 {
     public interface CommandReceiver
     {
-        public void EvaluateCommand(string command, IdleEngine engine);
+        public void EvaluateCommand(string command);
     }
 }

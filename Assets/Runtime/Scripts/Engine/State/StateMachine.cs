@@ -1,9 +1,7 @@
 using io.github.thisisnozaku.scripting.context;
 using MoonSharp.Interpreter;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.State
 {
@@ -21,6 +19,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.State
         public StateMachine(IdleEngine engine)
         {
             this.currentState = DEFAULT_STATE;
+            this.engine = engine;
             builtInCommands["transition"] = new CommandHandler((ie, args) =>
            {
                Transition(args[1]);
@@ -40,7 +39,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.State
             handlers[commandName] = new CommandHandler(handler, usageMessage);
         }
 
-        public void EvaluateCommand(string command, IdleEngine engine)
+        public void EvaluateCommand(string command)
         {
             string[] tokens = command.Split(" ");
             CommandHandler handler;
@@ -48,7 +47,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.State
             {
                 if (!(handlers.ContainsKey(currentState) && handlers[currentState].TryGetValue(tokens[0], out handler)))
                 {
-                    throw new InvalidOperationException(string.Format("Current state '{0}' cannot handle command '{1}'", currentState, command));
+                    throw new InvalidOperationException(string.Format("Current state '{0}' cannot handle command '{1}'. {2}", currentState, command, GenerateHelpMessage()));
                 }
             }
             handler.Handle(engine, tokens);
@@ -132,6 +131,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine.State
         public void StopWatching(string eventName, string subscriptionIdentifier)
         {
             listeners.StopWatching(eventName, subscriptionIdentifier);
+        }
+
+        private string GenerateHelpMessage()
+        {
+            string message = "";
+            foreach(var command in handlers[currentState])
+            {
+                message += Environment.NewLine + command.Key + " : " + command.Value.Describe();
+            }
+            return message;
         }
     }
 }

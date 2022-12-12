@@ -24,7 +24,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             {
                 engine.EvaluateCommand("gainResource");
             });
-            Assert.AreEqual("Need resource id in position 1. Usage: gainResource [resourceId] [quantity]", thrown.Message);
+            Assert.AreEqual("Need resource id in position 1. (Usage: gainResource [resourceId] [quantity])", thrown.Message);
         }
 
         [Test]
@@ -34,7 +34,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             {
                 engine.EvaluateCommand("gainResource resource");
             });
-            Assert.AreEqual("Need resource quantity in position 2. Usage: gainResource [resourceId] [quantity]", thrown.Message);
+            Assert.AreEqual("Need resource quantity in position 2. (Usage: gainResource [resourceId] [quantity])", thrown.Message);
         }
 
         [Test]
@@ -52,7 +52,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             {
                 engine.EvaluateCommand("spendResource");
             });
-            Assert.AreEqual("Need resource id in position 1. Usage: spendResource [resourceId] [quantity]", thrown.Message);
+            Assert.AreEqual("Need resource id in position 1. (Usage: spendResource [resourceId] [quantity])", thrown.Message);
         }
 
         [Test]
@@ -62,7 +62,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             {
                 engine.EvaluateCommand("spendResource resource");
             });
-            Assert.AreEqual("Need resource quantity in position 2. Usage: spendResource [resourceId] [quantity]", thrown.Message);
+            Assert.AreEqual("Need resource quantity in position 2. (Usage: spendResource [resourceId] [quantity])", thrown.Message);
         }
 
         [Test]
@@ -84,7 +84,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             {
                 engine.EvaluateCommand("spendResource points 1");
             });
-            Assert.AreEqual("Need 1 points but had 0. Usage: spendResource [resourceId] [quantity]", thrown.Message);
+            Assert.AreEqual("Need 1 points but had 0. (Usage: spendResource [resourceId] [quantity])", thrown.Message);
         }
 
         [Test]
@@ -94,7 +94,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             {
                 engine.EvaluateCommand("loseResource");
             });
-            Assert.AreEqual("Need resource id in position 1. Usage: loseResource [resourceId] [quantity]", thrown.Message);
+            Assert.AreEqual("Need resource id in position 1. (Usage: loseResource [resourceId] [quantity])", thrown.Message);
         }
 
         [Test]
@@ -104,7 +104,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             {
                 engine.EvaluateCommand("loseResource resource");
             });
-            Assert.AreEqual("Need resource quantity in position 2. Usage: loseResource [resourceId] [quantity]", thrown.Message);
+            Assert.AreEqual("Need resource quantity in position 2. (Usage: loseResource [resourceId] [quantity])", thrown.Message);
         }
 
         [Test]

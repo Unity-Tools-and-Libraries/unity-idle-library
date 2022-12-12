@@ -35,5 +35,13 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             engine.Scripting.EvaluateStringAsScript("DoClick()");
             Assert.AreEqual(new BigDouble(1), engine.Scripting.EvaluateStringAsScript("return player.points.quantity").ToObject<BigDouble>());
         }
+
+        [Test]
+        public void ClickIncomeIsEqualToBaseTimesMultiplier()
+        {
+            Assert.AreEqual(new BigDouble(1), engine.Scripting.EvaluateStringAsScript("return player.points.click_income_base").ToObject<BigDouble>());
+            Assert.AreEqual(new BigDouble(1), engine.Scripting.EvaluateStringAsScript("return player.points.click_income_multiplier").ToObject<BigDouble>());
+
+        }
     }
 }

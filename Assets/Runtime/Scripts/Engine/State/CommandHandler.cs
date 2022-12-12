@@ -24,7 +24,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.State
                 this.handlerDelegate(engine, args);
             } catch(Exception ex)
             {
-                throw new InvalidOperationException(String.Format("{0} Usage: {1}", ex.Message, usageMessage));
+                throw new InvalidOperationException(String.Format("{0} (Usage: {1})", ex.Message, usageMessage));
             }
         }
 

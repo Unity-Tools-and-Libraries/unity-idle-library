@@ -24,7 +24,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             {
                 engine.EvaluateCommand("gainProducer");
             });
-            Assert.AreEqual("Need producer id in position 1. Usage: gainProducer [producerId] [quantity]", thrown.Message);
+            Assert.AreEqual("Need producer id in position 1. (Usage: gainProducer [producerId] [quantity])", thrown.Message);
         }
 
         [Test]
@@ -34,7 +34,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             {
                 engine.EvaluateCommand("gainProducer Producer");
             });
-            Assert.AreEqual("Need producer quantity in position 2. Usage: gainProducer [producerId] [quantity]", thrown.Message);
+            Assert.AreEqual("Need producer quantity in position 2. (Usage: gainProducer [producerId] [quantity])", thrown.Message);
         }
 
         [Test]
@@ -52,7 +52,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             {
                 engine.EvaluateCommand("buyProducer");
             });
-            Assert.AreEqual("Need producer id in position 1. Usage: buyProducer [producerId] [quantity]", thrown.Message);
+            Assert.AreEqual("Need producer id in position 1. (Usage: buyProducer [producerId] [quantity])", thrown.Message);
         }
 
         [Test]
@@ -62,7 +62,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             {
                 engine.EvaluateCommand("buyProducer Producer");
             });
-            Assert.AreEqual("Need producer quantity in position 2. Usage: buyProducer [producerId] [quantity]", thrown.Message);
+            Assert.AreEqual("Need producer quantity in position 2. (Usage: buyProducer [producerId] [quantity])", thrown.Message);
         }
 
         [Test]
@@ -84,7 +84,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             {
                 engine.EvaluateCommand("buyProducer 1 1");
             });
-            Assert.AreEqual("Need 1 points but had 0. Usage: buyProducer [producerId] [quantity]", thrown.Message);
+            Assert.AreEqual("Need 1 points but had 0. (Usage: buyProducer [producerId] [quantity])", thrown.Message);
         }
 
         [Test]
@@ -94,7 +94,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             {
                 engine.EvaluateCommand("loseProducer");
             });
-            Assert.AreEqual("Need producer id in position 1. Usage: loseProducer [producerId] [quantity]", thrown.Message);
+            Assert.AreEqual("Need producer id in position 1. (Usage: loseProducer [producerId] [quantity])", thrown.Message);
         }
 
         [Test]
@@ -104,7 +104,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             {
                 engine.EvaluateCommand("loseProducer Producer");
             });
-            Assert.AreEqual("Need producer quantity in position 2. Usage: loseProducer [producerId] [quantity]", thrown.Message);
+            Assert.AreEqual("Need producer quantity in position 2. (Usage: loseProducer [producerId] [quantity])", thrown.Message);
         }
 
         [Test]

@@ -24,7 +24,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             {
                 engine.EvaluateCommand("gainUpgrade");
             });
-            Assert.AreEqual("Need upgrade id in position 1. Usage: gainUpgrade [upgradeId] [quantity]", thrown.Message);
+            Assert.AreEqual("Need upgrade id in position 1. (Usage: gainUpgrade [upgradeId] [quantity])", thrown.Message);
         }
 
         [Test]
@@ -34,7 +34,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             {
                 engine.EvaluateCommand("gainUpgrade Upgrade");
             });
-            Assert.AreEqual("Need upgrade quantity in position 2. Usage: gainUpgrade [upgradeId] [quantity]", thrown.Message);
+            Assert.AreEqual("Need upgrade quantity in position 2. (Usage: gainUpgrade [upgradeId] [quantity])", thrown.Message);
         }
 
         [Test]
@@ -53,7 +53,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             {
                 engine.EvaluateCommand("buyUpgrade");
             });
-            Assert.AreEqual("Need upgrade id in position 1. Usage: buyUpgrade [upgradeId] [quantity]", thrown.Message);
+            Assert.AreEqual("Need upgrade id in position 1. (Usage: buyUpgrade [upgradeId] [quantity])", thrown.Message);
         }
 
         [Test]
@@ -63,7 +63,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             {
                 engine.EvaluateCommand("buyUpgrade Upgrade");
             });
-            Assert.AreEqual("Need upgrade quantity in position 2. Usage: buyUpgrade [upgradeId] [quantity]", thrown.Message);
+            Assert.AreEqual("Need upgrade quantity in position 2. (Usage: buyUpgrade [upgradeId] [quantity])", thrown.Message);
         }
 
         [Test]
@@ -85,7 +85,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             {
                 engine.EvaluateCommand("buyUpgrade 2 1");
             });
-            Assert.AreEqual("Need 1 points but had 0. Usage: buyUpgrade [upgradeId] [quantity]", thrown.Message);
+            Assert.AreEqual("Need 1 points but had 0. (Usage: buyUpgrade [upgradeId] [quantity])", thrown.Message);
         }
 
         [Test]
@@ -95,7 +95,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             {
                 engine.EvaluateCommand("loseUpgrade");
             });
-            Assert.AreEqual("Need upgrade id in position 1. Usage: loseUpgrade [upgradeId] [quantity]", thrown.Message);
+            Assert.AreEqual("Need upgrade id in position 1. (Usage: loseUpgrade [upgradeId] [quantity])", thrown.Message);
         }
 
         [Test]
@@ -105,7 +105,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             {
                 engine.EvaluateCommand("loseUpgrade Upgrade");
             });
-            Assert.AreEqual("Need upgrade quantity in position 2. Usage: loseUpgrade [upgradeId] [quantity]", thrown.Message);
+            Assert.AreEqual("Need upgrade quantity in position 2. (Usage: loseUpgrade [upgradeId] [quantity])", thrown.Message);
         }
 
         [Test]

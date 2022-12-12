@@ -84,6 +84,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 engine.Scripting.EvaluateStringAsScript("player.Points.Quantity = player.Points.Quantity + quantity", Tuple.Create<string, object>("quantity", BigDouble.Parse(args[2])));
             }, "gainResource [resourceId] [quantity]");
 
+            engine.State.AddHandler(States.GAMEPLAY, "click", (ie, args) =>
+            {
+                engine.Scripting.EvaluateStringAsScript("player.Points.Quantity = player.Points.Quantity + player.Points.click_income").ToObject<BigDouble>();
+            }, "click [times?]");
+
             engine.State.AddHandler(States.GAMEPLAY, "spendResource", (ie, args) =>
             {
                 if (args.Length < 2)

@@ -21,7 +21,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         public bool IsReady { get; private set; }
         public Dictionary<string, object> GlobalProperties = new Dictionary<string, object>();
         private Dictionary<string, string> propertyCalculators = new Dictionary<string, string>();
-        private List<Timer> timers = new List<Timer>();
+        private long nextTimerId = 1;
+        private Dictionary<long, Timer> timers = new Dictionary<long, Timer>();
 
         private readonly EventListeners listeners;
 
@@ -46,6 +47,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             GlobalProperties["configuration"] = new Dictionary<string, object>();
             GlobalProperties["definitions"] = new Dictionary<string, object>();
 
+            Logging.Log("Creating idle engine instance.");
+
             SerializationSettings = new JsonSerializerSettings();
             SerializationSettings.TypeNameHandling = TypeNameHandling.All;
             SerializationSettings.Context = new System.Runtime.Serialization.StreamingContext(System.Runtime.Serialization.StreamingContextStates.All, this);
@@ -53,6 +56,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         public void RegisterEntity(Entity entity)
         {
+            Logging.Log(string.Format("Registering entity with id {0}", entity.Id), "entity");
             if (Entities.ContainsKey(entity.Id))
             {
                 throw new InvalidOperationException(String.Format("Attempting to use entity id {0}, which is already in use.", entity.Id));
@@ -83,6 +87,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         public void DeserializeSnapshotString(string snapshot)
         {
+            Logging.Log("Deserializing from snapshot string", "persistence");
             RestoreFromSnapshot(JsonConvert.DeserializeObject<EngineSnapshot>(snapshot, SerializationSettings));
         }
 
@@ -101,9 +106,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         /*
          * Create a timer that, after time seconds, evaluated the specified handler as a script.
          */
-        public void Schedule(double time, string handler)
+        public void Schedule(double time, string handler, string description = "")
         {
-            timers.Add(new Timer(time, handler));
+            Logging.Log("Creating new scheduled task", "timers");
+            timers.Add(nextTimerId++, new Timer(time, handler, description));
         }
 
 
@@ -196,6 +202,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
          */
         public void Emit(string eventName, ScriptingContext context)
         {
+            Logging.Log(string.Format("Emitting global event {0}", eventName), "events");
             listeners.Emit(eventName, context != null ? context.GetScriptingProperties() : null);
         }
 
@@ -204,11 +211,13 @@ namespace io.github.thisisnozaku.idle.framework.Engine
          */
         public void Emit(string eventName, IDictionary<string, object> context)
         {
+            Logging.Log(string.Format("Emitting global event {0}", eventName), "events");
             listeners.Emit(eventName, context);
         }
 
         public void Emit(string eventName, Tuple<string, object> context)
         {
+            Logging.Log(string.Format("Emitting global event {0}", eventName), "events");
             listeners.Emit(eventName, context);
         }
 
@@ -218,10 +227,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         public void Watch(string eventName, string subscriber, string handlerScript)
         {
             listeners.Watch(eventName, subscriber, handlerScript);
-            if (eventName == EngineReadyEvent.EventName && IsReady)
-            {
-                Scripting.EvaluateStringAsScript(handlerScript);
-            }
         }
 
         /*
@@ -319,10 +324,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
                 foreach (var timer in timers.ToArray())
                 {
-                    timer.Update(this, deltaTime);
-                    if (timer.Triggered)
+                    timer.Value.Update(this, deltaTime);
+                    if (timer.Value.Triggered)
                     {
-                        timers.Remove(timer);
+                        timers.Remove(timer.Key);
                     }
                 }
             }
@@ -332,8 +337,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             }
         }
 
+        public Timer GetTimer(int id)
+        {
+            Timer timer;
+            timers.TryGetValue(id, out timer);
+            return timer;
+        }
+
         public void RestoreFromSnapshot(EngineSnapshot snapshot)
         {
+            Logging.Log("Restoring from snapshot object", "persitence");
             foreach (var e in snapshot.Properties)
             {
                 if (e.Value != null)

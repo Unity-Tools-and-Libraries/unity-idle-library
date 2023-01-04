@@ -22,6 +22,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         public void Emit(string eventName, IDictionary<string, object> contextToUse)
         {
+            engine.Logging.Log(string.Format("Emitting {0}", eventName), "events");
             Dictionary<string, string> eventListenersBySubscriber = null;
             Dictionary<string, CallbackFunction> callbacksBySubscriber = null;
             listeners.TryGetValue(eventName, out eventListenersBySubscriber);
@@ -36,6 +37,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                         {
                             throw new InvalidOperationException(String.Format("Subscriber '{0}' for event '{1}' had both a callback and a script to handle it, which is not supported.", subscription.Key, eventName));
                         }
+                        engine.Logging.Log(string.Format("Invoking script listener for subscriber {0}", subscription.Key), "events");
                         engine.Scripting.EvaluateStringAsScript(subscription.Value, contextToUse);
                     }
                 }
@@ -44,6 +46,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             {
                 foreach(var subscription in callbacksBySubscriber)
                 {
+                    engine.Logging.Log(string.Format("Invoking callback listener for subscriber {0}", subscription.Key), "events");
                     engine.Scripting.Evaluate(DynValue.NewCallback(subscription.Value), contextToUse);
                 }
             }
@@ -64,6 +67,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         public void Watch(string eventName, string subscriber, string handler)
         {
+            engine.Logging.Log(string.Format("Subscriber {0} begun watching {1} with a script", subscriber, eventName), "events");
             Dictionary<string, string> eventListeners = null;
             if (!listeners.TryGetValue(eventName, out eventListeners))
             {
@@ -73,6 +77,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             eventListeners[subscriber] = handler;
             if(EngineReadyEvent.EventName == eventName && engine.IsReady)
             {
+                engine.Logging.Log("Engine was ready already, so we're invoking immediately", "events");
                 engine.Scripting.EvaluateStringAsScript(handler);
             }
         }
@@ -94,6 +99,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         private void Watch(string eventName, string subscriber, CallbackFunction callback)
         {
+            engine.Logging.Log(string.Format("Subscriber {0} begun watching {1} with a callback", subscriber, eventName), "events");
             Dictionary<string, CallbackFunction> callbacks = null;
             if (!this.callbacks.TryGetValue(eventName, out callbacks))
             {
@@ -120,6 +126,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             {
                 callbacks[subscriber] = null;
             }
+            engine.Logging.Log(string.Format("Subscriber {0} no longer watching {1}", subscriber, eventName), "events");
         }
     }
 }

@@ -13,6 +13,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         {
             Configure();
             engine.SetActionPhase("combat");
+            engine.GetCurrentEncounter().IsActive = true;
             engine.GetPlayer<RpgCharacter>().Update(engine, 1);
             Assert.AreEqual(new BigDouble(1), engine.GetPlayer<RpgCharacter>().ActionMeter);
         }
@@ -77,9 +78,10 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             rpgModule.AddStatus(status);
             Configure();
             engine.Start();
-            
+
             engine.GetPlayer<RpgCharacter>().AddStatus(status, new BigDouble(5));
-            engine.GlobalProperties[RpgModule.Properties.ActionPhase] = "combat";
+            engine.SetActionPhase("combat");
+            engine.GetCurrentEncounter().IsActive = true;
 
             engine.Update(1);
             Assert.AreEqual(new BigDouble(5), engine.GetPlayer<RpgCharacter>().Statuses[1].InitialTime);
@@ -98,7 +100,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             
             engine.GetPlayer<RpgCharacter>().AddStatus(status, new BigDouble(1));
             engine.GetPlayer<RpgCharacter>().Watch(StatusRemovedEvent.EventName, "test", "triggered = true");
-            engine.GlobalProperties[RpgModule.Properties.ActionPhase] = "combat";
+            engine.SetActionPhase("combat");
+            engine.GetCurrentEncounter().IsActive = true;
 
             engine.Update(1);
             Assert.AreEqual(0, engine.GetPlayer<RpgCharacter>().Statuses.Count);

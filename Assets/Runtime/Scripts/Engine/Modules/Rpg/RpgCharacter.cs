@@ -314,7 +314,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
         protected override void CustomUpdate(IdleEngine engine, float deltaTime)
         {
-            if ((string)engine.GetProperty(RpgModule.Properties.ActionPhase) == "combat" &&
+            if (engine.GetActionPhase() == "combat" &&
                 engine.GetCurrentEncounter().IsActive)
             {
                 UpdateActionMeter(deltaTime);

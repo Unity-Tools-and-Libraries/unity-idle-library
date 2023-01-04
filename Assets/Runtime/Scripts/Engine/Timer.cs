@@ -7,14 +7,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine
     public class Timer : IUpdateable
     {
         public readonly double Duration;
+        public readonly string Description;
         private double remainingTime;
         public readonly string Handler;
         public bool Triggered { get; private set; }
 
-        public Timer(double duration, string handler)
+        public Timer(double duration, string handler, string description = "")
         {
             Duration = duration;
             this.remainingTime = duration;
+            this.Description = description;
             Handler = handler;
         }
 

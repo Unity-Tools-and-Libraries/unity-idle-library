@@ -16,7 +16,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             Configure();
 
             Assert.AreEqual(typeof(RpgCharacter), engine.GlobalProperties["player"].GetType()); // Sets a player
-            Assert.AreEqual("", engine.GlobalProperties["actionPhase"] as string); // Set an action phase
+            Assert.AreEqual("", engine.GlobalProperties[RpgModule.Properties.ActionPhase] as string); // Set an action phase
             Assert.NotNull(engine.GetProperty("definitions.encounters"));
             Assert.NotNull(engine.GetConfiguration("characterItemSlots"));
             Assert.AreEqual(new BigDouble(1), engine.GetProperty("stage"));

@@ -53,7 +53,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         }
 
         [Test]
-        public void OnEncounterEndStartNewEncounter()
+        public void OnEncounterEndScheduleCreactionOfNextEncounter()
         {
             random.SetNextValues(0, 0);
             Configure();
@@ -68,7 +68,10 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             engine.GetCurrentEncounter().Creatures[0].Kill();
 
-            Assert.AreNotEqual(currentEncounter, engine.GetCurrentEncounter());
+            var respawnTimer = engine.GetTimer(1);
+
+            Assert.NotNull(respawnTimer);
+            Assert.AreEqual("Timer to start new encounter.", respawnTimer.Description);
         }
     }
 }

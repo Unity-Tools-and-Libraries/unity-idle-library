@@ -143,17 +143,17 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             engine.GlobalProperties["CalculateGoldValue"] = (Func<RpgCharacter, BigDouble>)(creature => {
                 return engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<string>("creatures.GoldValueCalculationScript"), Tuple.Create("creature", (object)creature)).ToObject<BigDouble>();
             });
-            engine.GlobalProperties["actionPhase"] = "";
+            engine.GlobalProperties[RpgModule.Properties.ActionPhase] = "";
             engine.GlobalProperties["stage"] = new BigDouble(1);
             engine.GlobalProperties["OnCreatureDied"] = (Action<RpgCharacter>)(creature => {
                 engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<string>("player.OnCreatureDiedScript"), Tuple.Create("died", (object)creature)).ToObject<BigDouble>();
+                engine.GetCurrentEncounter().IsActive = engine.GetCurrentEncounter().Creatures.Any(c => c.IsAlive);
 
-                
                 if(!engine.GetCurrentEncounter().IsActive)
                 {
                     engine.Emit(EncounterEndedEvent.EventName, (Dictionary<string, object>)null);
                     BigDouble nextEncounterDelay = engine.GetConfiguration<BigDouble>("next_encounter_delay");
-                    engine.Schedule(nextEncounterDelay.ToDouble(), "engine.StartEncounter()");
+                    engine.Schedule(nextEncounterDelay.ToDouble(), "engine.StartEncounter()", "Timer to start new encounter.");
                 }
             });
 
@@ -385,6 +385,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             engine.GlobalProperties[RpgModule.Properties.ActionPhase] = actionPhase;
         }
 
+        public static string GetActionPhase(this IdleEngine engine)
+        {
+            return (string)engine.GlobalProperties[RpgModule.Properties.ActionPhase];
+        }
+
         private static EncounterDefinition GetRandomEncounter(this IdleEngine engine)
         {
             var encounters = engine.GetEncounterDefinitions().Values;
@@ -400,7 +405,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
          */
         public static RpgEncounter StartEncounter(this IdleEngine engine, EncounterDefinition nextEncounter = null)
         {
-            RpgEncounter currentEncounter = (RpgEncounter)(engine.GlobalProperties["encounter"] = DynValue.FromObject(null, new RpgEncounter(engine, engine.GetNextAvailableId())).ToObject<RpgEncounter>());
+            engine.Logging.Log("Starting new encounter", "combat");
+            RpgEncounter currentEncounter = (RpgEncounter)(engine.GlobalProperties["encounter"] = DynValue.FromObject(null, new RpgEncounter(engine, engine.GetNextAvailableId())
+            {
+                IsActive = true
+            }).ToObject<RpgEncounter>());
             if (nextEncounter == null)
             {
                 nextEncounter = engine.GetRandomEncounter();
@@ -438,14 +447,17 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
         public static RpgCharacter GetRandomTarget(this IdleEngine engine, BigDouble friendlyParty)
         {
+            engine.Logging.Log("Selecting random target");
             if (friendlyParty == 0)
             {
                 var monsters = engine.GetCurrentEncounter().Creatures;
                 int index = (int)engine.RandomInt(monsters.Count).ToDouble();
+                engine.Logging.Log(string.Format("Selected monster {0}", index), "combat");
                 return monsters[index];
             }
             else
             {
+                engine.Logging.Log("Selecting player", "combat");
                 return engine.GetPlayer<RpgCharacter>();
             }
         }
@@ -462,6 +474,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 engine.Logging.Log(LogType.Log, "Player already generated, returning it");
                 return engine.GlobalProperties["player"] as RpgCharacter;
             }
+            engine.Logging.Log("Generating new instance of player character", "player.character");
             var playerType = engine.GetConfiguration<Type>("player.CharacterType");
             if (!typeof(RpgCharacter).IsAssignableFrom(playerType))
             {
@@ -471,6 +484,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<string>("player.Initializer"), Tuple.Create<string, object>("player", player)).ToObject<RpgCharacter>();
             try
             {
+                engine.Logging.Log("Validating player object");
                 engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<string>("player.ValidationScript"), Tuple.Create<string, object>(
                     "player", player));
             } catch (ScriptRuntimeException ex)

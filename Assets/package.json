@@ -1,6 +1,7 @@
 {
 	"name" : "nozaku-idle-framework",
 	"version" : "0.0.1",
+	"description" : "Framework for the creation of idle games. As package dependencies on packages retrieved from git are not supported, you must add the https://github.com/Unity-Tools-and-Libraries/unity-lua-scripting-module and https://github.com/Unity-Tools-and-Libraries/unity-simple-logging.git directly into a project using this package.",
 	"dependencies" : {
 		"com.unity.nuget.newtonsoft-json" : "2.0.0"
 	}

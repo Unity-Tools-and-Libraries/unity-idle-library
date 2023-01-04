@@ -1,5 +1,6 @@
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Events;
+using io.github.thisisnozaku.scripting.context;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,7 +8,7 @@ using UnityEngine;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 {
-    public class CharacterActedEvent : ScriptingContext
+    public class CharacterActedEvent : IScriptingContext
     {
         public const string EventName = "character_acted";
 
@@ -20,7 +21,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             this.action = action;
         }
 
-        public Dictionary<string, object> GetScriptingProperties()
+        public Dictionary<string, object> GetContextVariables()
         {
             return new Dictionary<string, object>()
             {
@@ -30,7 +31,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         }
     }
 
-    public class CharacterDiedEvent : ScriptingContext
+    public class CharacterDiedEvent : IScriptingContext
     {
         public const string EventName = "characterDied";
         private RpgCharacter died;
@@ -41,7 +42,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             this.killer = killer;
         }
 
-        public Dictionary<string, object> GetScriptingProperties()
+        public Dictionary<string, object> GetContextVariables()
         {
             return new Dictionary<string, object>()
             {
@@ -51,7 +52,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         }
     }
 
-    public class DamageInflictedEvent : ScriptingContext
+    public class DamageInflictedEvent : IScriptingContext
     {
         public const string EventName = "damage_inflicted";
 
@@ -66,7 +67,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             this.defender = defender;
         }
 
-        public Dictionary<string, object> GetScriptingProperties()
+        public Dictionary<string, object> GetContextVariables()
         {
             return new Dictionary<string, object>()
             {
@@ -77,7 +78,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         }
     }
 
-    public class DamageTakenEvent : ScriptingContext
+    public class DamageTakenEvent : IScriptingContext
     {
         public const string EventName = "damage_taken";
 
@@ -92,7 +93,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             this.defender = defender;
         }
 
-        public Dictionary<string, object> GetScriptingProperties()
+        public Dictionary<string, object> GetContextVariables()
         {
             return new Dictionary<string, object>()
             {

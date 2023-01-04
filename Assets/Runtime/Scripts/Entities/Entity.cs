@@ -9,6 +9,8 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using UnityEngine;
 using MoonSharp.Interpreter;
+using io.github.thisisnozaku.scripting.context;
+using BreakInfinity;
 
 namespace io.github.thisisnozaku.idle.framework.Engine
 {
@@ -42,7 +44,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             this.Id = id;
             
             Flags = new Dictionary<string, bool>();
-            this.eventListeners = new EventListeners(engine);
+            this.eventListeners = new EventListeners(engine, engine);
             this.ExtraProperties = new Dictionary<string, object>();
             if (engine != null)
             {
@@ -121,7 +123,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                         {
                             object currentValue = fieldInfo.GetValue(this);
                             updateScriptContext["value"] = currentValue;
-                            fieldInfo.SetValue(this, Engine.Scripting.EvaluateStringAsScript(child.Value, updateScriptContext).ToObject());
+                            var method = typeof(DynValue).GetMethod("ToObject", 1, new Type[0]).MakeGenericMethod(fieldInfo.FieldType);
+                            fieldInfo.SetValue(this, method.Invoke(Engine.Scripting.EvaluateStringAsScript(child.Value, updateScriptContext), null));
                         };
                     }
 
@@ -164,7 +167,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             eventListeners.Emit(eventName, contextToUse);
         }
 
-        public virtual void Emit(string eventName, ScriptingContext contextToUse = null)
+        public virtual void Emit(string eventName, IScriptingContext contextToUse = null)
         {
             eventListeners.Emit(eventName, contextToUse);
         }

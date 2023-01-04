@@ -23,7 +23,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             this.duration = duration;
         }
 
-        public override Dictionary<string, object> GetScriptingProperties()
+        public override Dictionary<string, object> GetContextVariables()
         {
             return new Dictionary<string, object>()
             {
@@ -43,7 +43,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             this.status = status;
         }
 
-        public override Dictionary<string, object> GetScriptingProperties()
+        public override Dictionary<string, object> GetContextVariables()
         {
             return new Dictionary<string, object>()
             {

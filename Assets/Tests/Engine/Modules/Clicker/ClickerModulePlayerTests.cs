@@ -3,7 +3,10 @@ using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitions;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Events;
 using io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker;
+using MoonSharp.Interpreter;
 using NUnit.Framework;
+using System.Collections.Generic;
+
 namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
 {
     public class ClickerModulePlayerTests : ClickerModuleTestsBase
@@ -32,6 +35,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             Assert.AreEqual(new BigDouble(0), engine.GetPlayer().Points.TotalIncome);
             engine.GetPlayer().BuyProducer(1);
             Assert.AreEqual(new BigDouble(1), engine.GetPlayer().Points.TotalIncome);
+        }
+
+        public class UserType
+        {
+            public IDictionary<string, string> d = new Dictionary<string, string>();
         }
 
         [Test]
@@ -121,8 +129,22 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             Configure();
 
             engine.Start();
-            engine.GetPlayer().ChangePoints(10000);
-            Assert.IsTrue(engine.GetPlayer().CanAfford(engine.GetProducers()[3]));
+            engine.GetPlayer().Points.Change(10000);
+            Assert.IsTrue(engine.GetPlayer().CanAfford(engine.GetProducers()[3], 1));
+        }
+
+        [Test]
+        public void BuyReducesPoints()
+        {
+            module.AddProducer(new Producer(engine, 3, "", 1, 1, "return true", "return target.GetFlag('set')"));
+
+            Configure();
+
+            engine.Start();
+            engine.GetPlayer().Points.Change(10000);
+            engine.GetPlayer().BuyProducer(3);
+            Assert.AreEqual(BigDouble.One, engine.GetPlayer().Producers[3].Quantity);
+            Assert.AreEqual(new BigDouble(9999), engine.GetPlayer().Points.Quantity);
         }
     }
 }

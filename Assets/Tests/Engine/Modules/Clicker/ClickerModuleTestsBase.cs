@@ -12,7 +12,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [SetUp]
         public void setup()
         {
-            base.InitializeEngine();
             module = new ClickerModule();
 
             module.AddProducer(new Producer(engine, 1, "one", 1, 1));

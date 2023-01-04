@@ -67,6 +67,20 @@
       },
       "url": "https://packages.unity.com"
     },
+    "lua-scripting-wrapper-module": {
+      "version": "https://github.com/ThisIsNoZaku/unity-lua-scripting-module.git?path=Assets",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "1316c784c513c20adc3427ee9354d10684daeb73"
+    },
+    "simple-logging-module": {
+      "version": "https://github.com/ThisIsNoZaku/unity-simple-logging.git?path=Assets",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "f7c94697abcd76142a293bf3e787e0f5c85761a0"
+    },
     "com.unity.modules.imgui": {
       "version": "1.0.0",
       "depth": 1,

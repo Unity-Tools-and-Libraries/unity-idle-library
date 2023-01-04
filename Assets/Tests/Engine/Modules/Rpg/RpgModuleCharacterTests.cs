@@ -1,6 +1,8 @@
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg;
+using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Configuration;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Events;
+using MoonSharp.Interpreter;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -11,6 +13,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         [Test]
         public void OnUpdateActionMeterIncreasesInCombat()
         {
+            random.SetNextValues(0);
+
             Configure();
             engine.SetActionPhase("combat");
             engine.GetCurrentEncounter().IsActive = true;
@@ -74,6 +78,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         [Test]
         public void UpdateChangesRemainingDurationOfAppliedStatuses()
         {
+            random.SetNextValues(0);
             var status = new CharacterStatus.Builder().SetFlag("test", true).Build(engine, 1);
             rpgModule.AddStatus(status);
             Configure();
@@ -91,12 +96,14 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         [Test]
         public void UpdateReducingTimeTo0RemoveStatus()
         {
+            random.SetNextValues(0);
             var status = new CharacterStatus.Builder().SetFlag("test", true).Build(engine, 1);
             rpgModule.AddStatus(status);
             Configure();
             
-            
             engine.Start();
+
+            engine.StartEncounter();
             
             engine.GetPlayer<RpgCharacter>().AddStatus(status, new BigDouble(1));
             engine.GetPlayer<RpgCharacter>().Watch(StatusRemovedEvent.EventName, "test", "triggered = true");
@@ -383,6 +390,16 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         }
 
         [Test]
+        public void WhenGenerateCreatureReturnsCreatureWithAdditionalAttributes()
+        {
+            random.SetNextValues(0);
+
+            Configure();
+
+            Assert.AreEqual("bar", engine.GetCreatureDefinitions()[2].Properties["foo"]);
+        }
+
+        [Test]
         public void CreatureScaling()
         {
             Configure();
@@ -395,6 +412,17 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
                     { "level", 1 }
                 }).ToObject<BigDouble>();
             Assert.AreEqual(new BigDouble(10), result);
+        }
+
+        [Test]
+        public void ErrorInPlayerGenerationScriptThrows()
+        {
+            rpgModule.Player.ValidationScript = "throw('foobar')";
+
+            Assert.Throws(typeof(InvalidOperationException), () =>
+            {
+                Configure();
+            });
         }
     }
 }

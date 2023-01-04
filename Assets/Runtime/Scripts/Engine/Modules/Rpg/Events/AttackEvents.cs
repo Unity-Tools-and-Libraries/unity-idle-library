@@ -24,7 +24,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             }
         }
 
-        public override Dictionary<string, object> GetScriptingProperties()
+        public override Dictionary<string, object> GetContextVariables()
         {
             return new Dictionary<string, object>()
             {

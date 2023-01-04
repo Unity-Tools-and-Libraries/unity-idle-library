@@ -14,6 +14,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitio
         public string CostExpression { get; }
         public string UnlockExpression { get; }
         public string EnableExpression { get; }
+        public BigDouble Quantity { get; set; } = 0;
         public bool IsUnlocked
         {
             get

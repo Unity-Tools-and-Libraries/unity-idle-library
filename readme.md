@@ -24,6 +24,13 @@ To unconditionally set the amount of a resource, use `SetQuantity` instead of `C
 
 To buy more of a resource while spending resources, call `Buy` on the entity. Buying differs from Change and Set in that it checks for if the costs and requirements are met.
 
+## 3. Additional dependencies
+This package depends on the following additional packages:
+* https://github.com/Unity-Tools-and-Libraries/unity-lua-scripting-module
+* https://github.com/Unity-Tools-and-Libraries/unity-simple-logging
+
+Because the Unity Package Manager does not allow a package to declare a dependency kept in Github, these must be manually added.
+
 ## I. Future Features
 * Metrics - Track meta information over the course of play
 * Tracking of property modifiers - For e.g. tooltips

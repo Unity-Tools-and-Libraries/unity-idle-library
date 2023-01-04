@@ -470,7 +470,7 @@ namespace BreakInfinity
 
         public override bool Equals(object other)
         {
-            return other is BigDouble && Equals((BigDouble)other);
+            return (other is BigDouble && Equals((BigDouble)other)) || IsConvertible(other) && Equals(ConvertToBigDouble(other));
         }
 
         public override int GetHashCode()

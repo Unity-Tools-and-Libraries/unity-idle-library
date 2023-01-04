@@ -5,6 +5,7 @@ using io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting;
 using MoonSharp.Interpreter;
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace io.github.thisisnozaku.idle.framework.Tests.Engine
@@ -33,11 +34,25 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         }
 
         [Test]
+        public void GetMissingPropertyReturnsNull()
+        {
+            Assert.AreEqual(BigDouble.Zero, engine.GetProperty<BigDouble>("foo"));
+        }
+
+        [Test]
         public void CanGetPropertyThroughFields()
         {
             engine.GlobalProperties["foo"] = new TestEntity(engine, 1);
             (engine.GlobalProperties["foo"] as TestEntity).Bar = new BigDouble(1);
             Assert.AreEqual(new BigDouble(1), engine.GetProperty<BigDouble>("foo.Bar"));
+        }
+
+        [Test]
+        public void CanGetPropertyWithBracketOperator()
+        {
+            engine.GlobalProperties["foo"] = new Dictionary<string, object>();
+            (engine.GlobalProperties["foo"] as IDictionary<string, object>)["bar"] = new BigDouble(1);
+            Assert.AreEqual(new BigDouble(1), engine.GetProperty<BigDouble>("foo[bar]"));
         }
 
         [Test]
@@ -71,7 +86,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
             engine.CalculateProperty("global", "return 1");
             engine.Start();
             engine.Update(1f);
-            Assert.AreEqual(new BigDouble(1), (BigDouble)engine.GlobalProperties["global"]);
+            Assert.AreEqual(1, engine.GlobalProperties["global"]);
         }
 
         [Test]
@@ -80,10 +95,10 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
             engine.CalculateProperty("global", "if value == nil then return deltaTime else return value + deltaTime end");
             engine.Start();
             engine.Update(1.5f);
-            Assert.AreEqual(new BigDouble(1.5), (BigDouble)engine.GlobalProperties["global"]);
+            Assert.AreEqual(1.5, engine.GlobalProperties["global"]);
             engine.CalculateProperty("global", null);
             engine.Update(1f);
-            Assert.AreEqual(new BigDouble(1.5), (BigDouble)engine.GlobalProperties["global"]);
+            Assert.AreEqual(1.5, engine.GlobalProperties["global"]);
         }
 
         [Test]

@@ -35,7 +35,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             this.UnlockExpression = unlockExpression != null ? unlockExpression : "return true";
             this.EnableExpression = enableExpression != null ? enableExpression : "return true";
         }
-        public IDictionary<string, object> Properties { get; set; }
+
         private bool isUnlocked;
         private bool isEnabled;
         public bool IsUnlocked { get

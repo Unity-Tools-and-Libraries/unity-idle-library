@@ -25,6 +25,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             Assert.NotNull(engine.GetProperty<RpgCharacter>("player"));
             Assert.NotNull(engine.GetDefinitions()["statuses"]);
+            Assert.NotNull(engine.GetCreatureDefinitions());
         }
 
         [Test]

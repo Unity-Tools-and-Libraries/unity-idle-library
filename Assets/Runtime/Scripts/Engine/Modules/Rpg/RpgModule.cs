@@ -1,5 +1,4 @@
 
-using io.github.thisisnozaku.idle.framework.Events;
 using MoonSharp.Interpreter;
 using System;
 using System.Linq;
@@ -101,6 +100,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             UserData.RegisterType<Tuple<BigDouble, RpgCharacter>>();
             UserData.RegisterExtensionType(typeof(RpgExtensionMethods));
             UserData.RegisterType<NumericAttribute>();
+            UserData.RegisterType<KeyValuePair<long, EncounterDefinition>>();
+
+            engine.Scripting.AddTypeAdaptor(new scripting.types.TypeAdapter<IDictionary<long, EncounterDefinition>>.AdapterBuilder<IDictionary<long, EncounterDefinition>>()
+                .WithClrConversion(DictionaryTypeAdapter.Converter)
+                .Build());
+
 
             engine.SetConfiguration("player", Player);
             engine.SetConfiguration("creatures", Creatures);
@@ -116,15 +121,19 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             engine.SetConfiguration("next_encounter_delay", new BigDouble(.5f));
 
             engine.GlobalProperties["CreatureValidator"] = defaultCreatureValidator;
+            engine.GlobalProperties["EncounterSelector"] = Resources.Load<TextAsset>("Lua/Rpg/DefaultEncounterSelectorScript").text;
 
-            engine.Scripting.SetScriptToClrCustomConversion(DataType.Table, typeof(AttackResultDescription), value =>
-            {
-                var table = value.Table;
-                bool hit = (bool)table["hit"];
-                string description = (string)table["description"];
-                BigDouble damageToTarget = table.Get("damageToTarget").ToObject<BigDouble>();
-                return new AttackResultDescription(hit, description, damageToTarget, table["attacker"] as RpgCharacter, null, null);
-            });
+            engine.Scripting.AddTypeAdaptor<AttackResultDescription>(
+                new scripting.types.TypeAdapter<AttackResultDescription>.AdapterBuilder<AttackResultDescription>()
+                .WithScriptConversion(DataType.Table, value =>
+                {
+                    var table = value.Table;
+                    bool hit = (bool)table["hit"];
+                    string description = (string)table["description"];
+                    BigDouble damageToTarget = table.Get("damageToTarget").ToObject<BigDouble>();
+                    return new AttackResultDescription(hit, description, damageToTarget, table["attacker"] as RpgCharacter, null, null);
+                })
+                .Build());
         }
 
         public void SetDefinitions(IdleEngine engine)
@@ -148,6 +157,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             engine.GlobalProperties["OnCreatureDied"] = (Action<RpgCharacter>)(creature => {
                 engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<string>("player.OnCreatureDiedScript"), Tuple.Create("died", (object)creature)).ToObject<BigDouble>();
                 engine.GetCurrentEncounter().IsActive = engine.GetCurrentEncounter().Creatures.Any(c => c.IsAlive);
+
+                engine.GetCurrentEncounter().IsActive = engine.GetCurrentEncounter().Creatures.Any(x => x.IsAlive);
 
                 if(!engine.GetCurrentEncounter().IsActive)
                 {
@@ -209,6 +220,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             {
                 IsActive = false
             };
+
+            engine.GlobalProperties["SelectEncounter"] = (Func<EncounterDefinition>)(() =>
+            {
+                return engine.Scripting.EvaluateStringAsScript(engine.GlobalProperties["EncounterSelector"] as string).ToObject<EncounterDefinition>();
+            });
 
             engine.GeneratePlayer();
         }
@@ -416,12 +432,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             }
             foreach (var option in nextEncounter.CreatureOptions)
             {
-                CreatureDefinition creatureDefinition;
+                // Won't check for if creature exists, a check was made at configuration time
+                CreatureDefinition creatureDefinition = engine.GetCreatures()[option.Item1];
 
-                if (!engine.GetCreatures().TryGetValue(option.Item1, out creatureDefinition))
-                {
-                    throw new InvalidOperationException(String.Format("No creature definition with id {0}", option.Item1));
-                }
                 var level = (BigDouble)engine.GlobalProperties["stage"] + option.Item2;
                 var creature = engine.Scripting.EvaluateStringAsScript("return GenerateCreature(definition, level)", new Dictionary<string, object>()
                 {
@@ -440,6 +453,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 }
 
                 currentEncounter.Creatures.Add(creature);
+                currentEncounter.IsActive = true;
             }
             engine.Emit(EncounterStartedEvent.EventName, new EncounterStartedEvent());
             return currentEncounter;
@@ -493,6 +507,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             }
             engine.GlobalProperties["player"] = player;
             return player as RpgCharacter;
+        }
+
+        public static IDictionary<long, CreatureDefinition> GetCreatureDefinitions(this IdleEngine engine)
+        {
+            return engine.GetDefinitions()["creatures"] as IDictionary<long, CreatureDefinition>;
         }
     }
 }

@@ -12,27 +12,27 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
     {
         public ClickerPlayer(IdleEngine engine, long id) : base(engine, id)
         {
-            this.Points = new PointsHolder();
+            this.Points = new ResourceHolder();
             this.Producers = new Dictionary<long, Producer>();
             this.Upgrades = new Dictionary<long, Upgrade>();
-            foreach(var upgrade in engine.GetUpgrades())
+            foreach (var upgrade in engine.GetUpgrades())
             {
                 Upgrades[upgrade.Key] = upgrade.Value;
             }
-            foreach(var producer in engine.GetProducers())
+            foreach (var producer in engine.GetProducers())
             {
                 Producers[producer.Key] = producer.Value;
             }
         }
 
-        public PointsHolder Points { get; }
+        public ResourceHolder Points { get; }
         public Dictionary<long, Producer> Producers { get; }
         public Dictionary<long, Upgrade> Upgrades { get; }
 
         protected override void CustomUpdate(IdleEngine engine, float deltaTime)
         {
             Points.Quantity += Points.TotalIncome * deltaTime;
-            foreach(var p in Producers.Values)
+            foreach (var p in Producers.Values)
             {
                 p.IsUnlocked = engine.Scripting.EvaluateStringAsScript(p.UnlockExpression, new Dictionary<string, object>()
                 {
@@ -59,48 +59,27 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 }).Boolean;
             }
         }
-        /*
-         * Attempt to spend the given amount of points. Returns true if successful.
-         */
-        public bool SpendPoints(BigDouble amount)
+
+        public BigDouble CalculateCost(IBuyable buyable, BigDouble quantity)
         {
-            if(Points.Quantity >= amount)
+            BigDouble startingQuantity = 0;
+            if (buyable is Producer)
             {
-                ChangePoints(-amount);
-                return true;
+                startingQuantity = Producers[(buyable as Producer).Id].Quantity;
             }
-            return false;
+            return Engine.CalculatePurchaseCost(buyable, startingQuantity, quantity);
         }
 
-        /*
-         * Add the given amount to the current points.
-         * 
-         * Returns the new point amount.
-         */
-        public BigDouble ChangePoints(BigDouble amount)
+        public bool CanAfford(IBuyable buyable, BigDouble quantity)
         {
-            Points.Quantity += amount;
-            return Points.Quantity;
-        }
-
-        public bool CanAfford(IBuyable buyable)
-        {
-            BigDouble quantity = 1;
-            if(buyable is Producer)
-            {
-                quantity = Producers[(buyable as Producer).Id].Quantity;
-            }
-            return Points.Quantity >= Engine.CalculatePurchaseCost(buyable, quantity);
+            return Points.Quantity >= CalculateCost(buyable, quantity);
         }
 
         public void BuyProducer(long id)
         {
-            Producer producerDefinition = Engine.GetProducers()[id];
-            BigDouble cost = Engine.Scripting.EvaluateStringAsScript(producerDefinition.CostExpression, new Dictionary<string, object>()
-            {
-                { "target", producerDefinition }
-            }).ToObject<BigDouble>();
-            if(SpendPoints(cost))
+            Producer producerDefinition = Engine.GetPlayer().Producers[id];
+            BigDouble cost = Engine.GetPlayer().CalculateCost(producerDefinition, 1);
+            if (Points.Spend(cost))
             {
                 producerDefinition.Quantity += 1;
                 var boughtProducerEvent = new ProducerBoughtEvent(producerDefinition);
@@ -112,12 +91,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 
         public void BuyUpgrade(long id)
         {
-            Upgrade upgrade = Engine.GetUpgrades()[id];
-            BigDouble cost = Engine.Scripting.EvaluateStringAsScript(upgrade.CostExpression, new Dictionary<string, object>()
-            {
-                { "target", upgrade }
-            }).ToObject<BigDouble>();
-            if (!GetModifiers().Contains(upgrade.Id) && SpendPoints(cost))
+            Upgrade upgrade = Engine.GetPlayer().Upgrades[id];
+            BigDouble cost = Engine.GetPlayer().CalculateCost(upgrade, 1);
+            if (!GetModifiers().Contains(upgrade.Id) && Points.Spend(cost))
             {
                 AddModifier(upgrade);
                 var upgradeBoughtEvent = new UpgradeBoughtEvent(upgrade);

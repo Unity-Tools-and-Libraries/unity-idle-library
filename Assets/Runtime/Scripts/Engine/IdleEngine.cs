@@ -1,5 +1,4 @@
-﻿using io.github.thisisnozaku.idle.framework.Engine.Logging;
-using io.github.thisisnozaku.idle.framework.Engine.Modules;
+﻿using io.github.thisisnozaku.idle.framework.Engine.Modules;
 using io.github.thisisnozaku.idle.framework.Engine.Persistence;
 using io.github.thisisnozaku.idle.framework.Engine.Scripting;
 using io.github.thisisnozaku.idle.framework.Events;
@@ -12,10 +11,15 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using BreakInfinity;
+using io.github.thisisnozaku.scripting.context;
+using io.github.thisisnozaku.logging;
+using io.github.thisisnozaku.idle.framework.Engine.State;
+using io.github.thisisnozaku.idle.framework.Engine.Achievements;
+using io.github.thisisnozaku.idle.framework.Engine.Achievements.Events;
 
 namespace io.github.thisisnozaku.idle.framework.Engine
 {
-    public partial class IdleEngine : ScriptingContext, IEventSource
+    public partial class IdleEngine : IScriptingContext, IEventSource, CommandReceiver
     {
         private System.Random random;
         public bool IsReady { get; private set; }
@@ -26,12 +30,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         private readonly EventListeners listeners;
 
-        private LoggingService logging;
+        private LoggingModule logging;
         private ScriptingService scripting;
         // Services
         public ScriptingService Scripting => scripting;
-        public LoggingService Logging => logging;
+        public LoggingModule Logging => logging;
         public Dictionary<long, Entity> Entities = new Dictionary<long, Entity>();
+
+        public StateMachine State { get; }
+
+        public AchievementsModule Achievements { get; }
 
         public void OverrideRandomNumberGenerator(System.Random rng)
         {
@@ -42,10 +50,13 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         {
             random = new System.Random();
             scripting = new ScriptingService(this);
-            logging = new LoggingService();
+            logging = new LoggingModule();
             listeners = new EventListeners(this);
             GlobalProperties["configuration"] = new Dictionary<string, object>();
             GlobalProperties["definitions"] = new Dictionary<string, object>();
+            Achievements = new AchievementsModule();
+
+            State = new StateMachine(this);
 
             Logging.Log("Creating idle engine instance.");
 
@@ -130,7 +141,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         public object GetProperty(string path, IDictionary<string, object> startingFrom = null)
         {
-            string[] tokens = path.Split('.');
+            string[] tokens = GeneratePathTokens(path);
             startingFrom = startingFrom == null ? GlobalProperties : startingFrom;
             object currentObject;
             if (!startingFrom.TryGetValue(tokens[0], out currentObject))
@@ -140,9 +151,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             for (int i = 1; i < tokens.Length; i++)
             {
                 string token = tokens[i];
+                object key = token;
                 if (typeof(IDictionary).IsAssignableFrom(currentObject.GetType()))
                 {
-                    currentObject = (currentObject as IDictionary)[token];
+                    var genericArgs = currentObject.GetType().GetGenericArguments();
+
+                    if (genericArgs[0] == typeof(long))
+                    {
+                        key = long.Parse((string)key);
+                    }
+                    currentObject = (currentObject as IDictionary)[key];
                     continue;
                 }
 
@@ -160,8 +178,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                     continue;
                 }
 
-                currentObject = null;
-                continue;
+                return null;
             }
             return currentObject;
         }
@@ -200,7 +217,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         /*
          * Notify all listeners watching the global scope that the given event has occurred.
          */
-        public void Emit(string eventName, ScriptingContext context)
+        public void Emit(string eventName, IScriptingContext context)
         {
             Logging.Log(string.Format("Emitting global event {0}", eventName), "events");
             listeners.Emit(eventName, context != null ? context.GetScriptingProperties() : null);
@@ -243,6 +260,21 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             return new BigDouble(random.Next(count));
         }
 
+        public object PickRandom(ICollection options)
+        {
+            var index = random.Next(options.Count);
+            int i = 0;
+            foreach (var option in options)
+            {
+                if (i == index)
+                {
+                    return option;
+                }
+                i++;
+            }
+            return null;
+        }
+
         private Dictionary<Type, List<Tuple<FieldInfo, PropertyInfo>>> typeTraversableFields = new Dictionary<Type, List<Tuple<FieldInfo, PropertyInfo>>>();
 
         public IEnumerable<DynValue> TraverseObjectGraph()
@@ -250,10 +282,13 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             Queue<DynValue> queue = new Queue<DynValue>();
             foreach (var global in GlobalProperties)
             {
-                DynValue globalValue = DynValue.FromObject(null, global.Value);
-                if (globalValue.Type == DataType.Table || globalValue.Type == DataType.Tuple || (globalValue.Type == DataType.UserData && globalValue.ToObject() is ITraversableType))
+                if (global.Key != "configuration" && global.Key != "definitions")
                 {
-                    queue.Enqueue(globalValue);
+                    DynValue globalValue = DynValue.FromObject(null, global.Value);
+                    if (globalValue.Type == DataType.Table || globalValue.Type == DataType.Tuple || (globalValue.Type == DataType.UserData && globalValue.ToObject() is ITraversableType))
+                    {
+                        queue.Enqueue(globalValue);
+                    }
                 }
             }
             while (queue.Count > 0)
@@ -276,7 +311,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                         }
                         break;
                 }
-                if(children != null)
+                if (children != null)
                 {
                     foreach (var child in children)
                     {
@@ -330,6 +365,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                         timers.Remove(timer.Key);
                     }
                 }
+
+                foreach (var achievement in Achievements)
+                {
+                    if(!achievement.Value.Completed)
+                    {
+                        achievement.Value.Completed = scripting.EvaluateStringAsScript(achievement.Value.CompletionExpression).Boolean;
+                        Emit(AchievementCompletedEvent.EventName, new AchievementCompletedEvent(achievement.Value));
+                        Scripting.EvaluateStringAsScript(achievement.Value.CompletionEffect);
+                    }
+                }
             }
             else
             {
@@ -364,6 +409,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                     }
                 }
             }
+            foreach(var achievement in snapshot.Achievements)
+            {
+                Achievements[achievement.Id] = achievement;
+            }
         }
 
         public void AddModule(IModule newModule)
@@ -377,19 +426,48 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             newModule.SetDefinitions(this);
             newModule.SetGlobalProperties(this);
         }
-        public Dictionary<string, object> GetScriptingProperties()
+        public Dictionary<string, object> GetContextVariables()
         {
             return new Dictionary<string, object>();
         }
 
         public EngineSnapshot GetSnapshot()
         {
-            return new EngineSnapshot(GlobalProperties, listeners.GetListeners());
+            return new EngineSnapshot(GlobalProperties, Achievements.Values.ToList(), listeners.GetListeners());
         }
 
         public void StopWatching(string eventName, string subscriptionDescription)
         {
             listeners.StopWatching(eventName, subscriptionDescription);
+        }
+
+        public void EvaluateCommand(string command)
+        {
+            this.State.EvaluateCommand(command);
+        }
+
+        public static string[] GeneratePathTokens(string path)
+        {
+            return path.Split('.')
+                .SelectMany(t =>
+                {
+                    if (t.Contains("[")) {
+                        return new string[]
+                        {
+                            t.Substring(0, t.IndexOf("[")),
+                            t.Substring(t.IndexOf("[") + 1 , t.IndexOf("]") - t.IndexOf("[") - 1)
+                        };
+                    }
+                    else
+                    {
+                        return new string[] { t };
+                    }
+                }).ToArray();
+        }
+
+        public void DefineAchievement(Achievement achievement)
+        {
+            Achievements[achievement.Id] = achievement;
         }
     }
 }

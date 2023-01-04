@@ -1,11 +1,9 @@
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitions;
-using io.github.thisisnozaku.idle.framework.Events;
-using System.Collections;
+using io.github.thisisnozaku.scripting.context;
 using System.Collections.Generic;
-using UnityEngine;
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Events
 {
-    public class IsEnabledChangedEvent : ScriptingContext
+    public class IsEnabledChangedEvent : IScriptingContext
     {
         public const string EventName = "IsEnabledChanged";
         private IEnableable enableable;
@@ -15,7 +13,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Events
             this.enableable = enableable;
         }
 
-        public Dictionary<string, object> GetScriptingProperties()
+        public Dictionary<string, object> GetContextVariables()
         {
             return new Dictionary<string, object>()
             {

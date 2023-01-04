@@ -1,11 +1,12 @@
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitions;
 using io.github.thisisnozaku.idle.framework.Events;
+using io.github.thisisnozaku.scripting.context;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Events
 {
-    public class IsUnlockedChangeEvent : ScriptingContext
+    public class IsUnlockedChangeEvent : IScriptingContext
     {
         public const string EventName = "IsUnlockedChanged";
         private IUnlockable unlockable;
@@ -15,7 +16,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Events
             this.unlockable = unlockable;
         }
 
-        public Dictionary<string, object> GetScriptingProperties()
+        public Dictionary<string, object> GetContextVariables()
         {
             return new Dictionary<string, object>()
             {

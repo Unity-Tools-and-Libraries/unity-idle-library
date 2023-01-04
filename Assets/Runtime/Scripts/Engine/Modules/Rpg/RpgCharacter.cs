@@ -334,7 +334,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             CurrentHealth = 0;
             var diedEvent = new CharacterDiedEvent(this, killer);
             Emit(CharacterDiedEvent.EventName, diedEvent);
-            Engine.Emit(CharacterDiedEvent.EventName, diedEvent);
         }
 
         public static class Attributes

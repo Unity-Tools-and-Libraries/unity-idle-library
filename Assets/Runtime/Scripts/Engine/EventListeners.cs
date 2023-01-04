@@ -1,4 +1,5 @@
 ﻿using io.github.thisisnozaku.idle.framework.Events;
+using io.github.thisisnozaku.scripting.context;
 using MoonSharp.Interpreter;
 using Newtonsoft.Json;
 using System;
@@ -13,9 +14,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         [JsonIgnore]
         public Dictionary<string, Dictionary<string, CallbackFunction>> callbacks = new Dictionary<string, Dictionary<string, CallbackFunction>>();
         private IdleEngine engine;
-        public EventListeners(IdleEngine engine)
+        /**
+         * The 
+         */
+        private IEventSource parent;
+        public EventListeners(IdleEngine engine, IEventSource parent = null)
         {
             this.engine = engine;
+            this.parent = parent;
         }
 
         public Dictionary<string, Dictionary<string, string>> GetListeners() => listeners;
@@ -50,11 +56,15 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                     engine.Scripting.Evaluate(DynValue.NewCallback(subscription.Value), contextToUse);
                 }
             }
+            if(parent != null)
+            {
+                parent.Emit(eventName, contextToUse);
+            }
         }
 
-        public void Emit(string eventName, ScriptingContext contextToUse)
+        public void Emit(string eventName, IScriptingContext contextToUse)
         {
-            Emit(eventName, contextToUse != null ? contextToUse.GetScriptingProperties() : null);
+            Emit(eventName, contextToUse != null ? contextToUse.GetContextVariables() : null);
         }
 
         public void Emit(string eventName, Tuple<string, object> contextToUse)

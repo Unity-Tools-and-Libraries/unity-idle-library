@@ -4,6 +4,8 @@ using NUnit.Framework;
 using io.github.thisisnozaku.idle.framework.Engine;
 using io.github.thisisnozaku.idle.framework.Events;
 using System;
+using io.github.thisisnozaku.scripting.context;
+using Newtonsoft.Json;
 
 namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Persistence
 {
@@ -56,7 +58,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Persistence
 
             engine.DeserializeSnapshotString(snapshot);
 
-            engine.Emit("event", (ScriptingContext)null);
+            engine.Emit("event", (IScriptingContext)null);
 
             Assert.IsTrue(engine.GetProperty<bool>("triggered"));
         }
@@ -83,9 +85,24 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Persistence
         }
 
         [Test]
-        public void SavesUsedEntityIds()
+        public void AchievementStateSaved()
         {
-            
+            engine.Achievements[1L] = new framework.Engine.Achievements.Achievement(1, "return true");
+
+            engine.Start();
+            engine.Update(0f);
+
+            Assert.IsTrue(engine.Achievements[1L].Completed);
+
+            var snapshot = engine.GetSerializedSnapshotString();
+
+            engine = new IdleEngine();
+
+            Assert.IsNull(engine.Achievements[1]);
+
+            engine.DeserializeSnapshotString(snapshot);
+
+            Assert.IsTrue(engine.Achievements[1].Completed);
         }
     }
 }

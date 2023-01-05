@@ -220,7 +220,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         public void Emit(string eventName, IScriptingContext context)
         {
             Logging.Log(string.Format("Emitting global event {0}", eventName), "events");
-            listeners.Emit(eventName, context != null ? context.GetScriptingProperties() : null);
+            listeners.Emit(eventName, context != null ? context.GetContextVariables() : null);
         }
 
         /*

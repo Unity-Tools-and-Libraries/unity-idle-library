@@ -235,6 +235,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
             engine.Scripting.Evaluate(DynValue.FromObject(null, (Action<IDictionary<string, object>>)(ctx =>
             {
                 Assert.IsTrue(ctx is IDictionary<string, object>);
+                Assert.IsTrue(ctx.ContainsKey("engine"));
             })), context);
         }
 

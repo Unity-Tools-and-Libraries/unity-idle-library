@@ -64,6 +64,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             this.engine = engine;
             module = new ScriptingModule(ScriptingModuleConfigurationFlag.DICTIONARY_WRAPPING);
 
+
             module.AddTypeAdapter(new scripting.types.TypeAdapter<IdleEngine>.AdapterBuilder<IdleEngine>().Build());
             module.AddTypeAdapter(new scripting.types.TypeAdapter<BigDouble>.AdapterBuilder<BigDouble>()
                 .WithScriptConversion(DataType.Number, arg => BigDouble.Parse(arg.CastToString()))
@@ -100,7 +101,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             UserData.RegisterType<KeyValuePair<object, object>>();
             UserData.RegisterType<StateChangedEvent>();
 
-            foreach(var builtIn in BuiltIns)
+            module.Globals["engine"] = engine;
+
+            foreach (var builtIn in BuiltIns)
             {
                 module.Globals[builtIn.Key] = builtIn.Value;
             }

@@ -50,6 +50,10 @@ public abstract class RpgModuleTestsBase : TestsRequiringEngine
         public override int Next(int maxValue)
         {
             callCount++;
+            if(nextValues.Count == 0)
+            {
+                throw new InvalidOperationException(String.Format("Tried to get value on call {0} but no value was configured", callCount));
+            }
             int next = (int)nextValues.Dequeue();
             if(next >= maxValue)
             {

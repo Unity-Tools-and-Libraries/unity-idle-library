@@ -74,9 +74,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public string PostUpdateHook;
         // FIXME: Externalize
         private string defaultAttackHitScript =
-            "return {hit=true, description='hit', damageToTarget=math.max(attacker.damage.Total - defender.defense.Total, configuration.minimum_attack_damage), attacker=attacker}";
+            "return {hit=true, description='hit', damageToTarget=math.max(math.floor(attacker.damage.Total - defender.defense.Total), configuration.minimum_attack_damage), attacker=attacker}";
         private string defaultAttackMissScript = "return {hit=false, description='miss', attacker=attacker}";
-        private string defaultAttackCriticalHitScript = "return {hit=true, description='critical hit', damageToTarget=math.max((attacker.damage.Total - defender.defense.Total) * attacker.criticalHitDamageMultiplier.Total, 1), attacker=attacker}";
+        private string defaultAttackCriticalHitScript = "return {hit=true, description='critical hit', damageToTarget=math.floor(math.max((attacker.damage.Total - defender.defense.Total) * attacker.criticalHitDamageMultiplier.Total, 1)), attacker=attacker}";
 
         private string defaultCreatureValidator = "if(creature.maximumHealth.Total <= 0) then error('creature health must be at least 1') end";
 

@@ -16,6 +16,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Combat
         public List<Tuple<BigDouble, RpgCharacter>> DamageToAttacker;
         public List<long> StatusesToApplyToAttacker;
         public List<long> StatusesToApplyToDefender;
+        private string toStringResultCache;
 
         public AttackResultDescription(bool isHit, string description,
             BigDouble attackDamage, RpgCharacter attacker,
@@ -43,36 +44,59 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Combat
         public void ClearAttackerDamage()
         {
             DamageToAttacker.Clear();
+            toStringResultCache = null;
         }
 
         public void ClearDefenderDamage()
         {
             DamageToDefender.Clear();
+            toStringResultCache = null;
         }
 
         public void DamageAttacker(BigDouble damage, RpgCharacter source)
         {
             DamageToAttacker.Add(Tuple.Create(damage, source));
+            toStringResultCache = null;
         }
 
         public void DamageDefender(BigDouble damage, RpgCharacter source)
         {
             DamageToDefender.Add(Tuple.Create(damage, source));
+            toStringResultCache = null;
         }
 
         public override string ToString()
         {
-            string hitOrMiss = this.IsHit ? "hit" : "miss";
-            BigDouble totalDamageToTarget = DamageToDefender.Count > 0 ? DamageToDefender.Select(x => x.Item1).Aggregate((a, b) => a.Add(b)) : 0;
-            string statuses = StatusesToApplyToDefender != null &&
-                StatusesToApplyToDefender.Count > 0 ?
-                string.Join(", ", StatusesToApplyToDefender) :
-                "";
-            if(statuses.Length > 0)
+            if (toStringResultCache == null)
             {
-                return string.Format("{0} defender for {1} damage, applied status(es) {2} to defender", hitOrMiss, totalDamageToTarget, statuses);
+                string hitOrMiss = this.IsHit ? "hit" : "miss";
+
+                BigDouble totalDamageToTarget = DamageToDefender.Count > 0 ?
+                    DamageToDefender.Select(x => x.Item1).Aggregate((a, b) => a.Add(b)) :
+                    0;
+                BigDouble? totalDamageToAttacker = DamageToAttacker.Count > 0 ?
+                    DamageToAttacker.Select(x => x.Item1).Aggregate((a, b) => a.Add(b)) :
+                    null;
+
+                string damageMessage = string.Format("defender for {0} damage{1}", totalDamageToTarget,
+                    totalDamageToAttacker.HasValue ? string.Format(" and attacker for {0} damage", totalDamageToAttacker.Value) :
+                    "");
+
+                string statuses = StatusesToApplyToDefender != null &&
+                    StatusesToApplyToDefender.Count > 0 ?
+                    string.Join(", ", StatusesToApplyToDefender) :
+                    "";
+                if (statuses.Length > 0)
+                {
+                    toStringResultCache = string.Format("{0} {1}, applied status(es) {2} to defender", hitOrMiss, damageMessage, statuses);
+                }
+                else
+                {
+                    toStringResultCache = string.Format("{0} {1}", hitOrMiss, damageMessage);
+                }
             }
-            return string.Format("{0} defender for {1} damage", hitOrMiss, totalDamageToTarget);
+
+            return toStringResultCache;
         }
     }
 }

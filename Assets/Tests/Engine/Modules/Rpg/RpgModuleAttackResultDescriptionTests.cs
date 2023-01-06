@@ -61,5 +61,13 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             });
             Assert.AreEqual("hit defender for 1 damage, applied status(es) 1 to defender", dmg.ToString());
         }
+
+        [Test]
+        public void DescribeHitWithDamageToBoth()
+        {
+            var dmg = new AttackResultDescription(true, "", 1, null, null, null);
+            dmg.DamageAttacker(1, null);
+            Assert.AreEqual("hit defender for 1 damage and attacker for 1 damage", dmg.ToString());
+        }
     }
 }

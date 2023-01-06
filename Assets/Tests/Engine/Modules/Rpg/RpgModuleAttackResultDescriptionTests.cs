@@ -38,6 +38,14 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         }
 
         [Test]
+        public void DescribeWithNoDamage()
+        {
+            var dmg = new AttackResultDescription(true, "", 1, null, null, null);
+            dmg.ClearDefenderDamage();
+            Assert.AreEqual("hit defender for 0 damage", dmg.ToString());
+        }
+
+        [Test]
         public void DescribeHit()
         {
             var dmg = new AttackResultDescription(true, "", 1, null, null, null);

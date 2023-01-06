@@ -63,7 +63,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Combat
         public override string ToString()
         {
             string hitOrMiss = this.IsHit ? "hit" : "miss";
-            BigDouble totalDamageToTarget = DamageToDefender.Select(x => x.Item1).Aggregate((a, b) => a.Add(b));
+            BigDouble totalDamageToTarget = DamageToDefender.Count > 0 ? DamageToDefender.Select(x => x.Item1).Aggregate((a, b) => a.Add(b)) : 0;
             string statuses = StatusesToApplyToDefender != null &&
                 StatusesToApplyToDefender.Count > 0 ?
                 string.Join(", ", StatusesToApplyToDefender) :

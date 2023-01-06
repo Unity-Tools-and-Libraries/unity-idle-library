@@ -40,12 +40,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 {"fingers", 1 },
             };
 
-        private Dictionary<string, BigDouble> playerDefaultAttributes = new Dictionary<string, BigDouble>()
+        private Dictionary<string, BigDouble> playerDefaultAttributeBases = new Dictionary<string, BigDouble>()
         {
             { RpgCharacter.Attributes.ACCURACY, 10 },
             { RpgCharacter.Attributes.ACTION_SPEED, 0 },
             { RpgCharacter.Attributes.CRITICAL_DAMAGE_MULTIPLIER, 1.2 },
-            { RpgCharacter.Attributes.CRITICAL_HIT_CHANCE, 10 },
+            { RpgCharacter.Attributes.CRITICAL_HIT_CHANCE, 0.01 },
             { RpgCharacter.Attributes.DAMAGE, 10 },
             { RpgCharacter.Attributes.DEFENSE, 10 },
             { RpgCharacter.Attributes.EVASION, 10 },
@@ -54,6 +54,23 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             { RpgCharacter.Attributes.PRECISION, 10 },
             { RpgCharacter.Attributes.RESILIENCE, 0 }
         };
+
+        private Dictionary<string, BigDouble> playerDefaultAttributeBonusPerLevel = new Dictionary<string, BigDouble>()
+        {
+            { RpgCharacter.Attributes.ACCURACY, 1 },
+            { RpgCharacter.Attributes.ACTION_SPEED, 0 },
+            { RpgCharacter.Attributes.CRITICAL_DAMAGE_MULTIPLIER, 0.1 },
+            { RpgCharacter.Attributes.CRITICAL_HIT_CHANCE, .01 },
+            { RpgCharacter.Attributes.DAMAGE, 1 },
+            { RpgCharacter.Attributes.DEFENSE, 1 },
+            { RpgCharacter.Attributes.EVASION, 1 },
+            { RpgCharacter.Attributes.MAXIMUM_HEALTH, 5 },
+            { RpgCharacter.Attributes.PENETRATION, 1 },
+            { RpgCharacter.Attributes.PRECISION, 1 },
+            { RpgCharacter.Attributes.RESILIENCE, 1 }
+        };
+
+
         // These are the base values for these attributes for creatures.
         // These values are multiplied by the creature properties and then by the level scaling function.
         private Dictionary<string, BigDouble> creatureBaseAttributes = new Dictionary<string, BigDouble>()
@@ -232,10 +249,15 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         private void SetDefaultAttributeConfiguration(IdleEngine engine)
         {
             Dictionary<string, object> playerAttributes = (Dictionary<string, object>)(engine.GetConfiguration()["default_player_stats"] = new Dictionary<string, object>());
+            Dictionary<string, object> playerAttributePerLevel = (Dictionary<string, object>)(engine.GetConfiguration()["default_player_stat_per_level"] = new Dictionary<string, object>());
             Dictionary<string, object> creatureAttributes = (Dictionary<string, object>)(engine.GetConfiguration()["default_creature_stats"] = new Dictionary<string, object>());
-            foreach (var attribute in playerDefaultAttributes)
+            foreach (var attribute in playerDefaultAttributeBases)
             {
                 playerAttributes[attribute.Key] = attribute.Value;
+            }
+            foreach(var attribute in playerDefaultAttributeBonusPerLevel)
+            {
+                playerAttributePerLevel[attribute.Key] = attribute.Value;
             }
             foreach (var attribute in creatureBaseAttributes)
             {

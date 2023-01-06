@@ -424,5 +424,20 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
                 Configure();
             });
         }
+
+        [Test]
+        public void DefaultAttributeLevelIncrease()
+        {
+            Configure();
+            Assert.AreEqual(BigDouble.One, engine.GetPlayer<RpgCharacter>().Accuracy.ChangePerLevel);
+            Assert.AreEqual(new BigDouble(.01), engine.GetPlayer<RpgCharacter>().CriticalHitChance.ChangePerLevel);
+            Assert.AreEqual(new BigDouble(.1), engine.GetPlayer<RpgCharacter>().CriticalHitDamageMultiplier.ChangePerLevel);
+            Assert.AreEqual(new BigDouble(5), engine.GetPlayer<RpgCharacter>().MaximumHealth.ChangePerLevel);
+            Assert.AreEqual(BigDouble.One, engine.GetPlayer<RpgCharacter>().Penetration.ChangePerLevel);
+            Assert.AreEqual(BigDouble.One, engine.GetPlayer<RpgCharacter>().Precision.ChangePerLevel);
+            Assert.AreEqual(BigDouble.One, engine.GetPlayer<RpgCharacter>().Resilience.ChangePerLevel);
+            Assert.AreEqual(BigDouble.One, engine.GetPlayer<RpgCharacter>().Defense.ChangePerLevel);
+            Assert.AreEqual(BigDouble.One, engine.GetPlayer<RpgCharacter>().Evasion.ChangePerLevel);
+        }
     }
 }

@@ -11,6 +11,18 @@ player.penetration.BaseValue = configuration.default_player_stats.penetration
 player.precision.BaseValue = configuration.default_player_stats.precision
 player.resilience.BaseValue = configuration.default_player_stats.resilience
 
+player.accuracy.ChangePerLevel = configuration.default_player_stat_per_level.accuracy
+player.criticalHitChance.ChangePerLevel = configuration.default_player_stats.critical_hit_chance
+player.criticalHitDamageMultiplier.ChangePerLevel = configuration.default_player_stat_per_level.critical_damage_multiplier
+player.maximumHealth.ChangePerLevel = configuration.default_player_stat_per_level.maximum_health
+player.damage.ChangePerLevel = configuration.default_player_stat_per_level.damage
+player.defense.ChangePerLevel = configuration.default_player_stat_per_level.defense
+player.evasion.ChangePerLevel = configuration.default_player_stat_per_level.evasion
+player.penetration.ChangePerLevel = configuration.default_player_stat_per_level.penetration
+player.precision.ChangePerLevel = configuration.default_player_stat_per_level.precision
+player.resilience.ChangePerLevel = configuration.default_player_stat_per_level.resilience
+
+
 player.xp = 0
 player.gold = 0
 

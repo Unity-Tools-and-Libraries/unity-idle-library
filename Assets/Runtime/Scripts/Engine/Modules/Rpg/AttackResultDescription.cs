@@ -2,6 +2,7 @@ using BreakInfinity;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Combat
@@ -57,6 +58,21 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Combat
         public void DamageDefender(BigDouble damage, RpgCharacter source)
         {
             DamageToDefender.Add(Tuple.Create(damage, source));
+        }
+
+        public override string ToString()
+        {
+            string hitOrMiss = this.IsHit ? "hit" : "miss";
+            BigDouble totalDamageToTarget = DamageToDefender.Select(x => x.Item1).Aggregate((a, b) => a.Add(b));
+            string statuses = StatusesToApplyToDefender != null &&
+                StatusesToApplyToDefender.Count > 0 ?
+                string.Join(", ", StatusesToApplyToDefender) :
+                "";
+            if(statuses.Length > 0)
+            {
+                return string.Format("{0} defender for {1} damage, applied status(es) {2} to defender", hitOrMiss, totalDamageToTarget, statuses);
+            }
+            return string.Format("{0} defender for {1} damage", hitOrMiss, totalDamageToTarget);
         }
     }
 }

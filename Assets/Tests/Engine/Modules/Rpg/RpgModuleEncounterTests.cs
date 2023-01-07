@@ -72,6 +72,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             Assert.NotNull(respawnTimer);
             Assert.AreEqual("Timer to start new encounter.", respawnTimer.Description);
+            Assert.AreEqual(0.5, respawnTimer.Duration);
         }
 
         [Test]

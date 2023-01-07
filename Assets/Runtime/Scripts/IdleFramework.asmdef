@@ -5,7 +5,8 @@
         "RuntimePlugins",
         "RuntimeLibraries",
         "Scripting_Runtime",
-        "Logging_Module_Runtime"
+        "Logging_Module_Runtime",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

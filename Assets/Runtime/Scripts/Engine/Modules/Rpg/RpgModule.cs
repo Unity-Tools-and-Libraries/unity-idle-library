@@ -132,7 +132,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
             engine.SetConfiguration("PlayerAttackScript", Player.AttackScript);
 
-            engine.SetConfiguration("base_tohit", 50);
+            engine.SetConfiguration("base_tohit", 90);
 
             engine.SetConfiguration("minimum_attack_damage", 1);
             engine.SetConfiguration("next_encounter_delay", new BigDouble(.5f));

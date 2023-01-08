@@ -8,6 +8,7 @@ using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Combat;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Events;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Configuration;
+using io.github.thisisnozaku.idle.framework.Engine.State;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 {
@@ -99,7 +100,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
         public RpgModule()
         {
-            
+
         }
 
         public void SetConfiguration(IdleEngine engine)
@@ -151,11 +152,65 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                     return new AttackResultDescription(hit, description, damageToTarget, table["attacker"] as RpgCharacter, null, null);
                 })
                 .Build());
+
+            ConfigureCommands(engine);
+        }
+
+        private void ConfigureCommands(IdleEngine engine)
+        {
+            engine.State.AddHandler(StateMachine.DEFAULT_STATE, "kill", KillCharacter, "kill [id]");
+            engine.State.AddHandler(StateMachine.DEFAULT_STATE, "damage", DamageCharacter, "damage [id] [quantity]");
+        }
+
+        private void KillCharacter(IdleEngine engine, string[] args)
+        {
+
+            long id = CommandArgumentParser.Parse<long>("id", args[1]);
+            if (id == 1L)
+            {
+                engine.GetPlayer<RpgCharacter>().Kill();
+            }
+            else
+            {
+                var encounter = engine.GetCurrentEncounter();
+                foreach (var character in encounter.Creatures)
+                {
+                    if (character.Id == id)
+                    {
+                        character.Kill();
+                        return;
+                    }
+                }
+                throw new Exception(String.Format("No character with id {0} found", id));
+            }
+        }
+
+        private void DamageCharacter(IdleEngine engine, string[] args)
+        {
+            long id = CommandArgumentParser.Parse<long>("id", args[1]);
+            long damage = CommandArgumentParser.Parse<long>("id", args[2]);
+            if (id == 1L)
+            {
+                engine.GetPlayer<RpgCharacter>().InflictDamage(damage, null);
+            }
+            else
+            {
+                var encounter = engine.GetCurrentEncounter();
+                foreach (var character in encounter.Creatures)
+                {
+                    if (character.Id == id)
+                    {
+                        character.InflictDamage(damage, null);
+                        return;
+                    }
+                }
+                throw new Exception(String.Format("No character with id {0} found", id));
+            }
         }
 
         public void SetDefinitions(IdleEngine engine)
         {
-            foreach(var definitionCategory in definitions)
+            foreach (var definitionCategory in definitions)
             {
                 engine.GetDefinitions()[definitionCategory.Key] = definitionCategory.Value;
             }
@@ -163,21 +218,24 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
         public void SetGlobalProperties(IdleEngine engine)
         {
-            engine.GlobalProperties["CalculateXpValue"] = (Func<RpgCharacter, BigDouble>)(creature => {
+            engine.GlobalProperties["CalculateXpValue"] = (Func<RpgCharacter, BigDouble>)(creature =>
+            {
                 return engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<string>("creatures.XpValueCalculationScript"), Tuple.Create("creature", (object)creature)).ToObject<BigDouble>();
             });
-            engine.GlobalProperties["CalculateGoldValue"] = (Func<RpgCharacter, BigDouble>)(creature => {
+            engine.GlobalProperties["CalculateGoldValue"] = (Func<RpgCharacter, BigDouble>)(creature =>
+            {
                 return engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<string>("creatures.GoldValueCalculationScript"), Tuple.Create("creature", (object)creature)).ToObject<BigDouble>();
             });
             engine.GlobalProperties[RpgModule.Properties.ActionPhase] = "";
             engine.GlobalProperties["stage"] = new BigDouble(1);
-            engine.GlobalProperties["OnCreatureDied"] = (Action<RpgCharacter>)(creature => {
+            engine.GlobalProperties["OnCreatureDied"] = (Action<RpgCharacter>)(creature =>
+            {
                 engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<string>("player.OnCreatureDiedScript"), Tuple.Create("died", (object)creature)).ToObject<BigDouble>();
                 engine.GetCurrentEncounter().IsActive = engine.GetCurrentEncounter().Creatures.Any(c => c.IsAlive);
 
                 engine.GetCurrentEncounter().IsActive = engine.GetCurrentEncounter().Creatures.Any(x => x.IsAlive);
 
-                if(!engine.GetCurrentEncounter().IsActive)
+                if (!engine.GetCurrentEncounter().IsActive)
                 {
                     engine.Emit(EncounterEndedEvent.EventName, (Dictionary<string, object>)null);
                     BigDouble nextEncounterDelay = engine.GetConfiguration<BigDouble>("next_encounter_delay");
@@ -189,7 +247,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
             engine.GlobalProperties["GenerateCreature"] = (Func<CreatureDefinition, BigDouble, RpgCharacter>)((definition, level) =>
             {
-                if(level <= 0)
+                if (level <= 0)
                 {
                     throw new ArgumentException("level must be at least 1");
                 }
@@ -201,7 +259,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 }).ToObject<RpgCharacter>();
                 return creature;
             });
-            
+
             engine.GlobalProperties["ScaleCreatureAttribute"] = (Func<BigDouble, BigDouble, BigDouble>)((baseValue, level) =>
             {
                 return engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<string>("creatures.AttributeScalingScript"), new Dictionary<string, object>()
@@ -255,7 +313,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             {
                 playerAttributes[attribute.Key] = attribute.Value;
             }
-            foreach(var attribute in playerDefaultAttributeBonusPerLevel)
+            foreach (var attribute in playerDefaultAttributeBonusPerLevel)
             {
                 playerAttributePerLevel[attribute.Key] = attribute.Value;
             }
@@ -393,7 +451,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 defender.Emit(MissedByAttackEvent.EventName, new MissedByAttackEvent(attacker, defender, attackResultDescription));
             }
 
-            if(attackResultDescription.DamageToAttacker.Count > 0)
+            if (attackResultDescription.DamageToAttacker.Count > 0)
             {
                 engine.Logging.Log(LogType.Log, () => String.Format("Applying #{0} damage effects to {1}", attackResultDescription.DamageToAttacker.Count, attacker.Id), "combat.attack");
                 foreach (var damage in attackResultDescription.DamageToAttacker.Where(x => x != null))
@@ -463,13 +521,15 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                     { "definition", creatureDefinition },
                     { "level", level }
                 }).ToObject<RpgCharacter>();
-                try {
+                try
+                {
                     engine.Scripting.EvaluateStringAsScript(engine.GetProperty<string>("CreatureValidator"), Tuple.Create<string, object>("creature", creature));
-                } catch(ScriptRuntimeException ex)
+                }
+                catch (ScriptRuntimeException ex)
                 {
                     throw new InvalidOperationException("Validation failed when generating a creature", ex);
                 }
-                if(creature == null)
+                if (creature == null)
                 {
                     throw new InvalidOperationException("GenerateCreature returned null! Ensure your implementation of GenerateCreature returns an object of type RpgCharacter or a subclass.");
                 }
@@ -523,7 +583,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 engine.Logging.Log("Validating player object");
                 engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<string>("player.ValidationScript"), Tuple.Create<string, object>(
                     "player", player));
-            } catch (ScriptRuntimeException ex)
+            }
+            catch (ScriptRuntimeException ex)
             {
                 throw new InvalidOperationException("Player failed validation after initialization.", ex);
             }

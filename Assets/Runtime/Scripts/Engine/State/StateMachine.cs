@@ -136,9 +136,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine.State
         private string GenerateHelpMessage()
         {
             string message = "";
-            foreach(var command in handlers[currentState])
+            if (handlers.ContainsKey(currentState))
             {
-                message += Environment.NewLine + command.Key + " : " + command.Value.Describe();
+                foreach (var command in handlers[currentState])
+                {
+                    message += Environment.NewLine + command.Key + " : " + command.Value.Describe();
+                }
             }
             return message;
         }

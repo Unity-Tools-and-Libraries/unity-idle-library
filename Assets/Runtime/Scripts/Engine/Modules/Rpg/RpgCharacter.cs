@@ -342,6 +342,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public void Kill(RpgCharacter killer = null)
         {
             CurrentHealth = 0;
+            ActionMeter = 0;
             var diedEvent = new CharacterDiedEvent(this, killer);
             Emit(CharacterDiedEvent.EventName, diedEvent);
         }

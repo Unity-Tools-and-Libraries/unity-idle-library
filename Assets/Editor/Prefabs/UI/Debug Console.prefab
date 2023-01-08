@@ -64,7 +64,7 @@ GameObject:
   - component: {fileID: 6456011952072127108}
   - component: {fileID: 6456011952072127109}
   m_Layer: 0
-  m_Name: Text (TMP)
+  m_Name: History
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -375,6 +375,7 @@ GameObject:
   - component: {fileID: 6456011952934622357}
   - component: {fileID: 6456011952934622354}
   - component: {fileID: 6456011952934622355}
+  - component: {fileID: 6649838000678870244}
   m_Layer: 0
   m_Name: Debug Console
   m_TagString: Untagged
@@ -455,7 +456,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   input: {fileID: 6456011952469379620}
-  eventSystem: {fileID: 0}
+  historyDisplay: {fileID: 6456011952072127109}
+  canvasGroup: {fileID: 6649838000678870244}
+--- !u!225 &6649838000678870244
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6456011952934622353}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &6456011952969203332
 GameObject:
   m_ObjectHideFlags: 0

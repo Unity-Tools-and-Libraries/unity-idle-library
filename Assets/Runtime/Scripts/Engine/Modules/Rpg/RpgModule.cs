@@ -234,16 +234,31 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             engine.GlobalProperties["stage"] = new BigDouble(1);
             engine.GlobalProperties["OnCreatureDied"] = (Action<RpgCharacter>)(creature =>
             {
+                engine.Logging.Log("Character {0} died", "character");
                 engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<string>("player.OnCreatureDiedScript"), Tuple.Create("died", (object)creature)).ToObject<BigDouble>();
                 engine.GetCurrentEncounter().IsActive = engine.GetCurrentEncounter().Creatures.Any(c => c.IsAlive);
 
-                engine.GetCurrentEncounter().IsActive = engine.GetCurrentEncounter().Creatures.Any(x => x.IsAlive);
+                bool anyCreaturesAlive = engine.GetCurrentEncounter().Creatures.Any(x => x.IsAlive);
+                bool playerAlive = engine.GetPlayer<RpgCharacter>().IsAlive;
+                engine.GetCurrentEncounter().IsActive = anyCreaturesAlive && playerAlive;
 
                 if (!engine.GetCurrentEncounter().IsActive)
                 {
+                    if (!anyCreaturesAlive) {
+                        engine.Logging.Log("Every creature is dead so ending encounter", "combat");
+                    } else if(!playerAlive)
+                    {
+                        engine.Logging.Log("Player is dead so ending encounter", "combat");
+                    }
                     engine.Emit(EncounterEndedEvent.EventName, (Dictionary<string, object>)null);
-                    BigDouble nextEncounterDelay = engine.GetConfiguration<BigDouble>("next_encounter_delay");
-                    engine.Schedule(nextEncounterDelay.ToDouble(), "engine.StartEncounter()", "Timer to start new encounter.");
+                    if (playerAlive)
+                    {
+                        BigDouble nextEncounterDelay = engine.GetConfiguration<BigDouble>("next_encounter_delay");
+                        engine.Logging.Log(string.Format("Because player is alive, scheduling next encounter to start in {0} seconds",
+                            nextEncounterDelay));
+                        
+                        engine.Schedule(nextEncounterDelay.ToDouble(), "engine.StartEncounter()", "Timer to start new encounter.");
+                    }
                 }
             });
 

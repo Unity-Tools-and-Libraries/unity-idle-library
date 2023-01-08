@@ -24,7 +24,7 @@ player.penetration.ChangePerLevel = configuration.default_player_stat_per_level.
 player.precision.ChangePerLevel = configuration.default_player_stat_per_level.precision
 player.resilience.ChangePerLevel = configuration.default_player_stat_per_level.resilience
 player.regeneration.ChangePerLevel = configuration.default_player_stat_per_level.regeneration
-player.resurrectionMultiplier.ChangePerLEvel = configuration.default_player_stat_per_level.resurrectionMultiplier
+player.resurrectionMultiplier.ChangePerLevel = configuration.default_player_stat_per_level.resurrectionMultiplier
 
 player.xp = 0
 player.gold = 0

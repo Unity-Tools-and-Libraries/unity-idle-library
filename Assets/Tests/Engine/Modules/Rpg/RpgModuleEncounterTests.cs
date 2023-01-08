@@ -20,8 +20,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             engine.Start();
             engine.StartEncounter();
 
-            engine.SetActionPhase("combat");
-
             engine.Update(1f);
 
             Assert.AreEqual(new BigDouble(1), engine.GetPlayer<RpgCharacter>().ActionMeter);
@@ -60,8 +58,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             engine.Start();
             engine.StartEncounter();
 
-            engine.SetActionPhase("combat");
-
             engine.Update(1f);
 
             var currentEncounter = engine.GetCurrentEncounter();
@@ -82,6 +78,21 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             Configure();
             var result = engine.Scripting.EvaluateStringAsScript("return SelectEncounter()").ToObject<EncounterDefinition>();
             Assert.NotNull(result);
+        }
+
+        [Test]
+        public void WhenPlayerDiesEncounterEnds()
+        {
+            random.SetNextValues(0, 0);
+            Configure();
+            engine.Start();
+            engine.StartEncounter();
+
+            Assert.True(engine.GetCurrentEncounter().IsActive);
+
+            engine.GetPlayer<RpgCharacter>().Kill();
+
+            Assert.False(engine.GetCurrentEncounter().IsActive);
         }
     }
 }

@@ -52,6 +52,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public readonly NumericAttribute Resilience = new NumericAttribute(0);
         public readonly NumericAttribute ActionMeterSpeed = new NumericAttribute(0);
         public readonly NumericAttribute CriticalHitDamageMultiplier = new NumericAttribute(0);
+        public readonly NumericAttribute Regeneration = new NumericAttribute(0);
+        public readonly NumericAttribute ResurrectionMutliplier = new NumericAttribute(0);
         public virtual bool Targetable { get; set; }
         public virtual BigDouble Party { get; set; }
         public virtual bool IsAlive { get; set; }
@@ -319,6 +321,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             {
                 UpdateActionMeter(deltaTime);
                 UpdateStatusDurations(deltaTime);
+            } else if(this.Action == "REINCARNATING")
+            {
+                CurrentHealth += BigDouble.Min(MaximumHealth.Total, Regeneration.Total * deltaTime * ResurrectionMutliplier.Total);
+                if(CurrentHealth == MaximumHealth.Total)
+                {
+                    Action = "";
+                    Emit(CharacterResurrectedEvent.EventName, new CharacterResurrectedEvent(this));
+                }
             }
         }
 
@@ -359,6 +369,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             public const string PENETRATION = "penetration";
             public const string PRECISION = "precision";
             public const string RESILIENCE = "resilience";
+            public const string REGENERATION = "regeneration";
+            public const string RESURRECTION_MULTIPLIER = "resurrection_multiplier";
             public const string STATUSES = "statuses";
             public const string TARGETABLE = "targetable";
             public const string XP = "xp";

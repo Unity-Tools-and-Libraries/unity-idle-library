@@ -53,7 +53,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             { RpgCharacter.Attributes.MAXIMUM_HEALTH, 25 },
             { RpgCharacter.Attributes.PENETRATION, 10 },
             { RpgCharacter.Attributes.PRECISION, 10 },
-            { RpgCharacter.Attributes.RESILIENCE, 0 }
+            { RpgCharacter.Attributes.RESILIENCE, 0 },
+            { RpgCharacter.Attributes.REGENERATION, 1 },
+            { RpgCharacter.Attributes.RESURRECTION_MULTIPLIER, 5 }
         };
 
         private Dictionary<string, BigDouble> playerDefaultAttributeBonusPerLevel = new Dictionary<string, BigDouble>()
@@ -68,7 +70,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             { RpgCharacter.Attributes.MAXIMUM_HEALTH, 5 },
             { RpgCharacter.Attributes.PENETRATION, 1 },
             { RpgCharacter.Attributes.PRECISION, 1 },
-            { RpgCharacter.Attributes.RESILIENCE, 1 }
+            { RpgCharacter.Attributes.RESILIENCE, 1 },
+            { RpgCharacter.Attributes.REGENERATION, .5 },
+            { RpgCharacter.Attributes.RESURRECTION_MULTIPLIER, .5 }
         };
 
 
@@ -243,7 +247,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 }
             });
 
+            engine.GlobalProperties["OnCreatureResurrected"] = (Action)(() =>
+            {
+                engine.StartEncounter();
+            });
+
             engine.Watch(CharacterDiedEvent.EventName, "rpg", "OnCreatureDied(died)");
+
+            engine.Watch(CharacterResurrectedEvent.EventName, "rpg", "OnCreatureResurrected()");
 
             engine.GlobalProperties["GenerateCreature"] = (Func<CreatureDefinition, BigDouble, RpgCharacter>)((definition, level) =>
             {
@@ -538,6 +549,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 currentEncounter.IsActive = true;
             }
             engine.Emit(EncounterStartedEvent.EventName, new EncounterStartedEvent());
+            engine.SetActionPhase("combat");
             return currentEncounter;
         }
 

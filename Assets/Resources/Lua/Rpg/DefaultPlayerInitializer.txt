@@ -10,6 +10,8 @@ player.evasion.BaseValue = configuration.default_player_stats.evasion
 player.penetration.BaseValue = configuration.default_player_stats.penetration
 player.precision.BaseValue = configuration.default_player_stats.precision
 player.resilience.BaseValue = configuration.default_player_stats.resilience
+player.regeneration.BaseValue = configuration.default_player_stats.regeneration
+player.resurrection_multiplier.BaseValue = configuration.default_player_stats.resurrection_multiplier
 
 player.accuracy.ChangePerLevel = configuration.default_player_stat_per_level.accuracy
 player.criticalHitChance.ChangePerLevel = configuration.default_player_stats.critical_hit_chance
@@ -21,7 +23,8 @@ player.evasion.ChangePerLevel = configuration.default_player_stat_per_level.evas
 player.penetration.ChangePerLevel = configuration.default_player_stat_per_level.penetration
 player.precision.ChangePerLevel = configuration.default_player_stat_per_level.precision
 player.resilience.ChangePerLevel = configuration.default_player_stat_per_level.resilience
-
+player.regeneration.ChangePerLevel = configuration.default_player_stat_per_level.regeneration
+player.resurrection_multiplier.ChangePerLEvel = configuration.default_player_stat_per_level.resurrection_multiplier
 
 player.xp = 0
 player.gold = 0

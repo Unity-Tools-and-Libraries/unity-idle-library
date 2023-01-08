@@ -53,7 +53,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public readonly NumericAttribute ActionMeterSpeed = new NumericAttribute(0);
         public readonly NumericAttribute CriticalHitDamageMultiplier = new NumericAttribute(0);
         public readonly NumericAttribute Regeneration = new NumericAttribute(0);
-        public readonly NumericAttribute ResurrectionMutliplier = new NumericAttribute(0);
+        public readonly NumericAttribute ResurrectionMultiplier = new NumericAttribute(0);
         public virtual bool Targetable { get; set; }
         public virtual BigDouble Party { get; set; }
         public virtual bool IsAlive { get; set; }
@@ -323,7 +323,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 UpdateStatusDurations(deltaTime);
             } else if(this.Action == "REINCARNATING")
             {
-                CurrentHealth += BigDouble.Min(MaximumHealth.Total, Regeneration.Total * deltaTime * ResurrectionMutliplier.Total);
+                CurrentHealth += BigDouble.Min(MaximumHealth.Total, Regeneration.Total * deltaTime * ResurrectionMultiplier.Total);
                 if(CurrentHealth == MaximumHealth.Total)
                 {
                     Action = "";

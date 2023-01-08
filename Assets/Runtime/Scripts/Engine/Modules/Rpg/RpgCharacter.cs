@@ -370,7 +370,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             public const string PRECISION = "precision";
             public const string RESILIENCE = "resilience";
             public const string REGENERATION = "regeneration";
-            public const string RESURRECTION_MULTIPLIER = "resurrection_multiplier";
+            public const string RESURRECTION_MULTIPLIER = "resurrectionMultiplier";
             public const string STATUSES = "statuses";
             public const string TARGETABLE = "targetable";
             public const string XP = "xp";

@@ -439,5 +439,19 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             Assert.AreEqual(BigDouble.One, engine.GetPlayer<RpgCharacter>().Defense.ChangePerLevel);
             Assert.AreEqual(BigDouble.One, engine.GetPlayer<RpgCharacter>().Evasion.ChangePerLevel);
         }
+
+        [Test]
+        public void IsAliveWhenCurrentHealthAbove0()
+        {
+            Configure();
+
+            Assert.IsTrue(engine.GetPlayer<RpgCharacter>().CurrentHealth > 0);
+            Assert.IsTrue(engine.GetPlayer<RpgCharacter>().IsAlive);
+
+            engine.GetPlayer<RpgCharacter>().CurrentHealth = 0;
+
+            Assert.IsTrue(engine.GetPlayer<RpgCharacter>().CurrentHealth == 0);
+            Assert.IsFalse(engine.GetPlayer<RpgCharacter>().IsAlive);
+        }
     }
 }

@@ -56,7 +56,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public readonly NumericAttribute ResurrectionMultiplier = new NumericAttribute(0);
         public virtual bool Targetable { get; set; }
         public virtual BigDouble Party { get; set; }
-        public virtual bool IsAlive { get; set; }
+        public virtual bool IsAlive => CurrentHealth > 0;
         public string Action { get; set; }
         public readonly NumericAttribute CriticalHitChance = new NumericAttribute(0);
         public virtual BigDouble Xp { get; set; }

@@ -60,8 +60,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             engine.Update(1f);
 
-            var currentEncounter = engine.GetCurrentEncounter();
-
             engine.GetCurrentEncounter().Creatures[0].Kill();
 
             var respawnTimer = engine.GetTimer(1);
@@ -78,6 +76,36 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             Configure();
             var result = engine.Scripting.EvaluateStringAsScript("return SelectEncounter()").ToObject<EncounterDefinition>();
             Assert.NotNull(result);
+        }
+
+        [Test]
+        public void LevelOfCreaturesInEncounterBasedOnEncounterLevel()
+        {
+            Configure();
+            random.SetNextValues(0, 0);
+
+            engine.StartEncounter();
+
+            Assert.AreEqual(BigDouble.One, engine.GetCurrentEncounter().Level);
+            Assert.AreEqual(BigDouble.One, engine.GetCurrentEncounter().Creatures[0].Level);
+
+            engine.SetStage(new BigDouble(2));
+
+            Assert.AreEqual(new BigDouble(2), engine.GetCurrentEncounter().Level);
+            Assert.AreEqual(new BigDouble(2), engine.GetCurrentEncounter().Creatures[0].Level);
+        }
+
+        [Test]
+        public void ChangingStageEndsEncounter()
+        {
+            Configure();
+            random.SetNextValues(0, 0);
+
+            var encounter = engine.GetCurrentEncounter();
+
+            engine.SetStage(new BigDouble(1));
+
+            Assert.AreNotEqual(encounter, engine.GetCurrentEncounter());
         }
 
         [Test]

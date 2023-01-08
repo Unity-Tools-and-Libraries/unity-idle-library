@@ -317,7 +317,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
             engine.GlobalProperties["startEncounter"] = (Func<EncounterDefinition, RpgEncounter>)engine.StartEncounter;
 
-            engine.GlobalProperties["encounter"] = new RpgEncounter(engine, -1)
+            engine.GlobalProperties["encounter"] = new RpgEncounter(engine, -1, 1)
             {
                 IsActive = false
             };
@@ -432,6 +432,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         {
             engine.GlobalProperties["stage"] = newStage;
             engine.Emit(StageChangedEvent.EventName, new StageChangedEvent(newStage));
+            engine.StartEncounter();
         }
 
         public static AttackResultDescription MakeAttack(this IdleEngine engine, RpgCharacter attacker, RpgCharacter defender)
@@ -528,7 +529,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public static RpgEncounter StartEncounter(this IdleEngine engine, EncounterDefinition nextEncounter = null)
         {
             engine.Logging.Log("Starting new encounter", "combat");
-            RpgEncounter currentEncounter = (RpgEncounter)(engine.GlobalProperties["encounter"] = DynValue.FromObject(null, new RpgEncounter(engine, engine.GetNextAvailableId())
+            BigDouble stage = engine.GetProperty<BigDouble>("stage");
+            RpgEncounter currentEncounter = (RpgEncounter)(engine.GlobalProperties["encounter"] =
+                DynValue.FromObject(null, new RpgEncounter(engine, engine.GetNextAvailableId(), stage)
             {
                 IsActive = true
             }).ToObject<RpgEncounter>());

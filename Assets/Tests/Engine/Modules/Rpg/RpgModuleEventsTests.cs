@@ -68,6 +68,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         {
             Configure();
 
+            random.SetNextValues(0);
+
             engine.Watch(StageChangedEvent.EventName, "test", "triggered = true");
 
             engine.SetStage(1);

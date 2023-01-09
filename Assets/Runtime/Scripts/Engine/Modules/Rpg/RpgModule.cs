@@ -73,7 +73,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             { RpgCharacter.Attributes.MAXIMUM_HEALTH, 10 },
             { RpgCharacter.Attributes.PENETRATION, 10 },
             { RpgCharacter.Attributes.PRECISION, 10 },
-            { RpgCharacter.Attributes.RESILIENCE, 10 }
+            { RpgCharacter.Attributes.RESILIENCE, 10 },
+            { RpgCharacter.Attributes.REGENERATION, 0.5 }
         };
 
         public string PostUpdateHook;

@@ -14,7 +14,7 @@ player.regeneration.BaseValue = configuration.default_player_stats.regeneration
 player.resurrectionMultiplier.BaseValue = configuration.default_player_stats.resurrectionMultiplier
 
 player.accuracy.ChangePerLevel = configuration.default_player_stat_per_level.accuracy
-player.criticalHitChance.ChangePerLevel = configuration.default_player_stats.critical_hit_chance
+player.criticalHitChance.ChangePerLevel = configuration.default_player_stat_per_level.critical_hit_chance
 player.criticalHitDamageMultiplier.ChangePerLevel = configuration.default_player_stat_per_level.critical_damage_multiplier
 player.maximumHealth.ChangePerLevel = configuration.default_player_stat_per_level.maximum_health
 player.damage.ChangePerLevel = configuration.default_player_stat_per_level.damage

@@ -197,23 +197,22 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         {
             Configure();
 
-            random.SetNextValues(0, 0, 0, 0, 0, 0);
+            random.SetNextValues(0, 1, 999, 0, 1, 999);
 
             engine.StartEncounter();
             Assert.AreEqual(new List<Tuple<BigDouble, RpgCharacter>>()
             {
-                Tuple.Create(new BigDouble(6), engine.GetPlayer<RpgCharacter>())
+                Tuple.Create(new BigDouble(10), engine.GetPlayer<RpgCharacter>())
             },
                 engine.MakeAttack(engine.GetPlayer<RpgCharacter>(),
                 engine.GetCurrentEncounter().Creatures[0]).DamageToDefender);
 
-            engine.GetPlayer<RpgCharacter>().Damage.ChangePerLevel = 1;
             engine.GetPlayer<RpgCharacter>().Damage.Level = 2;
 
             engine.StartEncounter();
             Assert.AreEqual(new List<Tuple<BigDouble, RpgCharacter>>()
             {
-                Tuple.Create(new BigDouble(7), engine.GetPlayer<RpgCharacter>())
+                Tuple.Create(new BigDouble(11), engine.GetPlayer<RpgCharacter>())
             },
                 engine.MakeAttack(engine.GetPlayer<RpgCharacter>(),
                 engine.GetCurrentEncounter().Creatures[0]).DamageToDefender);

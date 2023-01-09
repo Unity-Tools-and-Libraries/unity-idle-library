@@ -251,7 +251,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             engine.GetPlayer<RpgCharacter>().Watch(AbilityAddedEvent.EventName, "test", "triggered = true");
             engine.GetPlayer<RpgCharacter>().AddAbility(ability);
 
-            Assert.AreEqual(new BigDouble(20), engine.GetPlayer<RpgCharacter>().Accuracy.Total);
+            Assert.AreEqual(new BigDouble(40), engine.GetPlayer<RpgCharacter>().Accuracy.Total);
             Assert.IsTrue((bool?)engine.GlobalProperties["triggered"]);
         }
 
@@ -265,7 +265,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             engine.GetPlayer<RpgCharacter>().AddAbility(ability);
             engine.GetPlayer<RpgCharacter>().RemoveAbility(ability);
 
-            Assert.AreEqual(new BigDouble(10), engine.GetPlayer<RpgCharacter>().Accuracy.Total);
+            Assert.AreEqual(new BigDouble(20), engine.GetPlayer<RpgCharacter>().Accuracy.Total);
         }
 
         [Test]
@@ -357,8 +357,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
                 { "definition", engine.GetCreatures()[1] }
                 });
 
-            Assert.AreEqual(new BigDouble(25), engine.GetPlayer<RpgCharacter>().CurrentHealth);
-            Assert.AreEqual(new BigDouble(25), engine.GetPlayer<RpgCharacter>().MaximumHealth.Total);
+            Assert.AreEqual(new BigDouble(20), engine.GetPlayer<RpgCharacter>().CurrentHealth);
+            Assert.AreEqual(new BigDouble(20), engine.GetPlayer<RpgCharacter>().MaximumHealth.Total);
         }
 
         [Test]
@@ -430,8 +430,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         {
             Configure();
             Assert.AreEqual(BigDouble.One, engine.GetPlayer<RpgCharacter>().Accuracy.ChangePerLevel);
-            Assert.AreEqual(new BigDouble(.01), engine.GetPlayer<RpgCharacter>().CriticalHitChance.ChangePerLevel);
-            Assert.AreEqual(new BigDouble(.1), engine.GetPlayer<RpgCharacter>().CriticalHitDamageMultiplier.ChangePerLevel);
+            Assert.AreEqual(new BigDouble(1), engine.GetPlayer<RpgCharacter>().CriticalHitChance.ChangePerLevel);
+            Assert.AreEqual(new BigDouble(1), engine.GetPlayer<RpgCharacter>().CriticalHitDamageMultiplier.ChangePerLevel);
             Assert.AreEqual(new BigDouble(5), engine.GetPlayer<RpgCharacter>().MaximumHealth.ChangePerLevel);
             Assert.AreEqual(BigDouble.One, engine.GetPlayer<RpgCharacter>().Penetration.ChangePerLevel);
             Assert.AreEqual(BigDouble.One, engine.GetPlayer<RpgCharacter>().Precision.ChangePerLevel);

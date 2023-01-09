@@ -41,29 +41,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 {"fingers", 1 },
             };
 
-        private Dictionary<string, BigDouble> playerDefaultAttributeBases = new Dictionary<string, BigDouble>()
-        {
-            { RpgCharacter.Attributes.ACCURACY, 10 },
-            { RpgCharacter.Attributes.ACTION_SPEED, 0 },
-            { RpgCharacter.Attributes.CRITICAL_DAMAGE_MULTIPLIER, 1.2 },
-            { RpgCharacter.Attributes.CRITICAL_HIT_CHANCE, 0.01 },
-            { RpgCharacter.Attributes.DAMAGE, 10 },
-            { RpgCharacter.Attributes.DEFENSE, 10 },
-            { RpgCharacter.Attributes.EVASION, 10 },
-            { RpgCharacter.Attributes.MAXIMUM_HEALTH, 25 },
-            { RpgCharacter.Attributes.PENETRATION, 10 },
-            { RpgCharacter.Attributes.PRECISION, 10 },
-            { RpgCharacter.Attributes.RESILIENCE, 0 },
-            { RpgCharacter.Attributes.REGENERATION, 1 },
-            { RpgCharacter.Attributes.RESURRECTION_MULTIPLIER, 5 }
-        };
-
         private Dictionary<string, BigDouble> playerDefaultAttributeBonusPerLevel = new Dictionary<string, BigDouble>()
         {
             { RpgCharacter.Attributes.ACCURACY, 1 },
-            { RpgCharacter.Attributes.ACTION_SPEED, 0 },
-            { RpgCharacter.Attributes.CRITICAL_DAMAGE_MULTIPLIER, 0.1 },
-            { RpgCharacter.Attributes.CRITICAL_HIT_CHANCE, .01 },
+            { RpgCharacter.Attributes.ACTION_SPEED, 1 },
+            { RpgCharacter.Attributes.CRITICAL_DAMAGE_MULTIPLIER, 1 },
+            { RpgCharacter.Attributes.CRITICAL_HIT_CHANCE, 1 },
             { RpgCharacter.Attributes.DAMAGE, 1 },
             { RpgCharacter.Attributes.DEFENSE, 1 },
             { RpgCharacter.Attributes.EVASION, 1 },
@@ -80,17 +63,17 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         // These values are multiplied by the creature properties and then by the level scaling function.
         private Dictionary<string, BigDouble> creatureBaseAttributes = new Dictionary<string, BigDouble>()
         {
-            { RpgCharacter.Attributes.ACCURACY, 5 },
-            { RpgCharacter.Attributes.ACTION_SPEED, 0 },
-            { RpgCharacter.Attributes.CRITICAL_DAMAGE_MULTIPLIER, 1.1 },
+            { RpgCharacter.Attributes.ACCURACY, 10 },
+            { RpgCharacter.Attributes.ACTION_SPEED, 5 },
+            { RpgCharacter.Attributes.CRITICAL_DAMAGE_MULTIPLIER, 10 },
             { RpgCharacter.Attributes.CRITICAL_HIT_CHANCE, 2 },
-            { RpgCharacter.Attributes.DAMAGE, 2 },
-            { RpgCharacter.Attributes.DEFENSE, 5 },
-            { RpgCharacter.Attributes.EVASION, 5 },
+            { RpgCharacter.Attributes.DAMAGE, 10 },
+            { RpgCharacter.Attributes.DEFENSE, 10 },
+            { RpgCharacter.Attributes.EVASION, 10 },
             { RpgCharacter.Attributes.MAXIMUM_HEALTH, 10 },
-            { RpgCharacter.Attributes.PENETRATION, 5 },
-            { RpgCharacter.Attributes.PRECISION, 5 },
-            { RpgCharacter.Attributes.RESILIENCE, 0 }
+            { RpgCharacter.Attributes.PENETRATION, 10 },
+            { RpgCharacter.Attributes.PRECISION, 10 },
+            { RpgCharacter.Attributes.RESILIENCE, 10 }
         };
 
         public string PostUpdateHook;
@@ -98,7 +81,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         private string defaultAttackHitScript =
             "return {hit=true, description='hit', damageToTarget=math.max(math.floor(attacker.damage.Total - defender.defense.Total), configuration.minimum_attack_damage), attacker=attacker}";
         private string defaultAttackMissScript = "return {hit=false, description='miss', attacker=attacker}";
-        private string defaultAttackCriticalHitScript = "return {hit=true, description='critical hit', damageToTarget=math.floor(math.max((attacker.damage.Total - defender.defense.Total) * attacker.criticalHitDamageMultiplier.Total, 1)), attacker=attacker}";
+        private string defaultAttackCriticalHitScript = "return {hit=true, description='critical hit', damageToTarget=math.floor(math.max((attacker.damage.Total - defender.defense.Total), 1) * (1 + (attacker.criticalHitDamageMultiplier.Total / 100))), attacker=attacker}";
 
         private string defaultCreatureValidator = "if(creature.maximumHealth.Total <= 0) then error('creature health must be at least 1') end";
 
@@ -335,10 +318,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             Dictionary<string, object> playerAttributes = (Dictionary<string, object>)(engine.GetConfiguration()["default_player_stats"] = new Dictionary<string, object>());
             Dictionary<string, object> playerAttributePerLevel = (Dictionary<string, object>)(engine.GetConfiguration()["default_player_stat_per_level"] = new Dictionary<string, object>());
             Dictionary<string, object> creatureAttributes = (Dictionary<string, object>)(engine.GetConfiguration()["default_creature_stats"] = new Dictionary<string, object>());
-            foreach (var attribute in playerDefaultAttributeBases)
-            {
-                playerAttributes[attribute.Key] = attribute.Value;
-            }
             foreach (var attribute in playerDefaultAttributeBonusPerLevel)
             {
                 playerAttributePerLevel[attribute.Key] = attribute.Value;
@@ -346,6 +325,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             foreach (var attribute in creatureBaseAttributes)
             {
                 creatureAttributes[attribute.Key] = attribute.Value;
+                playerAttributes[attribute.Key] = attribute.Value * 2;
             }
         }
 

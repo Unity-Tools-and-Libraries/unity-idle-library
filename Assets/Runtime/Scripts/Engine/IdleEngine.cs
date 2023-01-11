@@ -460,7 +460,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         private static HashSet<Type> serializationExcludedTypes = new HashSet<Type>()
         {
-            typeof(Closure)
+            typeof(Closure),
+            typeof(Table)
         };
 
         public EngineSnapshot GetSnapshot()

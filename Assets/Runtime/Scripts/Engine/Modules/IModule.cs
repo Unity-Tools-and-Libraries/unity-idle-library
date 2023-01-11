@@ -6,20 +6,19 @@ using UnityEngine;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules
 {
+    /**
+     * Interface for a class which encapsulates a set of related configuration for the engine.
+     * 
+     * Most methods are related to performing different stages of configuration and are called in the following order:
+     * - SetConfiguration
+     * - SetDefinitions
+     */
     public interface IModule
     {
         /*
-         * Use this method to set configuration values. Called as the first configuration method.
+         * This method is intended to be used to load
          */
         void SetConfiguration(IdleEngine engine);
-        /*
-         * Use this method to register definitions with the engine. Called after SetConfiguration.
-         */
-        void SetDefinitions(IdleEngine engine);
-        /*
-         * Use this method to set global properties on the engine. Called after SetDefinitions.
-         */
-        void SetGlobalProperties(IdleEngine engine);
         void AssertReady();
         void LoadScripts(IdleEngine engine);
     }

@@ -9,6 +9,7 @@ using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Combat;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Events;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Configuration;
 using io.github.thisisnozaku.idle.framework.Engine.State;
+using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Commands;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 {
@@ -108,6 +109,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 .Build());
 
             ConfigureCommands(engine);
+
+            SetDefinitions(engine);
+            SetGlobalProperties(engine);
         }
 
         private void RegisterUserDataTypesForScripting(IdleEngine engine)
@@ -143,54 +147,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
         private void ConfigureCommands(IdleEngine engine)
         {
-            engine.State.AddHandler(StateMachine.DEFAULT_STATE, "kill", KillCharacter, "kill [id]");
-            engine.State.AddHandler(StateMachine.DEFAULT_STATE, "damage", DamageCharacter, "damage [id] [quantity]");
-        }
-
-        private void KillCharacter(IdleEngine engine, string[] args)
-        {
-
-            long id = CommandArgumentParser.Parse<long>("id", args[1]);
-            if (id == 1L)
-            {
-                engine.GetPlayer<RpgCharacter>().Kill();
-            }
-            else
-            {
-                var encounter = engine.GetCurrentEncounter();
-                foreach (var character in encounter.Creatures)
-                {
-                    if (character.Id == id)
-                    {
-                        character.Kill();
-                        return;
-                    }
-                }
-                throw new Exception(String.Format("No character with id {0} found", id));
-            }
-        }
-
-        private void DamageCharacter(IdleEngine engine, string[] args)
-        {
-            long id = CommandArgumentParser.Parse<long>("id", args[1]);
-            long damage = CommandArgumentParser.Parse<long>("id", args[2]);
-            if (id == 1L)
-            {
-                engine.GetPlayer<RpgCharacter>().InflictDamage(damage, null);
-            }
-            else
-            {
-                var encounter = engine.GetCurrentEncounter();
-                foreach (var character in encounter.Creatures)
-                {
-                    if (character.Id == id)
-                    {
-                        character.InflictDamage(damage, null);
-                        return;
-                    }
-                }
-                throw new Exception(String.Format("No character with id {0} found", id));
-            }
+            engine.State.AddHandler(StateMachine.DEFAULT_STATE, "kill", RpgModuleCommands.KillCharacter, "kill [id]");
+            engine.State.AddHandler(StateMachine.DEFAULT_STATE, "damage", RpgModuleCommands.DamageCharacter, "damage [id] [quantity]");
         }
 
         public void SetDefinitions(IdleEngine engine)
@@ -206,36 +164,15 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             engine.GlobalProperties[RpgModule.Properties.ActionPhase] = "";
             engine.GlobalProperties["stage"] = new BigDouble(1);
 
-            engine.GlobalProperties["OnCreatureResurrected"] = (Action)(() =>
-            {
-                engine.StartEncounter();
-            });
-
             engine.Watch(CharacterDiedEvent.EventName, "rpg", "engine.OnCreatureDied(died)");
 
-            engine.Watch(CharacterResurrectedEvent.EventName, "rpg", "OnCreatureResurrected()");
-
-            engine.GlobalProperties["ScaleCreatureAttribute"] = (Func<BigDouble, BigDouble, BigDouble>)((baseValue, level) =>
-            {
-                return engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<string>("creatures.AttributeScalingScript"), new Dictionary<string, object>()
-                {
-                    { "base", baseValue },
-                    { "level", level }
-                }).ToObject<BigDouble>();
-            });
+            engine.Watch(CharacterResurrectedEvent.EventName, "rpg", "engine.StartEncounter()");
 
             engine.GlobalProperties["AttackResultDescription"] = typeof(AttackResultDescription);
 
             SetDefaultAttributeConfiguration(engine);
 
-            engine.GlobalProperties["startEncounter"] = (Func<EncounterDefinition, RpgEncounter>)engine.StartEncounter;
-
             engine.GlobalProperties["encounter"] = new RpgEncounter(engine, -1, 1);
-
-            engine.GlobalProperties["SelectEncounter"] = (Func<EncounterDefinition>)(() =>
-            {
-                return engine.Scripting.EvaluateStringAsScript(engine.GlobalProperties["EncounterSelector"] as string).ToObject<EncounterDefinition>();
-            });
 
             engine.GeneratePlayer();
         }
@@ -462,11 +399,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 CreatureDefinition creatureDefinition = engine.GetCreatures()[option.Item1];
 
                 var level = (BigDouble)engine.GlobalProperties["stage"] + option.Item2;
-                var creature = engine.Scripting.Evaluate(DynValue.FromObject(null, engine.GetExpectedConfiguration("GenerateCreature")), new Dictionary<string, object>()
-                {
-                    { "definition", creatureDefinition },
-                    { "level", level }
-                }).ToObject<RpgCharacter>();
+                var creature = GenerateCreature(engine, creatureDefinition, level);
                 try
                 {
                     engine.Scripting.EvaluateStringAsScript(engine.GetExpectedConfiguration<string>("creatures.ValidatorScript"), Tuple.Create<string, object>("creature", creature));
@@ -573,22 +506,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public static IDictionary<long, CreatureDefinition> GetCreatureDefinitions(this IdleEngine engine)
         {
             return engine.GetDefinitions()["creatures"] as IDictionary<long, CreatureDefinition>;
-        }
-
-        public static BigDouble CalculateXpValue(this IdleEngine engine, RpgCharacter character)
-        {
-            return engine.Scripting.EvaluateStringAsScript("return CalculateXpValue(character)", new Dictionary<string, object>()
-            {
-                { "character", character }
-            }).ToObject<BigDouble>();
-        }
-
-        public static BigDouble CalculateGoldValue(this IdleEngine engine, RpgCharacter character)
-        {
-            return engine.Scripting.EvaluateStringAsScript("return CalculateGoldValue(character)", new Dictionary<string, object>()
-            {
-                { "character", character }
-            }).ToObject<BigDouble>();
         }
     }
 }

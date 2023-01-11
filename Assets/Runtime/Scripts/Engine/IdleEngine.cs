@@ -448,8 +448,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             }
             newModule.AssertReady();
             newModule.SetConfiguration(this);
-            newModule.SetDefinitions(this);
-            newModule.SetGlobalProperties(this);
             if(loadScripts)
             {
                 newModule.LoadScripts(this);

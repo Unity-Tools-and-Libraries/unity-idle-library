@@ -212,6 +212,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             }, "loseUpgrade [upgradeId] [quantity]");
 
             engine.State.DefineTransition(StateMachine.DEFAULT_STATE, States.GAMEPLAY);
+
+            SetDefinitions(engine);
+            SetGlobalProperties(engine);
         }
 
         public void SetDefinitions(IdleEngine engine)

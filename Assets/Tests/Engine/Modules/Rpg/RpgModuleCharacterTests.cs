@@ -209,6 +209,18 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         }
 
         [Test]
+        public void WhenPlayerResurrectsStartEncounter()
+        {
+            random.SetNextValues(0, 0);
+            Configure();
+
+            var encounter = engine.StartEncounter();
+
+            engine.Emit(CharacterResurrectedEvent.EventName, new CharacterResurrectedEvent(engine.GetPlayer<RpgCharacter>()));
+            Assert.AreNotEqual(engine.GetCurrentEncounter(), encounter);
+        }
+
+        [Test]
         public void CharacterResetRemovesStatuses()
         {
             random.SetNextValues(0);
@@ -356,34 +368,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             Assert.AreEqual(new BigDouble(20), engine.GetPlayer<RpgCharacter>().CurrentHealth);
             Assert.AreEqual(new BigDouble(20), engine.GetPlayer<RpgCharacter>().MaximumHealth.Total);
-        }
-
-        [Test]
-        public void WhenGenerateCreatureReturnsNullThrow()
-        {
-            random.SetNextValues(0);
-            
-            Configure();
-
-            engine.GlobalProperties["GenerateCreature"] = (Func<object>)(() => null);
-            Assert.Throws(typeof(InvalidOperationException), () =>
-            {
-            engine.StartEncounter();
-            });
-        }
-
-        [Test]
-        public void WhenGenerateCreatureReturnsCreatureWith0HealthThrow()
-        {
-            random.SetNextValues(0);
-
-            Configure();
-
-            engine.SetConfiguration("GenerateCreature", (Func<object>)(() => new RpgCharacter(engine, 100)));
-            Assert.Throws(typeof(InvalidOperationException), () =>
-            {
-                engine.StartEncounter();
-            });
         }
 
         [Test]

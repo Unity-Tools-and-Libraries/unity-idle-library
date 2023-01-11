@@ -458,9 +458,17 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             return new Dictionary<string, object>();
         }
 
+        private static HashSet<Type> serializationExcludedTypes = new HashSet<Type>()
+        {
+            typeof(Closure)
+        };
+
         public EngineSnapshot GetSnapshot()
         {
-            return new EngineSnapshot(GlobalProperties, Achievements.Values.ToList(), listeners.GetListeners());
+            return new EngineSnapshot(GlobalProperties.Where(e => !serializationExcludedTypes.Contains(e.Value.GetType()))
+                .ToDictionary(e => e.Key, e => e.Value),
+                Achievements.Values.ToList(),
+                listeners.GetListeners());
         }
 
         public void StopWatching(string eventName, string subscriptionDescription)

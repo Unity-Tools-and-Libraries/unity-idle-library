@@ -19,9 +19,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         {
             Statuses = new Dictionary<long, Duration>();
             ItemSlots = new Dictionary<string, CharacterItem[]>();
-            foreach (var defaultSlot in engine.GetConfiguration<Dictionary<string, int>>("characterItemSlots"))
+            if (engine != null) // Engine can be null when deserializing and is set after construction.
             {
-                ItemSlots[defaultSlot.Key] = new CharacterItem[defaultSlot.Value];
+                foreach (var defaultSlot in engine.GetConfiguration<Dictionary<string, int>>("characterItemSlots"))
+                {
+                    ItemSlots[defaultSlot.Key] = new CharacterItem[defaultSlot.Value];
+                }
             }
             Abilities = new Dictionary<long, CharacterAbility>();
             OnEventTriggers = new Dictionary<string, List<string>>();

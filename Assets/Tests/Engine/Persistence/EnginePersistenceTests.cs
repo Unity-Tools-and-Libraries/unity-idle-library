@@ -2,10 +2,8 @@ using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine.Persistence;
 using NUnit.Framework;
 using io.github.thisisnozaku.idle.framework.Engine;
-using io.github.thisisnozaku.idle.framework.Events;
 using System;
 using io.github.thisisnozaku.scripting.context;
-using Newtonsoft.Json;
 
 namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Persistence
 {

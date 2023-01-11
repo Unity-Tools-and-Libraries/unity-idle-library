@@ -13,7 +13,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         }
 
         public BigDouble Level { get; }
-        public bool IsActive { get; set; }
+        public bool IsActive => Creatures.Any(c => c.IsAlive) && this.Engine.GetPlayer<RpgCharacter>().IsAlive;
         [TraversableFieldOrProperty]
         public IList<RpgCharacter> Creatures { get; internal set; } = new List<RpgCharacter>();
     }

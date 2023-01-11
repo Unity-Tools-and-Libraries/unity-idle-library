@@ -10,14 +10,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         public readonly string Description;
         private double remainingTime;
         public readonly string Handler;
+        public readonly bool Repeat;
         public bool Triggered { get; private set; }
 
-        public Timer(double duration, string handler, string description = "")
+        public Timer(double duration, string handler, string description = "", bool repeat = false)
         {
             Duration = duration;
             this.remainingTime = duration;
             this.Description = description;
             Handler = handler;
+            this.Repeat = repeat;
         }
 
         public void Update(IdleEngine engine, float deltaTime)

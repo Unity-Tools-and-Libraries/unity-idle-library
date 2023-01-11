@@ -1,4 +1,5 @@
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg;
+using MoonSharp.Interpreter;
 using NUnit.Framework;
 using System;
 using System.Collections;
@@ -10,9 +11,9 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
     {
 
         [Test]
-        public void ScriptMustReturnAString()
+        public void ScriptMustReturnAnAttackResultDescription()
         {
-            rpgModule.Player.AttackScript = "return 1";
+            rpgModule.Player.ToHitScript = "return 1";
 
             Configure();
             var attacker = new RpgCharacter(engine, 10);

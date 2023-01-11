@@ -7,10 +7,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Configuration
     {
         public PlayerConfiguration()
         {
-            AttackScript = Resources.Load<TextAsset>("Lua/Rpg/DefaultToHitScript").text;
-            Initializer = Resources.Load<TextAsset>("Lua/Rpg/DefaultPlayerInitializer").text;
-            OnCreatureDiedScript = Resources.Load<TextAsset>("Lua/Rpg/DefaultCreatureDiedScript").text;
-            ValidationScript = Resources.Load<TextAsset>("Lua/Rpg/DefaultPlayerValidationScript").text;
+            ToHitScript = "return ToHit(attacker, defender)";
+            Initializer = "InitializePlayer(player)";
+            OnCreatureDiedScript = "OnCreatureDied(died)";
+            ValidationScript = "ValidatePlayer(player)";
         }
 
         /*
@@ -27,7 +27,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Configuration
         /*
          * Script used to determine if an attack hits or misses.
          */
-        public string AttackScript;
+        public string ToHitScript;
         /*
          * 
          */

@@ -193,6 +193,18 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
         }
 
         [Test]
+        public void TimerCanRepeat()
+        {
+            engine.GlobalProperties["count"] = 0;
+            engine.Scripting.EvaluateStringAsScript("engine.schedule(1, 'count = count + 1', '', true)");
+            engine.Start();
+            engine.Update(1);
+            Assert.AreEqual(new BigDouble(1), engine.GlobalProperties["count"]);
+            engine.Update(1);
+            Assert.AreEqual(new BigDouble(2), engine.GlobalProperties["count"]);
+        }
+
+        [Test]
         public void ErrorFunctionInScriptThrows()
         {
             Assert.Throws(typeof(ScriptRuntimeException), () =>

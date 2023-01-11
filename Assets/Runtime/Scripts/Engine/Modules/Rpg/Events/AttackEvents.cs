@@ -70,7 +70,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
     public class HitByAttackEvent: AttackEvent
     {
-        public const string EventName = "attack_hit";
+        public const string EventName = "hit_by_attack";
 
         public HitByAttackEvent(RpgCharacter attacker, RpgCharacter defender, AttackResultDescription attackResultDescription) : base(attacker, defender, attackResultDescription)
         {

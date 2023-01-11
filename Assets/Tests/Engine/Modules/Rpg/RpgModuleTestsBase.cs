@@ -25,7 +25,7 @@ public abstract class RpgModuleTestsBase : TestsRequiringEngine
         rpgModule.AddCreature(new CreatureDefinition.Builder().WithProperty("foo", "bar").Build(2));
         rpgModule.AddEncounter(new EncounterDefinition(1, Tuple.Create(1L, 0)));
 
-        engine.AddModule(rpgModule);
+        engine.AddModule(rpgModule, true);
     }
 
     public class RiggedRandom : System.Random

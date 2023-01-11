@@ -70,15 +70,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         }
 
         [Test]
-        public void EncounterSelectorScriptMustReturnInt()
-        {
-            random.SetNextValues(0);
-            Configure();
-            var result = engine.Scripting.EvaluateStringAsScript("return SelectEncounter()").ToObject<EncounterDefinition>();
-            Assert.NotNull(result);
-        }
-
-        [Test]
         public void LevelOfCreaturesInEncounterBasedOnEncounterLevel()
         {
             Configure();

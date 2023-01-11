@@ -8,11 +8,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Configuration
     {
         public CreaturesConfiguration()
         {
-            AttackScript = Resources.Load<TextAsset>("Lua/Rpg/DefaultToHitScript").text;
-            Initializer = Resources.Load<TextAsset>("Lua/Rpg/DefaultCreatureInitializer").text;
-            XpValueCalculationScript = Resources.Load<TextAsset>("Lua/Rpg/DefaultXpValueScript").text;
-            GoldValueCalculationScript = Resources.Load<TextAsset>("Lua/Rpg/DefaultGoldValueScript").text;
-            AttributeScalingScript = Resources.Load<TextAsset>("Lua/Rpg/DefaultAttributeScalingScript").text;
+            ToHitScript = "return ToHit(attacker, defender)";
+            Initializer = "InitializeCreature(creature, definition, level)";
+            XpValueCalculationScript = "return CalculateXpValue(creature, level)";
+            GoldValueCalculationScript = "return CalculateGoldValue(creature, level)";
+            AttributeScalingScript = "return ScaleAttribute(level)";
+            ValidatorScript = "if(creature.maximumHealth.Total <= 0) then error('creature health must be at least 1') end";
         }
 
         /*
@@ -29,7 +30,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Configuration
         /*
          * Script used to determine if an attack hits or misses.
          */
-        public string AttackScript;
+        public string ToHitScript;
         /*
          * Script used to determine how much xp a creature is worth when defeated.
          */
@@ -42,5 +43,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Configuration
          * 
          */
         public string AttributeScalingScript;
+        /**
+         * Script used to validate creatures on creation.
+         */
+        public string ValidatorScript;
     }
 }

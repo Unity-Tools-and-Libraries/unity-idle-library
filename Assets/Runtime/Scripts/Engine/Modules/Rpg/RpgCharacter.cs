@@ -29,7 +29,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         /*
          * This is the script used to determine if this characters attacks hit or not.
          */
-        public string AttackScript { get; set; }
+        public string ToHitScript { get; set; }
         /*
          * The level of this character. The higher the level, the more powerful the character.
          */
@@ -350,16 +350,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public static class Attributes
         {
             public const string ABILITIES = "abilities";
-            public const string ACCURACY = "accuracy";
-            public const string ACTION = "action";
+            public const string ACCURACY = "accuracy"; // Affect chance to hit
+            public const string ACTION = "action"; // What action the character is performing
             public const string ACTION_METER = "action_meter";
             public const string ACTION_SPEED = "action_meter_speed";
-            public const string CRITICAL_DAMAGE_MULTIPLIER = "critical_damage_multiplier";
+            public const string CRITICAL_DAMAGE_MULTIPLIER = "critical_damage_multiplier"; // How much damage is multiplied on a critical hit
             public const string CRITICAL_HIT_CHANCE = "critical_hit_chance";
             public const string CURRENT_HEALTH = "current_health";
-            public const string DAMAGE = "damage";
-            public const string DEFENSE = "defense";
-            public const string EVASION = "evasion";
+            public const string DAMAGE = "damage"; 
+            public const string DEFENSE = "defense"; // Reduces damage from incoming attacks
+            public const string EVASION = "evasion"; // Reduces accuracy of incoming attacks
             public const string GOLD = "gold";
             public const string ID = "id";
             public const string ITEM_SLOTS = "item_slots";
@@ -367,9 +367,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             public const string LEVEL = "level";
             public const string MAXIMUM_HEALTH = "maximum_health";
             public const string PARTY = "party";
-            public const string PENETRATION = "penetration";
-            public const string PRECISION = "precision";
-            public const string RESILIENCE = "resilience";
+            public const string PENETRATION = "penetration"; // Pierces target defense
+            public const string PRECISION = "precision"; // Reduces effect of target resilience
+            public const string RESILIENCE = "resilience"; // Reduces chances of receiving critical hits
             public const string REGENERATION = "regeneration";
             public const string RESURRECTION_MULTIPLIER = "resurrectionMultiplier";
             public const string STATUSES = "statuses";

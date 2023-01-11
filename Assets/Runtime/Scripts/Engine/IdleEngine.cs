@@ -117,10 +117,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         /*
          * Create a timer that, after time seconds, evaluated the specified handler as a script.
          */
-        public void Schedule(double time, string handler, string description = "")
+        public void Schedule(double time, string handler, string description = "", bool repeat = false)
         {
             Logging.Log("Creating new scheduled task", "timers");
-            timers.Add(nextTimerId++, new Timer(time, handler, description));
+            timers.Add(nextTimerId++, new Timer(time, handler, description, repeat));
         }
 
 
@@ -207,6 +207,31 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         public T GetConfiguration<T>(string path)
         {
             return GetProperty<T>(path, GetConfiguration());
+        }
+
+        public object GetExpectedConfiguration(string path)
+        {
+            object value = GetProperty(path, GetConfiguration());
+            if (value == null)
+            {
+                throw new InvalidOperationException(String.Format("Failed to find a value for mandatory configuration at {0}", path));
+            }
+            return value;
+        }
+        /**
+         * As GetConfiguration<T>, except that if no value is found it throws.
+         * 
+         * Use this when your configuration must have a value so that you will learn that it is missing as soon as possible, instead of 
+         * debugging problems caused by unexpected nulls.
+         */
+        public T GetExpectedConfiguration<T>(string path)
+        {
+            T value = GetProperty<T>(path, GetConfiguration());
+            if(value == null)
+            {
+                throw new InvalidOperationException(String.Format("Failed to find a value for mandatory configuration at {0}", path));
+            }
+            return value;
         }
 
         public IDictionary<string, object> GetDefinitions()
@@ -360,7 +385,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                 foreach (var timer in timers.ToArray())
                 {
                     timer.Value.Update(this, deltaTime);
-                    if (timer.Value.Triggered)
+                    if (timer.Value.Triggered && !timer.Value.Repeat)
                     {
                         timers.Remove(timer.Key);
                     }
@@ -415,7 +440,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             }
         }
 
-        public void AddModule(IModule newModule)
+        public void AddModule(IModule newModule, bool loadScripts = false)
         {
             if (IsReady)
             {
@@ -425,6 +450,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             newModule.SetConfiguration(this);
             newModule.SetDefinitions(this);
             newModule.SetGlobalProperties(this);
+            if(loadScripts)
+            {
+                newModule.LoadScripts(this);
+            }
         }
         public Dictionary<string, object> GetContextVariables()
         {

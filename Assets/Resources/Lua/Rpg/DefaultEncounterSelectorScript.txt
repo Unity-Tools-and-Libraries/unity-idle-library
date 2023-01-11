@@ -1,1 +1,3 @@
-return engine.PickRandom(definitions.encounters).value
+function SelectRandomEncounter()
+    return engine.PickRandom(definitions.encounters).value
+end

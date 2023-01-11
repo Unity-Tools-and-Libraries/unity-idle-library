@@ -1,7 +1,23 @@
-local attackResultType = attacker.Attack(defender) -- Get string attack result type (hit, miss, etc.)
+function MakeAttack(attacker, defender)
+	local attackResultType = ToHit(attacker, defender) -- Get string attack result type (hit, miss, etc.)
 
-local attackResult = attackHandlerScripts[attackResultType](attacker, defender)
-if(attacker.OnEventTriggers != nil && attacker.OnEventTriggers["IsAttacking"] != nil)
-	for i, v in ipairs(attacker.OnEventTriggers) do
-		loadstring(v)()
+	local handler = AttackHandlers[attackResultType]
+	if handler == nil then
+		error('no handler for attack result of ' .. attackResultType)
+	end
+
+	local attackResult = AttackHandlers[attackResultType](attacker, defender)
+
+	if(attacker.OnEventTriggers != nil and attacker.OnEventTriggers["IsAttacking"] != nil) then
+		for i, v in ipairs(attacker.OnEventTriggers["IsAttacking"]) do
+			load(v, nil, nil, {attackResult=attackResult, attacker=attacker, defender=defender})()
+		end
+	end
+
+	if(defender.OnEventTriggers != nil and defender.OnEventTriggers["IsBeingAttacked"] != nil) then
+		for i, v in ipairs(defender.OnEventTriggers["IsBeingAttacked"]) do
+			load(v, nil, nil, {attackResult=attackResult, attacker=attacker, defender=defender})()
+		end
+	end
+	return attackResult
 end

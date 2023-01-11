@@ -43,9 +43,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             engine.GetDefinitions()["upgrades"] = new Dictionary<long, Upgrade>();
             engine.GlobalProperties["DoClick"] = (Action)(() => DoClick(engine));
 
-            //engine.GlobalProperties.Set(DefaultProperties.PRODUCER_COST_SCALE_FACTOR] DynValue.FromObject(null, 1.15));
-
-
+            
             foreach (var producer in producers)
             {
                 engine.GetProducers()[producer.Key] =  producer.Value;
@@ -221,6 +219,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             
         }
 
+        public string[] GetScriptLocations()
+        {
+            return new string[0];
+        }
+
+        public void LoadScripts(IdleEngine engine)
+        {
+            throw new NotImplementedException();
+        }
+
         public static class DefaultProperties
         {
             public const string PRODUCER_COST_SCALE_FACTOR = "PRODUCER_COST_SCALE_FACTOR";
@@ -261,4 +269,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             return total;
         }
     }
+
+
 }

@@ -14,7 +14,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         {
             random.SetNextValues(1, 1, 1, 1, 1);
             rpgModule.AddAbility(new CharacterAbility.Builder()
-                .WithEventTrigger("IsAttacking", "attack.isHit = false; attack.description = 'miss'; attack.ClearDefenderDamage()")
+                .WithEventTrigger("IsAttacking", "attackResult.isHit = false; attackResult.description = 'miss'; attackResult.ClearDefenderDamage()")
                 .Build(engine, 5));
 
             Configure();
@@ -33,7 +33,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         public void AbilitiesOnTheDefenderCanModifyAnAttackBeingMade()
         {
             random.SetNextValues(1, 1, 1, 1, 1);
-            rpgModule.AddAbility(new CharacterAbility.Builder().WithEventTrigger("IsBeingAttacked", "attack.isHit = false; attack.description = 'miss'; attack.clearDefenderDamage()")
+            rpgModule.AddAbility(new CharacterAbility.Builder().WithEventTrigger("IsBeingAttacked", "attackResult.isHit = false; attackResult.description = 'miss'; attackResult.clearDefenderDamage()")
                 .Build(engine, 5));
 
             Configure();
@@ -51,7 +51,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         public void RemovingAbilityRemovesTriggers()
         {
             random.SetNextValues(1, 1, 0, 1, 1);
-            rpgModule.AddAbility(new CharacterAbility.Builder().WithEventTrigger("IsAttacking", "attack.isHit = false; attack.description = 'miss'; attack.clearDefenderDamage()")
+            rpgModule.AddAbility(new CharacterAbility.Builder().WithEventTrigger("IsAttacking", "attackResult.isHit = false; attackResult.description = 'miss'; attackResult.clearDefenderDamage()")
                 .Build(engine, 5));
 
             Configure();
@@ -69,7 +69,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         public void StatusesOnTheAttackerCanModifyAnAttackBeingMade()
         {
             random.SetNextValues(1, 1, 1, 1, 1);
-            rpgModule.AddStatus(new CharacterStatus.Builder().WithEventTrigger("IsAttacking", "attack.isHit = false; attack.description = 'miss'; attack.ClearDefenderDamage()")
+            rpgModule.AddStatus(new CharacterStatus.Builder().WithEventTrigger("IsAttacking", "attackResult.isHit = false; attackResult.description = 'miss'; attackResult.ClearDefenderDamage()")
                 .Build(engine, 5));
 
             Configure();
@@ -88,7 +88,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         public void StatusesOnTheDefenderCanModifyAnAttackBeingMade()
         {
             random.SetNextValues(1, 1, 1, 1, 1);
-            rpgModule.AddStatus(new CharacterStatus.Builder().WithEventTrigger("IsBeingAttacked", "attack.isHit = false; attack.description = 'miss'; attack.ClearDefenderDamage()")
+            rpgModule.AddStatus(new CharacterStatus.Builder().WithEventTrigger("IsBeingAttacked", "attackResult.isHit = false; attackResult.description = 'miss'; attackResult.ClearDefenderDamage()")
                 .Build(engine, 5));
 
             Configure();
@@ -106,7 +106,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         public void RemovingStatusRemovesTriggers()
         {
             random.SetNextValues(1, 1, 0, 1, 1);
-            rpgModule.AddStatus(new CharacterStatus.Builder().WithEventTrigger("IsAttacking", "attack.isHit = false; attack.description = 'miss'; attack.ClearDefenderDamage()")
+            rpgModule.AddStatus(new CharacterStatus.Builder().WithEventTrigger("IsAttacking", "attackResult.isHit = false; attackResult.description = 'miss'; attackResult.ClearDefenderDamage()")
                 .Build(engine, 5));
 
             Configure();
@@ -124,7 +124,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         public void ItemsOnTheAttackerCanModifyAnAttackBeingMade()
         {
             random.SetNextValues(1, 1, 1, 1, 1);
-            rpgModule.AddItem(new CharacterItem.Builder().WithEventTrigger("IsAttacking", "attack.isHit = false; attack.description = 'miss'; attack.ClearDefenderDamage()")
+            rpgModule.AddItem(new CharacterItem.Builder().WithEventTrigger("IsAttacking", "attackResult.isHit = false; attackResult.description = 'miss'; attackResult.ClearDefenderDamage()")
                 .Build(engine, 5));
 
             Configure();
@@ -143,7 +143,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         public void ItemsOnTheDefenderCanModifyAnAttackBeingMade()
         {
             random.SetNextValues(1, 1, 1, 1, 1);
-            rpgModule.AddItem(new CharacterItem.Builder().WithEventTrigger("IsBeingAttacked", "attack.isHit = false; attack.description = 'miss'; attack.ClearDefenderDamage()")
+            rpgModule.AddItem(new CharacterItem.Builder().WithEventTrigger("IsBeingAttacked", "attackResult.isHit = false; attackResult.description = 'miss'; attackResult.ClearDefenderDamage()")
                 .Build(engine, 5));
 
             Configure();
@@ -161,7 +161,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         public void RemovingItemRemovesTrigger()
         {
             random.SetNextValues(1, 1, 0, 1, 1);
-            rpgModule.AddItem(new CharacterItem.Builder().WithEventTrigger("IsAttacking", "attack.isHit = false; attack.description = 'miss'; attack.damageToDefender = 0")
+            rpgModule.AddItem(new CharacterItem.Builder().WithEventTrigger("IsAttacking", "attackResult.isHit = false; attackResult.description = 'miss'; attackResult.damageToDefender = 0")
                 .Build(engine, 5));
 
             Configure();
@@ -179,7 +179,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         public void AttackThatDealsLessThanMinimumDamageIsMinimum()
         {
             random.SetNextValues(1, 1, 0, 1, 1);
-            rpgModule.AddItem(new CharacterItem.Builder().WithEventTrigger("IsAttacking", "attack.isHit = false; attack.description = 'miss'; attack.ClearDefenderDamage(); attack.DamageDefender(0, attacker);")
+            rpgModule.AddItem(new CharacterItem.Builder().WithEventTrigger("IsAttacking", "attackResult.isHit = false; attackResult.description = 'miss'; attackResult.ClearDefenderDamage(); attackResult.DamageDefender(0, attacker);")
                 .Build(engine, 5));
 
             Configure();

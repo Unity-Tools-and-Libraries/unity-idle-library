@@ -1,34 +1,36 @@
-player.party = 0
-player.accuracy.BaseValue = configuration.default_player_stats.accuracy
-player.criticalHitChance.BaseValue = configuration.default_player_stats.critical_hit_chance
-player.criticalHitDamageMultiplier.BaseValue = configuration.default_player_stats.critical_damage_multiplier
-player.maximumHealth.BaseValue = configuration.default_player_stats.maximum_health
-player.currentHealth = player.maximum_health.Total
-player.damage.BaseValue = configuration.default_player_stats.damage
-player.defense.BaseValue = configuration.default_player_stats.defense
-player.evasion.BaseValue = configuration.default_player_stats.evasion
-player.penetration.BaseValue = configuration.default_player_stats.penetration
-player.precision.BaseValue = configuration.default_player_stats.precision
-player.resilience.BaseValue = configuration.default_player_stats.resilience
-player.regeneration.BaseValue = configuration.default_player_stats.regeneration
-player.resurrectionMultiplier.BaseValue = configuration.default_player_stats.resurrectionMultiplier
+InitializePlayer = function(player)
+    player.party = 0
+    player.accuracy.BaseValue = configuration.default_player_stats.accuracy
+    player.criticalHitChance.BaseValue = configuration.default_player_stats.critical_hit_chance
+    player.criticalHitDamageMultiplier.BaseValue = configuration.default_player_stats.critical_damage_multiplier
+    player.maximumHealth.BaseValue = configuration.default_player_stats.maximum_health
+    player.currentHealth = player.maximum_health.Total
+    player.damage.BaseValue = configuration.default_player_stats.damage
+    player.defense.BaseValue = configuration.default_player_stats.defense
+    player.evasion.BaseValue = configuration.default_player_stats.evasion
+    player.penetration.BaseValue = configuration.default_player_stats.penetration
+    player.precision.BaseValue = configuration.default_player_stats.precision
+    player.resilience.BaseValue = configuration.default_player_stats.resilience
+    player.regeneration.BaseValue = configuration.default_player_stats.regeneration
+    player.resurrectionMultiplier.BaseValue = configuration.default_player_stats.resurrectionMultiplier
 
-player.accuracy.ChangePerLevel = configuration.default_player_stat_per_level.accuracy
-player.criticalHitChance.ChangePerLevel = configuration.default_player_stat_per_level.critical_hit_chance
-player.criticalHitDamageMultiplier.ChangePerLevel = configuration.default_player_stat_per_level.critical_damage_multiplier
-player.maximumHealth.ChangePerLevel = configuration.default_player_stat_per_level.maximum_health
-player.damage.ChangePerLevel = configuration.default_player_stat_per_level.damage
-player.defense.ChangePerLevel = configuration.default_player_stat_per_level.defense
-player.evasion.ChangePerLevel = configuration.default_player_stat_per_level.evasion
-player.penetration.ChangePerLevel = configuration.default_player_stat_per_level.penetration
-player.precision.ChangePerLevel = configuration.default_player_stat_per_level.precision
-player.resilience.ChangePerLevel = configuration.default_player_stat_per_level.resilience
-player.regeneration.ChangePerLevel = configuration.default_player_stat_per_level.regeneration
-player.resurrectionMultiplier.ChangePerLevel = configuration.default_player_stat_per_level.resurrectionMultiplier
+    player.accuracy.ChangePerLevel = configuration.default_player_stat_per_level.accuracy
+    player.criticalHitChance.ChangePerLevel = configuration.default_player_stat_per_level.critical_hit_chance
+    player.criticalHitDamageMultiplier.ChangePerLevel = configuration.default_player_stat_per_level.critical_damage_multiplier
+    player.maximumHealth.ChangePerLevel = configuration.default_player_stat_per_level.maximum_health
+    player.damage.ChangePerLevel = configuration.default_player_stat_per_level.damage
+    player.defense.ChangePerLevel = configuration.default_player_stat_per_level.defense
+    player.evasion.ChangePerLevel = configuration.default_player_stat_per_level.evasion
+    player.penetration.ChangePerLevel = configuration.default_player_stat_per_level.penetration
+    player.precision.ChangePerLevel = configuration.default_player_stat_per_level.precision
+    player.resilience.ChangePerLevel = configuration.default_player_stat_per_level.resilience
+    player.regeneration.ChangePerLevel = configuration.default_player_stat_per_level.regeneration
+    player.resurrectionMultiplier.ChangePerLevel = configuration.default_player_stat_per_level.resurrectionMultiplier
 
-player.xp = 0
-player.gold = 0
+    player.xp = 0
+    player.gold = 0
 
-player.AttackScript = configuration.PlayerAttackScript;
+    player.ToHitScript = configuration.player.ToHitScript;
 
-player.watch("characterDied", "begin resurrecting", "died.action = 'REINCARNATING'")
+    player.watch("characterDied", "begin resurrecting", "died.action = 'REINCARNATING'")
+end

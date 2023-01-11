@@ -21,5 +21,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules
          */
         void SetGlobalProperties(IdleEngine engine);
         void AssertReady();
+        void LoadScripts(IdleEngine engine);
     }
 }

@@ -1,0 +1,30 @@
+
+	if (level == nil or level <= 0) then
+		error("level must be at least 1")
+	end
+	if (definition == nil) then
+		error("definition must not be nil")
+	end
+
+	creature.party = 1
+	creature.level = level
+	creature.accuracy.BaseValue = math.ceil(ScaleAttribute(configuration.default_creature_stats.accuracy, level) * definition.Properties.accuracy)
+	creature.criticalHitChance.BaseValue = math.ceil(ScaleAttribute(configuration.default_creature_stats.critical_hit_chance, level) * definition.Properties.critical_hit_chance)
+	creature.criticalHitDamageMultiplier.BaseValue = math.ceil(ScaleAttribute(configuration.default_creature_stats.critical_damage_multiplier, level) * definition.Properties.critical_damage_multiplier)
+
+	creature.maximumHealth.BaseValue = math.ceil(ScaleAttribute(configuration.default_creature_stats.maximum_health, level) * definition.Properties.maximum_health)
+	creature.currentHealth = creature.maximumHealth.Total
+	creature.damage.BaseValue = math.ceil(ScaleAttribute(configuration.default_creature_stats.damage, level) * definition.Properties.damage)
+	creature.defense.BaseValue = math.ceil(ScaleAttribute(configuration.default_creature_stats.defense, level) * definition.Properties.defense)
+	creature.evasion.BaseValue = math.ceil(ScaleAttribute(configuration.default_creature_stats.evasion, level) * definition.Properties.evasion)
+	creature.penetration.BaseValue = math.ceil(ScaleAttribute(configuration.default_creature_stats.penetration, level) * definition.Properties.penetration)
+	creature.precision.BaseValue = math.ceil(ScaleAttribute(configuration.default_creature_stats.precision, level) * definition.Properties.precision)
+	creature.resilience.BaseValue = math.ceil(ScaleAttribute(configuration.default_creature_stats.resilience, level) * definition.Properties.resilience)
+
+	local context = {creature=creature, level=level, definition=definition}
+	setmetatable(context, {__index=_G})
+
+	creature.xp = load(engine.GetExpectedConfiguration('creatures.XpValueCalculationScript'), nil, nil, context)()
+	creature.gold = load(engine.GetExpectedConfiguration('creatures.GoldValueCalculationScript'), nil, nil, context)()
+
+	creature.ToHitScript = configuration.creatures.ToHitScript

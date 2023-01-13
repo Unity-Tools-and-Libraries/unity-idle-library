@@ -1,0 +1,9 @@
+﻿return function(attacker, defender) 
+    local outcome = {
+        hit=true,
+        description='critical hit',
+        damageToTarget=math.floor(math.max((attacker.damage.Total - defender.defense.Total), 1) * (1 + (attacker.criticalHitDamageMultiplier.Total / 100))),
+        attacker=attacker
+    }
+    return outcome
+end

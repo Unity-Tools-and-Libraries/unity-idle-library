@@ -16,14 +16,16 @@ using io.github.thisisnozaku.logging;
 using io.github.thisisnozaku.idle.framework.Engine.State;
 using io.github.thisisnozaku.idle.framework.Engine.Achievements;
 using io.github.thisisnozaku.idle.framework.Engine.Achievements.Events;
+using Newtonsoft.Json.Serialization;
+using UnityEngine.AddressableAssets;
 
 namespace io.github.thisisnozaku.idle.framework.Engine
 {
-    public partial class IdleEngine : IScriptingContext, IEventSource, CommandReceiver
+    public partial class IdleEngine : IScriptingContext, IEventSource
     {
         private System.Random random;
         public bool IsReady { get; private set; }
-        public Dictionary<string, object> GlobalProperties = new Dictionary<string, object>();
+        public PropertiesHolder GlobalProperties = new PropertiesHolder();
         private Dictionary<string, string> propertyCalculators = new Dictionary<string, string>();
         private long nextTimerId = 1;
         private Dictionary<long, Timer> timers = new Dictionary<long, Timer>();
@@ -63,6 +65,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             SerializationSettings = new JsonSerializerSettings();
             SerializationSettings.TypeNameHandling = TypeNameHandling.All;
             SerializationSettings.Context = new System.Runtime.Serialization.StreamingContext(System.Runtime.Serialization.StreamingContextStates.All, this);
+            SerializationSettings.ContractResolver = new EngineInjectionResolver();
         }
 
         public void RegisterEntity(Entity entity)
@@ -446,12 +449,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             {
                 throw new InvalidOperationException("Can only add modules before starting the engine.");
             }
-            newModule.AssertReady();
-            newModule.SetConfiguration(this);
-            if(loadScripts)
-            {
-                newModule.LoadScripts(this);
-            }
+            newModule.Configure(this);
         }
         public Dictionary<string, object> GetContextVariables()
         {
@@ -477,11 +475,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             listeners.StopWatching(eventName, subscriptionDescription);
         }
 
-        public void EvaluateCommand(string command)
-        {
-            this.State.EvaluateCommand(command);
-        }
-
         public static string[] GeneratePathTokens(string path)
         {
             return path.Split('.')
@@ -505,5 +498,18 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         {
             Achievements[achievement.Id] = achievement;
         }
+
+        private class EngineInjectionResolver : DefaultContractResolver
+        {
+            public override JsonContract ResolveContract(Type type)
+            {
+                if(type == typeof(IdleEngine))
+                {
+
+                }
+                return base.ResolveContract(type);
+            }
+        }
+
     }
 }

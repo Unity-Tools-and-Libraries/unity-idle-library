@@ -48,7 +48,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Persistence
         [Test]
         public void EventListenersSerialize()
         {
-            engine.Watch("event", "test", "triggered = true");
+            engine.Watch("event", "test", "globals.triggered = true");
 
             var snapshot = engine.GetSerializedSnapshotString();
 

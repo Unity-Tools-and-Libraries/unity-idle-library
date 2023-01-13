@@ -1,0 +1,20 @@
+﻿local source = nil
+if toHitResult == 'hit' then
+    source = engine.GetExpectedConfiguration('combat.OnHitScript')
+elseif toHitResult == 'miss' then
+    source = engine.GetExpectedConfiguration('combat.OnMissScript')
+elseif toHitResult == 'criticalHit' then
+    source = engine.GetExpectedConfiguration('combat.OnCriticalHitScript')
+end
+
+if source == nil then
+    error('failed to load source for ' .. tostring(attackResult))
+end
+
+local script, loaderror = load(source, nil, nil)
+
+if loaderror != nil then
+    error(tostring(loaderror))
+end
+
+return script()(attacker, defender)

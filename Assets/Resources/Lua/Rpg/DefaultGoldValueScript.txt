@@ -1,3 +1,0 @@
-function CalculateGoldValue(creature)
-    return 10 * math.pow(2, creature.level - 1)
-end

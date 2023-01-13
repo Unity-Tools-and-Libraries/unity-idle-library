@@ -50,13 +50,13 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         {
             var entity = new TestEntity(engine, 1);
 
-            entity.Watch("event", "", "entity = 1");
-            engine.Watch("event", "", "engine1 = 1");
+            entity.Watch("event", "", "globals.entity = 1");
+            engine.Watch("event", "", "globals.engine1 = 1");
 
             entity.Emit("event", new Dictionary<string, object>());
 
-            Assert.AreEqual(BigDouble.One, (BigDouble)engine.GlobalProperties["entity"]);
-            Assert.AreEqual(BigDouble.One, (BigDouble)engine.GlobalProperties["engine1"]);
+            Assert.AreEqual(BigDouble.One, engine.GlobalProperties["entity"]);
+            Assert.AreEqual(BigDouble.One, engine.GlobalProperties["engine1"]);
         }
     }
 }

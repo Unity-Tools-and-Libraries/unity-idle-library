@@ -15,11 +15,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules
      */
     public interface IModule
     {
-        /*
-         * This method is intended to be used to load
-         */
-        void SetConfiguration(IdleEngine engine);
-        void AssertReady();
-        void LoadScripts(IdleEngine engine);
+        void Configure(IdleEngine engine);
     }
 }

@@ -25,7 +25,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg.Combat.
 
         [Test]
         public void AbilitiesOnTheAttackerCanModifyAMissedAttack()
-        {
+            {
             random.SetNextValues(1, 999, 0, 1, 1);
             rpgModule.AddAbility(new CharacterAbility.Builder()
                 .WithEventTrigger("IsAttacking", "attackResult.isHit = true; attackResult.description = 'hit'; table.insert(attackResult.DamageToDefender, attackResult.OriginalDamageToDefender)")

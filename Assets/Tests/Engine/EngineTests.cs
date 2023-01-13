@@ -16,7 +16,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         [Test]
         public void CanSubscribeToEvents()
         {
-            engine.Watch("event", "test", "triggered = true");
+            engine.Watch("event", "test", "globals.triggered = true");
             engine.Emit("event", engine);
             Assert.IsTrue((bool)engine.GlobalProperties["triggered"]);
         }
@@ -127,7 +127,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         [Test]
         public void CanScheduleScriptToCall()
         {
-            engine.Schedule(.1, "triggered = true");
+            engine.Schedule(.1, "globals.triggered = true");
 
             engine.Start();
 

@@ -10,15 +10,14 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
     public class ScriptingTests : TestsRequiringEngine
     {
         [Test]
-        public void CanAssignValue()
+        public void CanAssignValueToGlobalProperty()
         {
-
-            engine.Scripting.EvaluateStringAsScript("foo = 1");
-            Assert.AreEqual(new BigDouble(1), engine.GetProperty<BigDouble>("foo"));
+            engine.Scripting.EvaluateStringAsScript("globals.foo = 1");
+            Assert.AreEqual(1, engine.GetProperty("foo"));
 
             engine.GlobalProperties["foo"] = new Dictionary<string, object>();
-            engine.Scripting.EvaluateStringAsScript("foo.bar = 1");
-            Assert.AreEqual(1, engine.GetProperty<double>("foo.bar"));
+            engine.Scripting.EvaluateStringAsScript("globals.foo.bar = 1");
+            Assert.AreEqual(1d, engine.GetProperty<double>("foo.bar"));
         }
 
         [Test]
@@ -26,15 +25,15 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
         {
             engine.GlobalProperties["foo"] = new Dictionary<string, object>();
             engine.GetProperty<IDictionary<string, object>>("foo")["bar"] = new BigDouble(1);
-            Assert.AreEqual(new BigDouble(1), engine.Scripting.EvaluateStringAsScript("return foo.bar").ToObject<BigDouble>());
+            Assert.AreEqual(new BigDouble(1), engine.Scripting.EvaluateStringAsScript("return globals.foo.bar").ToObject<BigDouble>());
         }
 
         [Test]
         public void CanSubscribeToEventsEmittedByEntity()
         {
             engine.GlobalProperties["foo"] = new TestEntity(engine, 1);
-            engine.Scripting.EvaluateStringAsScript("foo.watch('event', 'test', 'triggered = true')");
-            engine.Scripting.EvaluateStringAsScript("foo.emit('event')");
+            engine.Scripting.EvaluateStringAsScript("globals.foo.watch('event', 'test', 'globals.triggered = true')");
+            engine.Scripting.EvaluateStringAsScript("globals.foo.emit('event')");
 
             Assert.IsTrue((bool)engine.GlobalProperties["triggered"]);
         }
@@ -42,7 +41,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
         [Test]
         public void CanSubscribeToEventsReceivedAtTheEngine()
         {
-            engine.Scripting.EvaluateStringAsScript("engine.watch('event', 'test', 'triggered = true')");
+            engine.Scripting.EvaluateStringAsScript("engine.watch('event', 'test', 'globals.triggered = true')");
             engine.Scripting.EvaluateStringAsScript("engine.emit('event', engine)");
             Assert.IsTrue((bool)engine.GlobalProperties["triggered"]);
         }
@@ -51,9 +50,9 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
         public void CanUnsubscribeFromPath()
         {
             engine.GlobalProperties["foo"] = new TestEntity(engine, 1);
-            engine.Scripting.EvaluateStringAsScript("foo.watch('event', 'test', 'triggered = true')");
-            engine.Scripting.EvaluateStringAsScript("foo.stopWatching('event', 'test')");
-            engine.Scripting.EvaluateStringAsScript("foo.emit('event')");
+            engine.Scripting.EvaluateStringAsScript("globals.foo.watch('event', 'test', 'globals.triggered = true')");
+            engine.Scripting.EvaluateStringAsScript("globals.foo.stopWatching('event', 'test')");
+            engine.Scripting.EvaluateStringAsScript("globals.foo.emit('event')");
             Assert.IsFalse(engine.GlobalProperties.ContainsKey("triggered"));
         }
 
@@ -61,8 +60,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
         public void CanBroadcastEvent()
         {
             engine.GlobalProperties["foo"] = new TestEntity(engine, 1);
-            engine.Scripting.EvaluateStringAsScript("foo.watch('event', 'test', 'triggered = true')");
-            engine.Scripting.EvaluateStringAsScript("foo.emit('event')");
+            engine.Scripting.EvaluateStringAsScript("globals.foo.watch('event', 'test', 'globals.triggered = true')");
+            engine.Scripting.EvaluateStringAsScript("globals.foo.emit('event')");
             Assert.IsTrue((bool)engine.GlobalProperties["triggered"]);
         }
 
@@ -71,9 +70,9 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
         {
             engine.Start();
             engine.GlobalProperties["foo"] = new TestEntity(engine, 1);
-            engine.Scripting.EvaluateStringAsScript("foo.calculateChild('Bar', 'if value != nil then return value + 1 else return 1 end')");
+            engine.Scripting.EvaluateStringAsScript("globals.foo.calculateChild('Bar', 'if value != nil then return value + 1 else return 1 end')");
             engine.Update(0);
-            Assert.AreEqual(new BigDouble(2), engine.Scripting.EvaluateStringAsScript("return foo.bar").ToObject<BigDouble>());
+            Assert.AreEqual(new BigDouble(2), engine.Scripting.EvaluateStringAsScript("return globals.foo.bar").ToObject<BigDouble>());
         }
 
         [Test]
@@ -81,11 +80,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
         {
             engine.Start();
             engine.GlobalProperties["foo"] = new TestEntity(engine, 1, 0);
-            engine.Scripting.EvaluateStringAsScript("foo.calculateChild('Bar', 'if value == nil then return 1 else return value + 1 end')");
+            engine.Scripting.EvaluateStringAsScript("globals.foo.calculateChild('Bar', 'if value == nil then return 1 else return value + 1 end')");
             for (int i = 1; i <= 5; i++)
             {
                 engine.Update(0);
-                Assert.AreEqual(new BigDouble(i + 1), engine.Scripting.EvaluateStringAsScript("return foo.bar").ToObject<BigDouble>());
+                Assert.AreEqual(new BigDouble(i + 1), engine.Scripting.EvaluateStringAsScript("return globals.foo.bar").ToObject<BigDouble>());
             }
         }
 
@@ -94,9 +93,9 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
         {
             engine.GlobalProperties["foo"] = 1;
             engine.GlobalProperties["bar"] = 2;
-            Assert.AreEqual(new BigDouble(2), engine.Scripting.EvaluateStringAsScript("return math.max(foo, bar)").ToObject<BigDouble>());
-            Assert.AreEqual(new BigDouble(2), engine.Scripting.EvaluateStringAsScript("return math.max(1, bar)").ToObject<BigDouble>());
-            Assert.AreEqual(new BigDouble(2), engine.Scripting.EvaluateStringAsScript("return math.max(foo, 2)").ToObject<BigDouble>());
+            Assert.AreEqual(new BigDouble(2), engine.Scripting.EvaluateStringAsScript("return math.max(globals.foo, globals.bar)").ToObject<BigDouble>());
+            Assert.AreEqual(new BigDouble(2), engine.Scripting.EvaluateStringAsScript("return math.max(1, globals.bar)").ToObject<BigDouble>());
+            Assert.AreEqual(new BigDouble(2), engine.Scripting.EvaluateStringAsScript("return math.max(globals.foo, 2)").ToObject<BigDouble>());
             Assert.AreEqual(new BigDouble(2), engine.Scripting.EvaluateStringAsScript("return math.max(1, 2)").ToObject<BigDouble>());
         }
 
@@ -105,9 +104,9 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
         {
             engine.GlobalProperties["foo"] = 1;
             engine.GlobalProperties["bar"] = 2;
-            Assert.AreEqual(new BigDouble(1), engine.Scripting.EvaluateStringAsScript("return math.min(foo, bar)").ToObject<BigDouble>());
-            Assert.AreEqual(new BigDouble(1), engine.Scripting.EvaluateStringAsScript("return math.min(1, bar)").ToObject<BigDouble>());
-            Assert.AreEqual(new BigDouble(1), engine.Scripting.EvaluateStringAsScript("return math.min(foo, 2)").ToObject<BigDouble>());
+            Assert.AreEqual(new BigDouble(1), engine.Scripting.EvaluateStringAsScript("return math.min(globals.foo, globals.bar)").ToObject<BigDouble>());
+            Assert.AreEqual(new BigDouble(1), engine.Scripting.EvaluateStringAsScript("return math.min(1, globals.bar)").ToObject<BigDouble>());
+            Assert.AreEqual(new BigDouble(1), engine.Scripting.EvaluateStringAsScript("return math.min(globals.foo, 2)").ToObject<BigDouble>());
             Assert.AreEqual(new BigDouble(1), engine.Scripting.EvaluateStringAsScript("return math.min(1, 2)").ToObject<BigDouble>());
         }
 
@@ -175,7 +174,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
         [Test]
         public void CanStartATimer()
         {
-            engine.Scripting.EvaluateStringAsScript("engine.schedule(1, 'triggered = true')");
+            engine.Scripting.EvaluateStringAsScript("engine.schedule(1, 'globals.triggered = true')");
             engine.Start();
             engine.Update(1);
             Assert.IsTrue((bool)engine.GlobalProperties["triggered"]);
@@ -196,7 +195,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
         public void TimerCanRepeat()
         {
             engine.GlobalProperties["count"] = 0;
-            engine.Scripting.EvaluateStringAsScript("engine.schedule(1, 'count = count + 1', '', true)");
+            engine.Scripting.EvaluateStringAsScript("engine.schedule(1, 'globals.count = globals.count + 1', '', true)");
             engine.Start();
             engine.Update(1);
             Assert.AreEqual(new BigDouble(1), engine.GlobalProperties["count"]);

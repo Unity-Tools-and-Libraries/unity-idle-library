@@ -6,7 +6,9 @@
         "RuntimeLibraries",
         "Scripting_Runtime",
         "Logging_Module_Runtime",
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "Unity.Addressables",
+        "Unity.ResourceManager"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

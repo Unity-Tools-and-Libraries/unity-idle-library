@@ -1,0 +1,8 @@
+﻿return function(attacker, defender)
+    local outcome = {
+        hit=false,
+        description='miss',
+        attacker=attacker
+    }
+    return outcome
+end

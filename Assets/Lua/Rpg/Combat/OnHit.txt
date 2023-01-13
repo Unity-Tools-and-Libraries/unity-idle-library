@@ -1,0 +1,10 @@
+﻿return function(attacker, defender)
+    local outcome = {
+        hit=true,
+        description='hit',
+        damageToTarget=math.max(math.floor(attacker.damage.Total - defender.defense.Total), configuration.minimum_attack_damage),
+        attacker=attacker
+    }
+    local onHitTriggers = attacker.OnEventTriggers['IsAttacking']
+    return outcome
+end

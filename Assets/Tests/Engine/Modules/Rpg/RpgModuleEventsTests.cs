@@ -44,7 +44,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             var source = new RpgCharacter(engine, 100);
             var target = new RpgCharacter(engine, 101);
 
-            source.Watch(DamageInflictedEvent.EventName, "test", "triggered = true");
+            source.Watch(DamageInflictedEvent.EventName, "test", "globals.triggered = true");
 
             target.InflictDamage(new BigDouble(1), source);
 
@@ -70,7 +70,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             random.SetNextValues(0);
 
-            engine.Watch(StageChangedEvent.EventName, "test", "triggered = true");
+            engine.Watch(StageChangedEvent.EventName, "test", "globals.triggered = true");
 
             engine.SetStage(1);
 

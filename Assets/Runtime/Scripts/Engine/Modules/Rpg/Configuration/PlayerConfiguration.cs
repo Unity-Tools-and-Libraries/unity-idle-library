@@ -5,13 +5,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Configuration
 {
     public class PlayerConfiguration
     {
-        public PlayerConfiguration()
-        {
-            ToHitScript = "return ToHit(attacker, defender)";
-            Initializer = "InitializePlayer(player)";
-            OnCreatureDiedScript = "OnCreatureDied(died)";
-            ValidationScript = "ValidatePlayer(player)";
-        }
 
         /*
          * The type of the Player.

@@ -18,8 +18,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
 
             engine.GetPlayer().Points.Quantity = 100000;
 
-            engine.Watch(ProducerBoughtEvent.EventName, "test", "triggered = true");
-            engine.GetPlayer().Watch(ProducerBoughtEvent.EventName, "test", "localTriggered = true");
+            engine.Watch(ProducerBoughtEvent.EventName, "test", "globals.triggered = true");
+            engine.GetPlayer().Watch(ProducerBoughtEvent.EventName, "test", "globals.localTriggered = true");
             engine.GetPlayer().BuyProducer(1);
             Assert.IsTrue((bool)engine.GlobalProperties["triggered"]);
             Assert.IsTrue((bool)engine.GlobalProperties["localTriggered"]);
@@ -49,8 +49,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
 
             engine.GetPlayer().Points.Quantity = 100000;
 
-            engine.Watch(UpgradeBoughtEvent.EventName, "test", "triggered = true");
-            engine.GetPlayer().Watch(UpgradeBoughtEvent.EventName, "test", "localTriggered = true");
+            engine.Watch(UpgradeBoughtEvent.EventName, "test", "globals.triggered = true");
+            engine.GetPlayer().Watch(UpgradeBoughtEvent.EventName, "test", "globals.localTriggered = true");
             engine.GetPlayer().BuyUpgrade(2);
             Assert.IsTrue((bool)engine.GlobalProperties["triggered"]);
             Assert.IsTrue((bool)engine.GlobalProperties["localTriggered"]);

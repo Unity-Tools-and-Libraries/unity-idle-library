@@ -33,15 +33,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             UserData.RegisterType<Producer>();
             UserData.RegisterType<Upgrade>();
             UserData.RegisterType<ResourceHolder>();
+            UserData.RegisterExtensionType(typeof(ClickerEngineExtensionMethods));
 
             engine.Scripting.AddTypeAdaptor(new scripting.types.TypeAdapter<IDictionary<long, Producer>>.AdapterBuilder<IDictionary<long, Producer>>()
                 .WithClrConversion(DictionaryTypeAdapter.Converter)
                 .Build());
 
-
             engine.GetDefinitions()["producers"] = new Dictionary<long, Producer>();
             engine.GetDefinitions()["upgrades"] = new Dictionary<long, Upgrade>();
-            engine.GlobalProperties["DoClick"] = (Action)(() => DoClick(engine));
 
             
             foreach (var producer in producers)
@@ -57,17 +56,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             engine.GlobalProperties["player"] = new ClickerPlayer(engine, 0);
         }
 
-        private static void DoClick(IdleEngine engine)
-        {
-            engine.Scripting.EvaluateStringAsScript("player.points.quantity = player.points.quantity + player.points.click_income");
-        }
-
         public void AssertReady()
         {
 
         }
 
-        public void SetConfiguration(IdleEngine engine)
+        public void Configure(IdleEngine engine)
         {
             engine.State.AddHandler(States.GAMEPLAY, "gainResource", (ie, args) =>
             {
@@ -222,14 +216,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             
         }
 
-        public string[] GetScriptLocations()
+        public string[] GetPreinitializationScriptPaths()
         {
             return new string[0];
-        }
-
-        public void LoadScripts(IdleEngine engine)
-        {
-            throw new NotImplementedException();
         }
 
         public static class DefaultProperties
@@ -245,6 +234,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 
     public static class ClickerEngineExtensionMethods
     {
+        public static void DoClick(this IdleEngine engine)
+        {
+            engine.Scripting.EvaluateStringAsScript("globals.player.points.quantity = globals.player.points.quantity + globals.player.points.click_income");
+        }
+
         public static IDictionary<long, Producer> GetProducers(this IdleEngine engine)
         {
             return engine.GetDefinitions()["producers"] as IDictionary<long, Producer>;

@@ -8,11 +8,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Configuration
     {
         public CreaturesConfiguration()
         {
-            ToHitScript = "return ToHit(attacker, defender)";
-            Initializer = "InitializeCreature(creature, definition, level)";
-            XpValueCalculationScript = "return CalculateXpValue(creature, level)";
-            GoldValueCalculationScript = "return CalculateGoldValue(creature, level)";
-            AttributeScalingScript = "return ScaleAttribute(level)";
             ValidatorScript = "if(creature.maximumHealth.Total <= 0) then error('creature health must be at least 1') end";
         }
 

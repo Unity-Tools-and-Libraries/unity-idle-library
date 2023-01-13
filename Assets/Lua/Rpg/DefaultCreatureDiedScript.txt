@@ -1,0 +1,4 @@
+if(died.party != 0) then
+	globals.player.xp = globals.player.xp + died.xp
+	globals.player.gold = globals.player.gold + died.gold
+end

@@ -12,9 +12,9 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         [Test]
         public void EmitOnEngineInvokesListeners()
         {
-            engine.Watch("event", "test", "triggered = true");
+            engine.Watch("event", "test", "globals.triggered = true");
             engine.Emit("event", engine);
-            Assert.IsTrue(engine.Scripting.EvaluateStringAsScript("return triggered").Boolean);
+            Assert.IsTrue(engine.Scripting.EvaluateStringAsScript("return globals.triggered").Boolean);
         }
 
         [Test]
@@ -25,7 +25,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
                 engine.GlobalProperties["triggered"] = true;
             })));
             engine.Emit("event", engine);
-            Assert.IsTrue(engine.Scripting.EvaluateStringAsScript("return triggered").Boolean);
+            Assert.IsTrue(engine.Scripting.EvaluateStringAsScript("return globals.triggered").Boolean);
         }
 
         [Test]
@@ -37,7 +37,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
                 Assert.NotNull(ie);
                 engine.GlobalProperties["triggered"] = true;
             })));
-            Assert.IsTrue(engine.Scripting.EvaluateStringAsScript("return triggered").Boolean);
+            Assert.IsTrue(engine.Scripting.EvaluateStringAsScript("return globals.triggered").Boolean);
         }
 
         [Test]
@@ -48,7 +48,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
                 Assert.NotNull(ie);
                 engine.GlobalProperties["triggered"] = true;
             })));
-            Assert.IsFalse(engine.Scripting.EvaluateStringAsScript("return triggered").Boolean);
+            Assert.IsFalse(engine.Scripting.EvaluateStringAsScript("return globals.triggered").Boolean);
         }
 
         [Test]
@@ -63,26 +63,26 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
         [Test]
         public void InvokeListenersForEngineReadyOnStart()
         {
-            engine.Watch(EngineReadyEvent.EventName, "test", "triggered = true");
+            engine.Watch(EngineReadyEvent.EventName, "test", "globals.triggered = true");
             engine.Start();
-            Assert.IsTrue(engine.Scripting.EvaluateStringAsScript("return triggered").Boolean);
+            Assert.IsTrue(engine.Scripting.EvaluateStringAsScript("return globals.triggered").Boolean);
         }
 
         [Test]
         public void SubscribingToEngineReadyInvokedImmediatelyWhenEngineIsReady()
         {
             engine.Start();
-            engine.Watch(EngineReadyEvent.EventName, "test", "triggered = true");
-            Assert.IsTrue(engine.Scripting.EvaluateStringAsScript("return triggered").Boolean);
+            engine.Watch(EngineReadyEvent.EventName, "test", "globals.triggered = true");
+            Assert.IsTrue(engine.Scripting.EvaluateStringAsScript("return globals.triggered").Boolean);
         }
 
         [Test]
         public void CanStopWatching()
         {
-            engine.Watch("event", "test", "triggered = true");
+            engine.Watch("event", "test", "globals.triggered = true");
             engine.StopWatching("event", "test");
             engine.Emit("test", engine);
-            Assert.IsFalse(engine.Scripting.EvaluateStringAsScript("return triggered").Boolean);
+            Assert.IsFalse(engine.Scripting.EvaluateStringAsScript("return globals.triggered").Boolean);
         }
 
         [Test]

@@ -5,6 +5,7 @@ using io.github.thisisnozaku.idle.framework.Engine;
 using System;
 using io.github.thisisnozaku.scripting.context;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg;
+using JetBrains.Annotations;
 
 namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Persistence
 {
@@ -58,6 +59,25 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Persistence
             engine.DeserializeSnapshotString(snapshot);
 
             engine.Emit("event", (IScriptingContext)null);
+
+            Assert.IsTrue(engine.GetProperty<bool>("triggered"));
+        }
+
+        [Test]
+        public void EntityEventListenersSerialize()
+        {
+            engine.GlobalProperties["entity"] = new TestEntity(engine, 1);
+            (engine.GlobalProperties["entity"] as TestEntity).Watch("event", "test", "globals.triggered = true");
+
+            var snapshot = engine.GetSerializedSnapshotString();
+
+            engine = new IdleEngine();
+
+            engine.DeserializeSnapshotString(snapshot);
+
+            var testEntity = engine.GlobalProperties["entity"] as TestEntity;
+
+            testEntity.Emit("event", (IScriptingContext)null);
 
             Assert.IsTrue(engine.GetProperty<bool>("triggered"));
         }

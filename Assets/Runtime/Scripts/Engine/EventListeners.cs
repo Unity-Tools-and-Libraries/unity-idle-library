@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 namespace io.github.thisisnozaku.idle.framework.Engine
 {
@@ -90,6 +91,13 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                 engine.Logging.Log("Engine was ready already, so we're invoking immediately", "events");
                 engine.Scripting.EvaluateStringAsScript(handler);
             }
+        }
+
+        [OnDeserialized]
+        public void OnDeserialization(StreamingContext ctx)
+        {
+            this.engine= (IdleEngine)ctx.Context;
+            //this.Engine.RegisterEntity(this);
         }
 
         public void Watch(string eventName, string subscriber, DynValue handler)

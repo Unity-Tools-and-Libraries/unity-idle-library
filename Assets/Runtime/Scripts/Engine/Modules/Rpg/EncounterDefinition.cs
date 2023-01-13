@@ -8,8 +8,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 {
     public class EncounterDefinition
     {
-        private long id;
-        public long Id => id;
+        public long Id { get; }
         /**
          * Which creatures are in the encounter.
          * 
@@ -20,7 +19,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         
         public EncounterDefinition(long id, params Tuple<long, int>[] options)
         {
-            this.id = id;
+            this.Id = id;
+            if(options == null)
+            {
+                throw new ArgumentNullException("options");
+            }
             this.CreatureOptions = options;
         }
     }

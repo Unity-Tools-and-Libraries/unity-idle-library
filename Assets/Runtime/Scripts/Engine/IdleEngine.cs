@@ -65,6 +65,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             SerializationSettings = new JsonSerializerSettings();
             SerializationSettings.TypeNameHandling = TypeNameHandling.All;
             SerializationSettings.Context = new System.Runtime.Serialization.StreamingContext(System.Runtime.Serialization.StreamingContextStates.All, this);
+            SerializationSettings.TraceWriter = new MemoryTraceWriter();
         }
 
         public void RegisterEntity(Entity entity)
@@ -101,7 +102,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         public void DeserializeSnapshotString(string snapshot)
         {
             Logging.Log("Deserializing from snapshot string", "persistence");
+            var deserialized = JsonConvert.DeserializeObject<EngineSnapshot>(snapshot, SerializationSettings);
             RestoreFromSnapshot(JsonConvert.DeserializeObject<EngineSnapshot>(snapshot, SerializationSettings));
+            Logging.Log(() =>
+            {
+                return SerializationSettings.TraceWriter.ToString();
+            }, "serialization");
         }
 
         public void CalculateProperty(string property, string calculationScript)

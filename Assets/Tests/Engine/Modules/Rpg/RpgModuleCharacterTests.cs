@@ -6,6 +6,8 @@ using MoonSharp.Interpreter;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Threading;
+
 namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 {
     public class RpgModuleCharacterTests : RpgModuleTestsBase
@@ -440,12 +442,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         {
             Configure();
 
-                var serialied = engine.GetSerializedSnapshotString();
-                engine = new framework.Engine.IdleEngine();
+            var serialied = engine.GetSerializedSnapshotString();
+            engine = new framework.Engine.IdleEngine();
 
-                Configure();
-
-                engine.DeserializeSnapshotString(serialied);
+            Configure();
+            engine.DeserializeSnapshotString(serialied);
         }
     }
 }

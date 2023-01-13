@@ -170,7 +170,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
             LoadScripts(engine);
 
-            engine.SetConfiguration("EncounterSelector",  Addressables.LoadAssetAsync<TextAsset>("Rpg/DefaultEncounterSelector.lua"));
+            engine.SetConfiguration("EncounterSelector",  Addressables.LoadAssetAsync<TextAsset>("Rpg/DefaultEncounterSelector.lua")
+                .WaitForCompletion().text);
 
             engine.Scripting.AddTypeAdaptor<AttackResultDescription>(
                 new scripting.types.TypeAdapter<AttackResultDescription>.AdapterBuilder<AttackResultDescription>()

@@ -434,5 +434,18 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             Assert.IsTrue(engine.GetPlayer<RpgCharacter>().CurrentHealth == 0);
             Assert.IsFalse(engine.GetPlayer<RpgCharacter>().IsAlive);
         }
+
+        [Test]
+        public void DeserializedEntityCanReplaceAnExisting()
+        {
+            Configure();
+
+                var serialied = engine.GetSerializedSnapshotString();
+                engine = new framework.Engine.IdleEngine();
+
+                Configure();
+
+                engine.DeserializeSnapshotString(serialied);
+        }
     }
 }

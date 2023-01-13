@@ -48,7 +48,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             this.ExtraProperties = new Dictionary<string, object>();
             if (engine != null)
             {
-                engine.RegisterEntity(this);
+                //engine.RegisterEntity(this);
             }
             traversableFields = new List<MemberInfo>();
             FieldInfo[] fields = GetType().GetFields();
@@ -73,7 +73,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         public void OnDeserialization(StreamingContext ctx)
         {
             this.Engine = (IdleEngine)ctx.Context;
-            this.Engine.RegisterEntity(this);
+            //this.Engine.RegisterEntity(this);
         }
 
         /*

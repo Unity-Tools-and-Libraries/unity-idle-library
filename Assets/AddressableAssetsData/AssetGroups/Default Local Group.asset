@@ -18,7 +18,7 @@ MonoBehaviour:
   m_GUID: 1b2f4c2a7d55c471ab92abb708a0ac75
   m_SerializeEntries:
   - m_GUID: 22235e8fe40048b46b835c1ac2ba1cfb
-    m_Address: Rpg/DefaultGoldValueScript.lua
+    m_Address: Rpg/DefaultGoldCalculationScript.lua
     m_ReadOnly: 0
     m_SerializedLabels: []
   - m_GUID: 1472a4471dc6f344ab654154f6a750dc
@@ -42,7 +42,7 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
   - m_GUID: 78f1ee92a66464b87b8ffabcc73ae16d
-    m_Address: Rpg/DefaultAttackHandlers.lua
+    m_Address: Rpg/DefaultAttackHandlerResultScript.lua
     m_ReadOnly: 0
     m_SerializedLabels: []
   - m_GUID: 9716b204a388c4a44a3711739429dafd
@@ -50,7 +50,7 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
   - m_GUID: 71cfe60f952dcc14384f58249d553384
-    m_Address: Rpg/DefaultXpValueScript.lua
+    m_Address: Rpg/DefaultXpCalculationScript.lua
     m_ReadOnly: 0
     m_SerializedLabels: []
   - m_GUID: a769b414483194134a92143959a8af34
@@ -59,6 +59,18 @@ MonoBehaviour:
     m_SerializedLabels: []
   - m_GUID: da971375111c1704b8f87d144c85460e
     m_Address: Rpg/DefaultCreatureInitializer.lua
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: 595930091b80a4faf81c40babdf94095
+    m_Address: Rpg/OnHit.lua
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: dec0787847fc3450ab4c6b90fb3acaed
+    m_Address: Rpg/OnMiss.lua
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: 1dfcf6f65b95749399ee1a1d7d21feec
+    m_Address: Rpg/OnCriticalHit.lua
     m_ReadOnly: 0
     m_SerializedLabels: []
   m_ReadOnly: 0

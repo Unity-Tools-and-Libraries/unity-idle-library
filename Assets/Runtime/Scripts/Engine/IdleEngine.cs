@@ -65,7 +65,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             SerializationSettings = new JsonSerializerSettings();
             SerializationSettings.TypeNameHandling = TypeNameHandling.All;
             SerializationSettings.Context = new System.Runtime.Serialization.StreamingContext(System.Runtime.Serialization.StreamingContextStates.All, this);
-            SerializationSettings.ContractResolver = new EngineInjectionResolver();
+            //SerializationSettings.ContractResolver = new EngineInjectionResolver();
         }
 
         public void RegisterEntity(Entity entity)
@@ -464,7 +464,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         public EngineSnapshot GetSnapshot()
         {
-            return new EngineSnapshot(GlobalProperties.Where(e => !serializationExcludedTypes.Contains(e.Value.GetType()))
+            return new EngineSnapshot(GlobalProperties
                 .ToDictionary(e => e.Key, e => e.Value),
                 Achievements.Values.ToList(),
                 listeners.GetListeners());
@@ -501,11 +501,17 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         private class EngineInjectionResolver : DefaultContractResolver
         {
+            private IdleEngine engine;
+
+            public EngineInjectionResolver(IdleEngine engine)
+            {
+                this.engine = engine;
+            }
             public override JsonContract ResolveContract(Type type)
             {
                 if(type == typeof(IdleEngine))
                 {
-
+                    
                 }
                 return base.ResolveContract(type);
             }

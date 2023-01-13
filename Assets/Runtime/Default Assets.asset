@@ -1,0 +1,81 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Default Assets
+  m_EditorClassIdentifier: 
+  m_GroupName: Default Assets
+  m_Data:
+    m_SerializedData: []
+  m_GUID: d1b0d7916eae04571a6774d90f6ab7cf
+  m_SerializeEntries:
+  - m_GUID: 22235e8fe40048b46b835c1ac2ba1cfb
+    m_Address: Rpg/DefaultGoldCalculationScript.lua
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: 1472a4471dc6f344ab654154f6a750dc
+    m_Address: Rpg/DefaultCreatureDiedScript.lua
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: d73707021f8189b4595d3a932fa129bb
+    m_Address: Rpg/DefaultCombatScript.lua
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: 5ad98b81d4f8a9340babb12f953a4863
+    m_Address: Rpg/DefaultEncounterSelector.lua
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: bde833c2b8e2cc1498b483559fc494cc
+    m_Address: Rpg/DefaultPlayerInitializer.lua
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: 499d4754c4df6364e808e7488d3de37d
+    m_Address: Rpg/DefaultAttributeScalingScript.lua
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: 78f1ee92a66464b87b8ffabcc73ae16d
+    m_Address: Rpg/DefaultAttackHandlerResultScript.lua
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: 9716b204a388c4a44a3711739429dafd
+    m_Address: Rpg/DefaultToHitScript.lua
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: 71cfe60f952dcc14384f58249d553384
+    m_Address: Rpg/DefaultXpCalculationScript.lua
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: a769b414483194134a92143959a8af34
+    m_Address: Rpg/DefaultPlayerValidationScript.lua
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: da971375111c1704b8f87d144c85460e
+    m_Address: Rpg/DefaultCreatureInitializer.lua
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: 595930091b80a4faf81c40babdf94095
+    m_Address: Rpg/OnHit.lua
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: dec0787847fc3450ab4c6b90fb3acaed
+    m_Address: Rpg/OnMiss.lua
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  - m_GUID: 1dfcf6f65b95749399ee1a1d7d21feec
+    m_Address: Rpg/OnCriticalHit.lua
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: c706004691a424fa0a3b2f593abd2fa9, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: f13a604e3d7be472fbb281cec64b4747, type: 2}
+    - {fileID: 11400000, guid: 4b8b43707635145c1be2b2b74ae19b35, type: 2}

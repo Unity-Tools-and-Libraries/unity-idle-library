@@ -67,6 +67,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             SerializationSettings.TypeNameHandling = TypeNameHandling.All;
             SerializationSettings.Context = new System.Runtime.Serialization.StreamingContext(System.Runtime.Serialization.StreamingContextStates.All, this);
             SerializationSettings.TraceWriter = new LoggerTraceWriter(logging);
+            SerializationSettings.ObjectCreationHandling = ObjectCreationHandling.Replace;
         }
 
         public void RegisterEntity(Entity entity)

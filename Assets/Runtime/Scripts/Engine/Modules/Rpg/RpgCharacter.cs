@@ -44,19 +44,19 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         /*
          * The maximum amount of health this character has.
          */
-        public readonly NumericAttribute MaximumHealth = new NumericAttribute(0);
-        public readonly NumericAttribute Damage = new NumericAttribute(0);
+        public NumericAttribute MaximumHealth = new NumericAttribute(0);
+        public NumericAttribute Damage = new NumericAttribute(0);
         public virtual BigDouble ActionMeter { get; set; }
-        public readonly NumericAttribute Accuracy = new NumericAttribute(0);
-        public readonly NumericAttribute Evasion = new NumericAttribute(0);
-        public readonly NumericAttribute Defense = new NumericAttribute(0);
-        public readonly NumericAttribute Penetration = new NumericAttribute(0);
-        public readonly NumericAttribute Precision = new NumericAttribute(0);
-        public readonly NumericAttribute Resilience = new NumericAttribute(0);
-        public readonly NumericAttribute ActionMeterSpeed = new NumericAttribute(0);
-        public readonly NumericAttribute CriticalHitDamageMultiplier = new NumericAttribute(0);
-        public readonly NumericAttribute Regeneration = new NumericAttribute(0);
-        public readonly NumericAttribute ResurrectionMultiplier = new NumericAttribute(0);
+        public NumericAttribute Accuracy = new NumericAttribute(0);
+        public NumericAttribute Evasion = new NumericAttribute(0);
+        public NumericAttribute Defense = new NumericAttribute(0);
+        public NumericAttribute Penetration = new NumericAttribute(0);
+        public NumericAttribute Precision = new NumericAttribute(0);
+        public NumericAttribute Resilience = new NumericAttribute(0);
+        public NumericAttribute ActionMeterSpeed = new NumericAttribute(0);
+        public NumericAttribute CriticalHitDamageMultiplier = new NumericAttribute(0);
+        public NumericAttribute Regeneration = new NumericAttribute(0);
+        public NumericAttribute ResurrectionMultiplier = new NumericAttribute(0);
         public virtual bool Targetable { get; set; }
         public virtual BigDouble Party { get; set; }
         public virtual bool IsAlive => CurrentHealth > 0;

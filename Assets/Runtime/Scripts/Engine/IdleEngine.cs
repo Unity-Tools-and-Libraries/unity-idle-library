@@ -18,6 +18,7 @@ using io.github.thisisnozaku.idle.framework.Engine.Achievements;
 using io.github.thisisnozaku.idle.framework.Engine.Achievements.Events;
 using Newtonsoft.Json.Serialization;
 using UnityEngine.AddressableAssets;
+using System.Diagnostics;
 
 namespace io.github.thisisnozaku.idle.framework.Engine
 {
@@ -65,7 +66,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             SerializationSettings = new JsonSerializerSettings();
             SerializationSettings.TypeNameHandling = TypeNameHandling.All;
             SerializationSettings.Context = new System.Runtime.Serialization.StreamingContext(System.Runtime.Serialization.StreamingContextStates.All, this);
-            SerializationSettings.TraceWriter = new MemoryTraceWriter();
+            SerializationSettings.TraceWriter = new LoggerTraceWriter(logging);
         }
 
         public void RegisterEntity(Entity entity)
@@ -104,10 +105,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             Logging.Log("Deserializing from snapshot string", "persistence");
             var deserialized = JsonConvert.DeserializeObject<EngineSnapshot>(snapshot, SerializationSettings);
             RestoreFromSnapshot(JsonConvert.DeserializeObject<EngineSnapshot>(snapshot, SerializationSettings));
-            Logging.Log(() =>
-            {
-                return SerializationSettings.TraceWriter.ToString();
-            }, "serialization");
+            //Logging.Log(() =>
+            //{
+            //    return SerializationSettings.TraceWriter;
+            //}, "serialization");
         }
 
         public void CalculateProperty(string property, string calculationScript)
@@ -503,6 +504,22 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         public void DefineAchievement(Achievement achievement)
         {
             Achievements[achievement.Id] = achievement;
+        }
+
+        private class LoggerTraceWriter : ITraceWriter
+        {
+            private LoggingModule logging;
+
+            public LoggerTraceWriter(LoggingModule logging)
+            {
+                this.logging = logging;
+            }
+            public TraceLevel LevelFilter => TraceLevel.Verbose;
+
+            public void Trace(TraceLevel level, string message, Exception ex)
+            {
+                logging.Log(() => message, "serialization");
+            }
         }
     }
 }

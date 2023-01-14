@@ -267,5 +267,22 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
         {
             Assert.AreEqual(BigDouble.Zero, ScriptingService.DynValueToBigDouble(DynValue.Nil));
         }
+
+        [Test]
+        public void AfterDeserializationEngineReceivedEmits()
+        {
+            var testEntity = new TestEntity(engine, 1);
+            engine.GlobalProperties["entity"] = testEntity;
+
+            var serialize = engine.GetSerializedSnapshotString();
+            engine = new IdleEngine();
+
+            engine.Watch("foo", "", "globals.triggered = true");
+
+            engine.DeserializeSnapshotString(serialize);
+            (engine.GlobalProperties["entity"] as TestEntity).Emit("foo");
+            Assert.IsTrue((bool)engine.GlobalProperties["triggered"]);
+        }
+
     }
 }

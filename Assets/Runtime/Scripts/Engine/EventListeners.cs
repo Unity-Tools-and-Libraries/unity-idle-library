@@ -15,14 +15,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         [JsonIgnore]
         public Dictionary<string, Dictionary<string, CallbackFunction>> callbacks = new Dictionary<string, Dictionary<string, CallbackFunction>>();
         private IdleEngine engine;
-        /**
-         * The 
-         */
-        private IEventSource parent;
-        public EventListeners(IdleEngine engine, IEventSource parent = null)
+        private bool isRoot;
+
+        public EventListeners(IdleEngine engine, bool isRoot = true)
         {
             this.engine = engine;
-            this.parent = parent;
+            this.isRoot = isRoot;
         }
 
         public Dictionary<string, Dictionary<string, string>> GetListeners() => listeners;
@@ -57,9 +55,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                     engine.Scripting.Evaluate(DynValue.NewCallback(subscription.Value), contextToUse);
                 }
             }
-            if(parent != null)
+            if(!isRoot)
             {
-                parent.Emit(eventName, contextToUse);
+                engine.Emit(eventName, contextToUse);
             }
         }
 
@@ -97,7 +95,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         public void OnDeserialization(StreamingContext ctx)
         {
             this.engine= (IdleEngine)ctx.Context;
-            //this.Engine.RegisterEntity(this);
         }
 
         public void Watch(string eventName, string subscriber, DynValue handler)

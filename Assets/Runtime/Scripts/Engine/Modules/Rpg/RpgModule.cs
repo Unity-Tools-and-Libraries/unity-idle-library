@@ -74,7 +74,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             { RpgCharacter.Attributes.PENETRATION, 10 },
             { RpgCharacter.Attributes.PRECISION, 10 },
             { RpgCharacter.Attributes.RESILIENCE, 10 },
-            { RpgCharacter.Attributes.REGENERATION, 0.5 }
+            { RpgCharacter.Attributes.REGENERATION, 0.05 }
         };
 
         public void Configure(IdleEngine engine)

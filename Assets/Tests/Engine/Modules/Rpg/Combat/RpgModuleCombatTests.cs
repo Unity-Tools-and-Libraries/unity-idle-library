@@ -227,7 +227,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             engine.Start();
             engine.Update(1);
 
-            Assert.AreEqual(new BigDouble(2), engine.GetPlayer<RpgCharacter>().CurrentHealth);
+            Assert.AreEqual(new BigDouble(1.1), engine.GetPlayer<RpgCharacter>().CurrentHealth);
         }
 
     }

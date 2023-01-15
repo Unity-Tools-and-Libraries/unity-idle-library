@@ -11,6 +11,7 @@ using io.github.thisisnozaku.scripting.types;
 using io.github.thisisnozaku.logging;
 using io.github.thisisnozaku.idle.framework.Engine.State;
 using UnityEditor;
+using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
 {
@@ -101,6 +102,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             UserData.RegisterType<KeyValuePair<object, object>>();
             UserData.RegisterType<StateChangedEvent>();
             UserData.RegisterType<PropertiesHolder>();
+            UserData.RegisterType<Player>();
+            UserData.RegisterType<ResourceHolder>();
 
             module.Globals["engine"] = engine;
 

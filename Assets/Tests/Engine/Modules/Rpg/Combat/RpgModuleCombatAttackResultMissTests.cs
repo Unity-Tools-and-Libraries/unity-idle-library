@@ -18,7 +18,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg.Combat.
 
             engine.StartEncounter();
 
-            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), engine.GetCurrentEncounter().Creatures[0]);
+            var result = engine.MakeAttack(engine.GetPlayerCharacter<RpgCharacter>(), engine.GetCurrentEncounter().Creatures[0]);
 
             Assert.AreEqual("miss", result.Description);
         }
@@ -33,16 +33,16 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg.Combat.
 
             Configure();
 
-            engine.GetPlayer<RpgCharacter>().AddAbility(engine.GetAbilities()[5]);
+            engine.GetPlayerCharacter<RpgCharacter>().AddAbility(engine.GetAbilities()[5]);
 
             var defender = new RpgCharacter(engine, 7);
 
-            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
+            var result = engine.MakeAttack(engine.GetPlayerCharacter<RpgCharacter>(), defender);
 
             Assert.IsTrue(result.IsHit);
             Assert.AreEqual(new List<Tuple<BigDouble, RpgCharacter>>()
             {
-                Tuple.Create(new BigDouble(20), engine.GetPlayer<RpgCharacter>())
+                Tuple.Create(new BigDouble(20), engine.GetPlayerCharacter<RpgCharacter>())
             }, result.DamageToDefender);
         }
 
@@ -58,16 +58,16 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg.Combat.
             var defender = new RpgCharacter(engine, 7);
             defender.AddAbility(engine.GetAbilities()[5]);
 
-            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
+            var result = engine.MakeAttack(engine.GetPlayerCharacter<RpgCharacter>(), defender);
 
             Assert.IsTrue(result.IsHit);
             Assert.AreEqual("hit", result.Description);
             Assert.AreEqual(new List<Tuple<BigDouble, RpgCharacter>>() {
-                Tuple.Create(new BigDouble(20), engine.GetPlayer<RpgCharacter>())
+                Tuple.Create(new BigDouble(20), engine.GetPlayerCharacter<RpgCharacter>())
             }, result.DamageToDefender);
 
             Assert.AreEqual(new List<Tuple<BigDouble, RpgCharacter>>() {
-                Tuple.Create(new BigDouble(10), engine.GetPlayer<RpgCharacter>())
+                Tuple.Create(new BigDouble(10), engine.GetPlayerCharacter<RpgCharacter>())
             }, result.DamageToAttacker);
         }
     }

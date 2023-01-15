@@ -15,7 +15,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         {
             Configure();
 
-            Assert.AreEqual(typeof(RpgCharacter), engine.GlobalProperties["player"].GetType()); // Sets a player
+            Assert.AreEqual(typeof(RpgCharacter), engine.GetPlayer().ExtraProperties["character"].GetType()); // Sets a player
             Assert.AreEqual("", engine.GlobalProperties[RpgModule.Properties.ActionPhase] as string); // Set an action phase
             Assert.NotNull(engine.GetProperty("definitions.encounters"));
             Assert.NotNull(engine.GetConfiguration("characterItemSlots"));
@@ -23,7 +23,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             Assert.AreEqual(new BigDouble(2), engine.GetConfiguration()["action_meter_required_to_act"]);
             Assert.AreEqual(new BigDouble(.5), engine.GetConfiguration()["next_encounter_delay"]);
 
-            Assert.NotNull(engine.GetProperty<RpgCharacter>("player"));
+            Assert.NotNull(engine.GetProperty<Player>("player"));
             Assert.NotNull(engine.GetDefinitions()["statuses"]);
             Assert.NotNull(engine.GetCreatureDefinitions());
         }
@@ -66,16 +66,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         }
 
         [Test]
-        public void CanDefineCustomPlayerType()
-        {
-            rpgModule.Player.CharacterType = typeof(CustomRpgCharacter);
-
-            Configure();
-
-            Assert.IsInstanceOf<CustomRpgCharacter>(engine.GetPlayer<CustomRpgCharacter>());
-        }
-
-        [Test]
         public void InvalidPlayerTypeThrowsError()
         {
             Assert.Throws(typeof(InvalidOperationException), () =>
@@ -84,16 +74,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
                 Configure();
             });
-        }
-
-        [Test]
-        public void CanDefinePlayerInitializationScript()
-        {
-            rpgModule.Player.CharacterType = typeof(CustomRpgCharacter);
-            
-            Configure();
-
-            Assert.IsInstanceOf<CustomRpgCharacter>(engine.GetPlayer<CustomRpgCharacter>());
         }
 
         [Test]

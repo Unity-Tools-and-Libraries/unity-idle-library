@@ -26,7 +26,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 
         public BigDouble Change(BigDouble quantity)
         {
-            Quantity = quantity;
+            Quantity += quantity;
             return Quantity;
         }
     }

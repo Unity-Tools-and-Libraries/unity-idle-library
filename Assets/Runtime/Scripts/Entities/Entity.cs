@@ -28,7 +28,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         private Dictionary<string, string> propertyCalculationScripts = new Dictionary<string, string>();
         [JsonProperty]
         private List<long> appliedModifiers = new List<long>();
-        private List<MemberInfo> traversableFields;
+        private List<object> traversableFields;
 
         public long Id { get; }
         /*
@@ -46,11 +46,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             Flags = new Dictionary<string, bool>();
             this.eventListeners = new EventListeners(engine, false);
             this.ExtraProperties = new Dictionary<string, object>();
-            if (engine != null)
-            {
-                //engine.RegisterEntity(this);
-            }
-            traversableFields = new List<MemberInfo>();
+
+            traversableFields = new List<object>();
             FieldInfo[] fields = GetType().GetFields();
             foreach(var field in fields)
             {
@@ -73,7 +70,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         public void OnDeserialization(StreamingContext ctx)
         {
             this.Engine = (IdleEngine)ctx.Context;
-            //this.Engine.RegisterEntity(this);
         }
 
         /*
@@ -201,7 +197,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             return Flags.ContainsKey(flag) && Flags[flag];
         }
 
-        public IEnumerable GetTraversableFields() => traversableFields.Select(f =>
+        public IEnumerable<object> GetTraversableFields() => traversableFields.Select(f =>
         {
             if(f is PropertyInfo)
             {
@@ -211,13 +207,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                 return (f as FieldInfo).GetValue(this);
             } else
             {
-                throw new InvalidOperationException();
+                return f;
             }
         });
 
-        [JsonProperty]
+        [JsonProperty, TraversableFieldOrProperty]
         public Dictionary<string, object> ExtraProperties { get; set; }
-
-
     }
 }

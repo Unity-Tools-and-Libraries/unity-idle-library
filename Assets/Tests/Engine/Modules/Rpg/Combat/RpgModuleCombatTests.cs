@@ -19,11 +19,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             Configure();
 
-            engine.GetPlayer<RpgCharacter>().AddAbility(engine.GetAbilities()[5]);
+            engine.GetPlayerCharacter<RpgCharacter>().AddAbility(engine.GetAbilities()[5]);
 
             var defender = new RpgCharacter(engine, 7);
 
-            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
+            var result = engine.MakeAttack(engine.GetPlayerCharacter<RpgCharacter>(), defender);
 
             Assert.IsFalse(result.IsHit);
             Assert.AreEqual(0, result.DamageToDefender.Count);
@@ -41,7 +41,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             var defender = new RpgCharacter(engine, 7);
             defender.AddAbility(engine.GetAbilities()[5]);
 
-            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
+            var result = engine.MakeAttack(engine.GetPlayerCharacter<RpgCharacter>(), defender);
 
             Assert.IsFalse(result.IsHit);
             Assert.AreEqual(0, result.DamageToDefender.Count);
@@ -60,7 +60,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             defender.AddAbility(engine.GetAbilities()[5]);
             defender.RemoveAbility(engine.GetAbilities()[5]);
 
-            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
+            var result = engine.MakeAttack(engine.GetPlayerCharacter<RpgCharacter>(), defender);
 
             Assert.IsTrue(result.IsHit);
         }
@@ -74,11 +74,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             Configure();
 
-            engine.GetPlayer<RpgCharacter>().AddStatus(engine.GetStatuses()[5], 1);
+            engine.GetPlayerCharacter<RpgCharacter>().AddStatus(engine.GetStatuses()[5], 1);
 
             var defender = new RpgCharacter(engine, 7);
 
-            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
+            var result = engine.MakeAttack(engine.GetPlayerCharacter<RpgCharacter>(), defender);
 
             Assert.IsFalse(result.IsHit);
             Assert.AreEqual(0 , result.DamageToDefender.Count);
@@ -96,7 +96,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             var defender = new RpgCharacter(engine, 7);
             defender.AddStatus(engine.GetStatuses()[5], 1);
 
-            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
+            var result = engine.MakeAttack(engine.GetPlayerCharacter<RpgCharacter>(), defender);
 
             Assert.IsFalse(result.IsHit);
             Assert.AreEqual(0, result.DamageToDefender.Count);
@@ -115,7 +115,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             defender.AddStatus(engine.GetStatuses()[5], 1);
             defender.RemoveStatus(engine.GetStatuses()[5]);
 
-            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
+            var result = engine.MakeAttack(engine.GetPlayerCharacter<RpgCharacter>(), defender);
 
             Assert.IsTrue(result.IsHit);
         }
@@ -129,11 +129,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             Configure();
 
-            engine.GetPlayer<RpgCharacter>().AddItem(engine.GetItems()[5]);
+            engine.GetPlayerCharacter<RpgCharacter>().AddItem(engine.GetItems()[5]);
 
             var defender = new RpgCharacter(engine, 7);
 
-            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
+            var result = engine.MakeAttack(engine.GetPlayerCharacter<RpgCharacter>(), defender);
 
             Assert.IsFalse(result.IsHit);
             Assert.AreEqual(0, result.DamageToDefender.Count);
@@ -151,7 +151,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             var defender = new RpgCharacter(engine, 7);
             defender.AddItem(engine.GetItems()[5]);
 
-            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
+            var result = engine.MakeAttack(engine.GetPlayerCharacter<RpgCharacter>(), defender);
 
             Assert.IsFalse(result.IsHit);
             Assert.AreEqual(0, result.DamageToDefender.Count);
@@ -170,7 +170,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             defender.AddItem(engine.GetItems()[5]);
             defender.RemoveItem(engine.GetItems()[5]);
 
-            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
+            var result = engine.MakeAttack(engine.GetPlayerCharacter<RpgCharacter>(), defender);
 
             Assert.IsTrue(result.IsHit);
         }
@@ -187,7 +187,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             var defender = new RpgCharacter(engine, 7);
             defender.Defense.BaseValue = 100_000;
 
-            var result = engine.MakeAttack(engine.GetPlayer<RpgCharacter>(), defender);
+            var result = engine.MakeAttack(engine.GetPlayerCharacter<RpgCharacter>(), defender);
 
             Assert.AreEqual(new BigDouble(1), result.DamageToDefender[0].Item1);
         }
@@ -202,19 +202,19 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             engine.StartEncounter();
             Assert.AreEqual(new List<Tuple<BigDouble, RpgCharacter>>()
             {
-                Tuple.Create(new BigDouble(10), engine.GetPlayer<RpgCharacter>())
+                Tuple.Create(new BigDouble(10), engine.GetPlayerCharacter<RpgCharacter>())
             },
-                engine.MakeAttack(engine.GetPlayer<RpgCharacter>(),
+                engine.MakeAttack(engine.GetPlayerCharacter<RpgCharacter>(),
                 engine.GetCurrentEncounter().Creatures[0]).DamageToDefender);
 
-            engine.GetPlayer<RpgCharacter>().Damage.Level = 2;
+            engine.GetPlayerCharacter<RpgCharacter>().Damage.Level = 2;
 
             engine.StartEncounter();
             Assert.AreEqual(new List<Tuple<BigDouble, RpgCharacter>>()
             {
-                Tuple.Create(new BigDouble(11), engine.GetPlayer<RpgCharacter>())
+                Tuple.Create(new BigDouble(11), engine.GetPlayerCharacter<RpgCharacter>())
             },
-                engine.MakeAttack(engine.GetPlayer<RpgCharacter>(),
+                engine.MakeAttack(engine.GetPlayerCharacter<RpgCharacter>(),
                 engine.GetCurrentEncounter().Creatures[0]).DamageToDefender);
         }
 
@@ -223,11 +223,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         {
             Configure();
 
-            engine.GetPlayer<RpgCharacter>().CurrentHealth = 1;
+            engine.GetPlayerCharacter<RpgCharacter>().CurrentHealth = 1;
             engine.Start();
             engine.Update(1);
 
-            Assert.AreEqual(new BigDouble(1.1), engine.GetPlayer<RpgCharacter>().CurrentHealth);
+            Assert.AreEqual(new BigDouble(1.1), engine.GetPlayerCharacter<RpgCharacter>().CurrentHealth);
         }
 
     }

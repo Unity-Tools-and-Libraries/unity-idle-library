@@ -474,11 +474,21 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         public T GetPlayer<T>() where T : Player
         {
-            if(!GlobalProperties.ContainsKey("player"))
+            return GetPlayer() as T;
+        }
+
+        /**
+         * Non-generic version of GetPlayer<T>, primarily for use in scripting.
+         * 
+         * Prefer the generic method in C# code.
+         */
+        public Player GetPlayer()
+        {
+            if (!GlobalProperties.ContainsKey("player"))
             {
                 throw new InvalidOperationException("No player property defined.");
             }
-            return GlobalProperties["player"] as T;
+            return GlobalProperties["player"] as Player;
         }
 
         public void StopWatching(string eventName, string subscriptionDescription)

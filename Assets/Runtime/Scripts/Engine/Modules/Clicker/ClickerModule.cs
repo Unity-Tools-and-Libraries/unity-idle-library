@@ -123,7 +123,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 {
                     throw new InvalidOperationException("Need producer quantity in position 2.");
                 }
-                engine.GetPlayer().Producers[long.Parse(args[1])].Quantity += BigDouble.Parse(args[2]);
+                engine.GetPlayer<ClickerPlayer>().Producers[long.Parse(args[1])].Quantity += BigDouble.Parse(args[2]);
             }, "gainProducer [producerId] [quantity]");
 
             engine.State.AddHandler(States.GAMEPLAY, "buyProducer", (ie, args) =>
@@ -139,11 +139,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 }
                 var producer = engine.GetProducers()[long.Parse(args[1])];
                 var neededQuantity = BigDouble.Parse(args[2]);
-                if(!engine.GetPlayer().CanAfford(producer, neededQuantity))
+                if(!engine.GetPlayer<ClickerPlayer>().CanAfford(producer, neededQuantity))
                 {
-                    throw new InvalidOperationException(String.Format("Need {0} points but had {1}.", engine.GetPlayer().CalculateCost(producer, neededQuantity), engine.GetPlayer().GetResource("points").Quantity));
+                    throw new InvalidOperationException(String.Format("Need {0} points but had {1}.", engine.GetPlayer<ClickerPlayer>().CalculateCost(producer, neededQuantity), engine.GetPlayer().GetResource("points").Quantity));
                 }
-                ie.GetPlayer().BuyProducer(producer.Id);
+                ie.GetPlayer<ClickerPlayer>().BuyProducer(producer.Id);
             }, "buyProducer [producerId] [quantity]");
 
             engine.State.AddHandler(States.GAMEPLAY, "loseProducer", (ie, args) =>
@@ -156,7 +156,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 {
                     throw new InvalidOperationException("Need producer quantity in position 2.");
                 }
-                engine.GetPlayer().Producers[long.Parse(args[1])].Quantity -= BigDouble.Parse(args[2]);
+                engine.GetPlayer<ClickerPlayer>().Producers[long.Parse(args[1])].Quantity -= BigDouble.Parse(args[2]);
             }, "loseProducer [producerId] [quantity]");
 
             engine.State.AddHandler(States.GAMEPLAY, "gainUpgrade", (ie, args) =>
@@ -169,7 +169,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 {
                     throw new InvalidOperationException("Need upgrade quantity in position 2.");
                 }
-                engine.GetPlayer().Upgrades[long.Parse(args[1])].Quantity += BigDouble.Parse(args[2]);
+                engine.GetPlayer<ClickerPlayer>().Upgrades[long.Parse(args[1])].Quantity += BigDouble.Parse(args[2]);
             }, "gainUpgrade [upgradeId] [quantity]");
 
             engine.State.AddHandler(States.GAMEPLAY, "buyUpgrade", (ie, args) =>
@@ -185,11 +185,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 }
                 var upgrade = engine.GetUpgrades()[long.Parse(args[1])];
                 var neededQuantity = BigDouble.Parse(args[2]);
-                if (!engine.GetPlayer().CanAfford(upgrade, neededQuantity))
+                if (!engine.GetPlayer<ClickerPlayer>().CanAfford(upgrade, neededQuantity))
                 {
-                    throw new InvalidOperationException(String.Format("Need {0} points but had {1}.", engine.GetPlayer().CalculateCost(upgrade, neededQuantity), engine.GetPlayer().GetResource("points").Quantity));
+                    throw new InvalidOperationException(String.Format("Need {0} points but had {1}.", engine.GetPlayer<ClickerPlayer>().CalculateCost(upgrade, neededQuantity), engine.GetPlayer().GetResource("points").Quantity));
                 }
-                ie.GetPlayer().BuyUpgrade(upgrade.Id);
+                ie.GetPlayer<ClickerPlayer>().BuyUpgrade(upgrade.Id);
             }, "buyUpgrade [upgradeId] [quantity]");
 
             engine.State.AddHandler(States.GAMEPLAY, "loseUpgrade", (ie, args) =>
@@ -202,7 +202,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 {
                     throw new InvalidOperationException("Need upgrade quantity in position 2.");
                 }
-                engine.GetPlayer().Upgrades[long.Parse(args[1])].Quantity = BigDouble.Max(BigDouble.Zero, engine.GetPlayer().Upgrades[long.Parse(args[1])].Quantity - BigDouble.Parse(args[2]));
+                engine.GetPlayer<ClickerPlayer>().Upgrades[long.Parse(args[1])].Quantity = BigDouble.Max(BigDouble.Zero, engine.GetPlayer<ClickerPlayer>().Upgrades[long.Parse(args[1])].Quantity - BigDouble.Parse(args[2]));
             }, "loseUpgrade [upgradeId] [quantity]");
 
             engine.State.DefineTransition(StateMachine.DEFAULT_STATE, States.GAMEPLAY);

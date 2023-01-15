@@ -49,7 +49,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             Assert.IsFalse(engine.GlobalProperties.ContainsKey("triggered"));
             Assert.IsFalse(engine.GlobalProperties.ContainsKey("globaltriggered"));
 
-            engine.GetPlayer().Upgrades[upgrade.Id].Watch(IsUnlockedChangeEvent.EventName, "test", "globals.triggered = true");
+            engine.GetPlayer<ClickerPlayer>().Upgrades[upgrade.Id].Watch(IsUnlockedChangeEvent.EventName, "test", "globals.triggered = true");
             engine.Watch(IsUnlockedChangeEvent.EventName, "test", "globals.globaltriggered = true");
 
             engine.Update(1);

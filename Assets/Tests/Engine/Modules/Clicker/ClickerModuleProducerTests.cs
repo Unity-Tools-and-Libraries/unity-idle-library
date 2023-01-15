@@ -28,8 +28,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             engine.GetPlayer().GetResource("points").Quantity = 10000;
             for (int i = 0; i < 10; i++)
             {
-                engine.GetPlayer().Producers[1].Quantity = i;
-                Assert.AreEqual(new BigDouble(1) * BigDouble.Pow(1.15, i), engine.GetPlayer().CalculateCost(engine.GetPlayer().Producers[1], 1));
+                engine.GetPlayer<ClickerPlayer>().Producers[1].Quantity = i;
+                Assert.AreEqual(new BigDouble(1) * BigDouble.Pow(1.15, i), engine.GetPlayer<ClickerPlayer>().CalculateCost(engine.GetPlayer<ClickerPlayer>().Producers[1], 1));
             }
         }
 
@@ -39,7 +39,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             Configure();
 
             engine.Start();
-            engine.GetPlayer().Producers[1].Quantity = 1;
+            engine.GetPlayer<ClickerPlayer>().Producers[1].Quantity = 1;
             engine.Update(0f);
             Assert.AreEqual(new BigDouble(1), engine.Scripting.EvaluateStringAsScript("return globals.player.producers[1].TotalOutput").ToObject<BigDouble>());
         }
@@ -82,7 +82,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             Assert.IsFalse(engine.GlobalProperties.ContainsKey("triggered"));
             Assert.IsFalse(engine.GlobalProperties.ContainsKey("globaltriggered"));
 
-            engine.GetPlayer().Producers[1].Watch(IsUnlockedChangeEvent.EventName, "test", "globals.triggered = true");
+            engine.GetPlayer<ClickerPlayer>().Producers[1].Watch(IsUnlockedChangeEvent.EventName, "test", "globals.triggered = true");
             engine.Watch(IsUnlockedChangeEvent.EventName, "test", "globals.globaltriggered = true");
 
             engine.Update(1);
@@ -99,7 +99,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
 
             engine.GlobalProperties["multiplier"] = 5;
 
-            engine.GetPlayer().Producers[100].Quantity = 1;
+            engine.GetPlayer<ClickerPlayer>().Producers[100].Quantity = 1;
 
             Assert.AreEqual(new BigDouble(5), engine.GetProducers()[100].TotalOutput);
         }
@@ -114,7 +114,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             }));
             Configure();
 
-            engine.GetPlayer().Producers[100].Quantity = 1;
+            engine.GetPlayer<ClickerPlayer>().Producers[100].Quantity = 1;
             Assert.AreEqual(new BigDouble(1), engine.GetProducers()[100].TotalOutput);
             
             engine.GetPlayer().AddModifier(engine.GetUpgrades()[200]);

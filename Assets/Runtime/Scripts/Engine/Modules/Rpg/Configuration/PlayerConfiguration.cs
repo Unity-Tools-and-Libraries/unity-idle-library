@@ -1,4 +1,5 @@
 using System;
+using MoonSharp.Interpreter;
 using UnityEngine;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Configuration
@@ -15,17 +16,17 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Configuration
          * 
          * Use this to add custom 
          */
-        public string Initializer;
+        public DynValue Initializer;
 
         /*
          * Script used to determine if an attack hits or misses.
          */
-        public string ToHitScript;
+        public DynValue ToHitScript;
         /*
          * 
          */
-        public string OnCreatureDiedScript;
+        public DynValue OnCreatureDiedScript;
 
-        public string ValidationScript;
+        public DynValue ValidationScript;
     }
 }

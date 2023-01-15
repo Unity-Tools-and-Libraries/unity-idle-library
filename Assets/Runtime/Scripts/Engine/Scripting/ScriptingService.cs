@@ -10,6 +10,7 @@ using io.github.thisisnozaku.scripting.context;
 using io.github.thisisnozaku.scripting.types;
 using io.github.thisisnozaku.logging;
 using io.github.thisisnozaku.idle.framework.Engine.State;
+using UnityEditor;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
 {
@@ -129,20 +130,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
 
                 return DynValue.FromObject(ctx.GetScript(), ctx.CurrentGlobalEnv[args[1]]);
             })));
-            //defaultMetatable.Set("__newindex", DynValue.NewCallback((Func<ScriptExecutionContext, CallbackArguments, DynValue>)((ctx, args) =>
-            //{
-            //    string locationArg = args[1].CastToString();
-            //    if (args[2].Type == DataType.Number)
-            //    {
-            //        engine.GlobalProperties[locationArg] = new BigDouble(args[2].Number);
-            //    }
-            //    else
-            //    {
-            //        engine.GlobalProperties[locationArg] = args[2].ToObject();
-            //    }
-
-            //    return DynValue.Nil;
-            //})));
         }
 
         public Table Globals => module.Globals;
@@ -186,14 +173,22 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
                 { localContext.Item1, localContext.Item2 }});
         }
 
-        public DynValue Evaluate(DynValue toEvaluate, IScriptingContext context)
+        public DynValue Evaluate(DynValue toEvaluate, IScriptingContext context, List<string> contextMapping = null)
         {
-            return module.Evaluate(toEvaluate, context);
+            return module.Evaluate(toEvaluate, context, contextMapping);
         }
 
-        public DynValue Evaluate(DynValue toEvaluate, IDictionary<string, object> localContext = null)
+        public DynValue Evaluate(DynValue toEvaluate, IDictionary<string, object> localContext = null, List<string> contextMapping = null)
         {
-            return module.Evaluate(toEvaluate, localContext);
+            return module.Evaluate(toEvaluate, localContext, contextMapping);
+        }
+
+        public DynValue Evaluate(DynValue toEvaluate, Tuple<string, object> localContext, List<string> contextMapping = null)
+        {
+            return Evaluate(toEvaluate, new Dictionary<string, object>()
+            {
+                { localContext.Item1, localContext.Item2 }
+            }, contextMapping);
         }
     }
 }

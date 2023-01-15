@@ -56,7 +56,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             scripting = new ScriptingService(this);
             logging = new LoggingModule();
             listeners = new EventListeners(this);
-            GlobalProperties["configuration"] = new Dictionary<string, object>();
             GlobalProperties["definitions"] = new Dictionary<string, object>();
             Achievements = new AchievementsModule();
 
@@ -316,14 +315,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                     DynValue globalValue = DynValue.FromObject(null, global.Value);
                     if (globalValue.Type == DataType.Table || globalValue.Type == DataType.Tuple || (globalValue.Type == DataType.UserData && globalValue.ToObject() is ITraversableType))
                     {
-                        queue.Enqueue(globalValue);
+                            queue.Enqueue(globalValue);
                     }
                 }
             }
             while (queue.Count > 0)
             {
                 DynValue next = queue.Dequeue();
-                IEnumerable children = null;
+                IEnumerable<object> children = null;
                 switch (next.Type)
                 {
                     case DataType.Table:
@@ -337,6 +336,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                         if (asObject is ITraversableType)
                         {
                             children = (asObject as ITraversableType).GetTraversableFields();
+                        }
+                        if (asObject is Entity)
+                        {
+                            if(children == null)
+                            {
+                                children = (asObject as Entity).ExtraProperties.Values.AsEnumerable<object>();
+                            } else
+                            {
+                                children = Enumerable.Concat(children, (asObject as Entity).ExtraProperties.Values.AsEnumerable<object>());
+                            }
                         }
                         break;
                 }

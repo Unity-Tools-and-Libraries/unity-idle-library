@@ -4,5 +4,5 @@ using System.Reflection;
 
 public interface ITraversableType
 {
-    IEnumerable GetTraversableFields();
+    IEnumerable<object> GetTraversableFields();
 }

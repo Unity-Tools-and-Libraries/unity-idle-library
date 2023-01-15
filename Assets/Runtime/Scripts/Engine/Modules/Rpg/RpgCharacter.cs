@@ -30,7 +30,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             OnEventTriggers = new Dictionary<string, List<string>>();
         }
         /*
-         * This is the script used to determine if this characters attacks hit or not.
+         * This is the path in the configuration to the to-hit determination script for this character.
          */
         public string ToHitScript { get; set; }
         /*
@@ -324,14 +324,13 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             {
                 UpdateActionMeter(deltaTime);
                 UpdateStatusDurations(deltaTime);
-            } else if(this.Action == "REINCARNATING")
+            }
+            BigDouble regenAmount = Regeneration.Total * deltaTime * (Action == "REINCARNATING" ? ResurrectionMultiplier.Total : 1);
+            CurrentHealth += BigDouble.Min(MaximumHealth.Total, regenAmount);
+            if (CurrentHealth == MaximumHealth.Total && Action == "REINCARNATING")
             {
-                CurrentHealth += BigDouble.Min(MaximumHealth.Total, Regeneration.Total * deltaTime * ResurrectionMultiplier.Total);
-                if(CurrentHealth == MaximumHealth.Total)
-                {
-                    Action = "";
-                    Emit(CharacterResurrectedEvent.EventName, new CharacterResurrectedEvent(this));
-                }
+                Action = "";
+                Emit(CharacterResurrectedEvent.EventName, new CharacterResurrectedEvent(this));
             }
         }
 

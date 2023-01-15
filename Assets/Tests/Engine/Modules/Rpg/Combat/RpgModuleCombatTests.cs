@@ -218,5 +218,17 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
                 engine.GetCurrentEncounter().Creatures[0]).DamageToDefender);
         }
 
+        [Test]
+        public void CharacterRegainsFromRegeneration()
+        {
+            Configure();
+
+            engine.GetPlayer<RpgCharacter>().CurrentHealth = 1;
+            engine.Start();
+            engine.Update(1);
+
+            Assert.AreEqual(new BigDouble(2), engine.GetPlayer<RpgCharacter>().CurrentHealth);
+        }
+
     }
 }

@@ -60,7 +60,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             {
                 Assert.AreEqual("foo", ctx["action"]);
             })));
-            engine.GetPlayerCharacter<RpgCharacter>().Emit(CharacterActedEvent.EventName, new CharacterActedEvent(engine.GetPlayerCharacter<RpgCharacter>(), "foo"));
+            engine.GetPlayerCharacter<RpgCharacter>()
+                .Emit(CharacterActedEvent.EventName, new CharacterActedEvent(engine.GetPlayerCharacter<RpgCharacter>(), "foo"));
         }
 
         [Test]

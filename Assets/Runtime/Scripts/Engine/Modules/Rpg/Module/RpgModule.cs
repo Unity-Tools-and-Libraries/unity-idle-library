@@ -12,7 +12,7 @@ using UnityEngine.AddressableAssets;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 {
-    public class RpgModule : IModule
+    public partial class RpgModule : IModule
     {
         private Dictionary<string, object> definitions = new Dictionary<string, object>()
         {

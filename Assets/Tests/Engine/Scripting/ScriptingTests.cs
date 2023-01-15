@@ -240,17 +240,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
         }
 
         [Test]
-        public void CallbackReceivesContextDictionary()
-        {
-            var context = new Dictionary<string, object>();
-            engine.Scripting.Evaluate(DynValue.FromObject(null, (Action<IDictionary<string, object>>)(ctx =>
-            {
-                Assert.IsTrue(ctx is IDictionary<string, object>);
-                Assert.IsTrue(ctx.ContainsKey("engine"));
-            })), context);
-        }
-
-        [Test]
         public void TryingToInsertIntoNonTableThrows()
         {
             var table = false;

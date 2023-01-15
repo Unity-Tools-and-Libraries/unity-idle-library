@@ -32,5 +32,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Configuration
         public DynValue ValidationScript;
 
         public Dictionary<string, BigDouble> Resources;
+
+        public CharacterAdvancementConfiguration Advancement;
     }
 }

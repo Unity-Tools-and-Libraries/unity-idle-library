@@ -11,6 +11,7 @@ using io.github.thisisnozaku.idle.framework.Events;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Events;
 using Newtonsoft.Json;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker;
+using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Configuration;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 {
@@ -358,6 +359,30 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public ResourceHolder GetResource(string id)
         {
             return Resources[id];
+        }
+
+        public Dictionary<string, BigDouble> GetCostToBuyAttribute(string attribute)
+        {
+            var playerConfiguration = this.Engine.GetConfiguration<PlayerConfiguration>("player");
+            var player = Engine.GetPlayerCharacter<RpgCharacter>();
+            return playerConfiguration
+                .Advancement.GetAttributePurchaseCalculator(attribute)
+                .ToDictionary(c => c.Key, c => {
+                    var context = Tuple.Create<string, object>("level", player.GetAttribute(attribute).Level + 1);
+                    return Engine.Scripting.Evaluate(c.Value, context,
+                       new List<string>() { "level" }).ToObject<BigDouble>();
+                });
+        }
+
+        public NumericAttribute GetAttribute(string attributeName)
+        {
+            switch(attributeName)
+            {
+                case "Damage":
+                    return Damage;
+                default:
+                    return null;
+            }
         }
 
         public static class Attributes

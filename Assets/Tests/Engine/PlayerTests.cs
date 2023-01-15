@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using BreakInfinity;
@@ -18,6 +19,18 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine
             });
             var resource = engine.GetPlayer<Player>().GetResource("points");
             Assert.AreEqual(BigDouble.One, resource.Quantity);
+        }
+
+        [Test]
+        public void GettingNonExistantResourceThrows()
+        {
+            engine.GlobalProperties["player"] = new Player(engine, 1, new Dictionary<string, BreakInfinity.BigDouble>()
+            {
+                { "points", 1 }
+            });
+            Assert.Throws<InvalidOperationException>(() => {
+                engine.GetPlayer<Player>().GetResource("foobar");
+                });
         }
     }
 }

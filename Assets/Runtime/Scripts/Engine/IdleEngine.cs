@@ -26,6 +26,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
     {
         private System.Random random;
         public bool IsReady { get; private set; }
+        private Dictionary<string, object> Configuration = new Dictionary<string, object>();
         public PropertiesHolder GlobalProperties = new PropertiesHolder();
         private Dictionary<string, string> propertyCalculators = new Dictionary<string, string>();
         private long nextTimerId = 1;
@@ -192,21 +193,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             }
             return currentObject;
         }
-
-
-        /*
-         * Helper method for setting configuration values.
-         * 
-         * Sets values as children of the 'configuration' key in the global properties.
-         */
         public void SetConfiguration(string property, object value)
         {
-            (GlobalProperties["configuration"] as IDictionary<string, object>)[property] = value;
+            Configuration[property] = value;
         }
 
         public IDictionary<string, object> GetConfiguration()
         {
-            return GlobalProperties["configuration"] as IDictionary<string, object>;
+            return Configuration;
         }
 
         public object GetConfiguration(string path)

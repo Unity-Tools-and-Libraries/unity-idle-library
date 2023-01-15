@@ -33,7 +33,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             engine.StartEncounter();
             engine.Watch(CharacterActedEvent.EventName, "test", "globals.triggered = true");
-            engine.GetPlayer<RpgCharacter>().Update(engine, (float)((BigDouble)engine.GetProperty("configuration.action_meter_required_to_act")).ToDouble());
+            engine.GetPlayer<RpgCharacter>().Update(engine, (float)((BigDouble)engine.GetConfiguration("action_meter_required_to_act")).ToDouble());
             Assert.IsTrue(engine.Scripting.EvaluateStringAsScript("return globals.triggered").Boolean);
         }
 
@@ -323,19 +323,17 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         public void CanConfigureCreatureXpValueCalculationScript()
         {
             random.SetNextValues(0);
-            rpgModule.Creatures.XpValueCalculationScript = "return 1";
+            rpgModule.Creatures.XpValueCalculationScript = DynValue.NewString("return 1");
 
             Configure();
 
             var creature = new RpgCharacter(engine, 10);
-            engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<CreaturesConfiguration>("creatures").Initializer, new Dictionary<string, object>() {
+            engine.Scripting.Evaluate(engine.GetConfiguration<CreaturesConfiguration>("creatures").Initializer, new Dictionary<string, object>() {
                 {"creature", creature },
-                { "level", 1 },
+                { "level", BigDouble.One },
                 { "definition", engine.GetCreatures()[1] }
-                });
-            creature.Kill();
-
-            Assert.AreEqual(new BigDouble(1), engine.GetPlayer<RpgCharacter>().Xp);
+                }, new List<string>() { "creature", "definition", "level" });
+            Assert.AreEqual(BigDouble.One, creature.Xp);
         }
 
         [Test]
@@ -346,11 +344,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             //engine.Logging.ConfigureLogging("creature.generate", UnityEngine.LogType.Log);
 
             var creature = new RpgCharacter(engine, 10);
-            engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<CreaturesConfiguration>("creatures").Initializer, new Dictionary<string, object>() {
+            engine.Scripting.Evaluate(engine.GetConfiguration<CreaturesConfiguration>("creatures").Initializer, new Dictionary<string, object>() {
                 { "creature", creature },
-                { "level", 1 },
+                { "level", BigDouble.One },
                 { "definition", engine.GetCreatures()[1] }
-                });
+                }, new List<string>() { "creature", "definition", "level" } );
 
             Assert.AreEqual(new BigDouble(10), creature.CurrentHealth);
             Assert.AreEqual(new BigDouble(10), creature.MaximumHealth.Total);
@@ -362,11 +360,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
             Configure();
 
             var creature = new RpgCharacter(engine, 10);
-            engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<string>("creatures.Initializer"), new Dictionary<string, object>() {
+            engine.Scripting.Evaluate(engine.GetConfiguration<CreaturesConfiguration>("creatures").Initializer, new Dictionary<string, object>() {
                 {"creature", creature },
-                { "level", 1 },
+                { "level", BigDouble.One },
                 { "definition", engine.GetCreatures()[1] }
-                });
+                }, new List<string>() { "creature", "definition", "level" });
 
             Assert.AreEqual(new BigDouble(20), engine.GetPlayer<RpgCharacter>().CurrentHealth);
             Assert.AreEqual(new BigDouble(20), engine.GetPlayer<RpgCharacter>().MaximumHealth.Total);
@@ -400,7 +398,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         [Test]
         public void ErrorInPlayerGenerationScriptThrows()
         {
-            rpgModule.Player.ValidationScript = "error('foobar')";
+            rpgModule.Player.ValidationScript = DynValue.NewString("error('foobar')");
 
             Assert.Throws(typeof(InvalidOperationException), () =>
             {
@@ -444,6 +442,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             var serialied = engine.GetSerializedSnapshotString();
             engine = new framework.Engine.IdleEngine();
+            rpgModule = new RpgModule();
 
             Configure();
             engine.DeserializeSnapshotString(serialied);

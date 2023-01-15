@@ -1,18 +1,15 @@
 using BreakInfinity;
-using io.github.thisisnozaku.idle.framework.Engine;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitions;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Events;
-using System;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 {
-    public class ClickerPlayer : Entity
+    public class ClickerPlayer : Player
     {
-        public ClickerPlayer(IdleEngine engine, long id) : base(engine, id)
+        public ClickerPlayer(IdleEngine engine, long id, Dictionary<string, BigDouble> resources = null) : base(engine, id, resources != null ? resources :
+            new Dictionary<string, BigDouble>() { { "points", BigDouble.Zero } })
         {
-            this.Points = new ResourceHolder();
             this.Producers = new Dictionary<long, Producer>();
             this.Upgrades = new Dictionary<long, Upgrade>();
             foreach (var upgrade in engine.GetUpgrades())
@@ -25,13 +22,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             }
         }
 
-        public ResourceHolder Points { get; }
         public Dictionary<long, Producer> Producers { get; }
         public Dictionary<long, Upgrade> Upgrades { get; }
 
         protected override void CustomUpdate(IdleEngine engine, float deltaTime)
         {
-            Points.Quantity += Points.TotalIncome * deltaTime;
+            base.CustomUpdate(engine, deltaTime);
             foreach (var p in Producers.Values)
             {
                 p.IsUnlocked = engine.Scripting.EvaluateStringAsScript(p.UnlockExpression, new Dictionary<string, object>()
@@ -72,14 +68,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 
         public bool CanAfford(IBuyable buyable, BigDouble quantity)
         {
-            return Points.Quantity >= CalculateCost(buyable, quantity);
+            return GetResource("points").Quantity >= CalculateCost(buyable, quantity);
         }
 
         public void BuyProducer(long id)
         {
-            Producer producerDefinition = Engine.GetPlayer().Producers[id];
-            BigDouble cost = Engine.GetPlayer().CalculateCost(producerDefinition, 1);
-            if (Points.Spend(cost))
+            Producer producerDefinition = Producers[id];
+            BigDouble cost = CalculateCost(producerDefinition, 1);
+            if (GetResource("points").Spend(cost))
             {
                 producerDefinition.Quantity += 1;
                 var boughtProducerEvent = new ProducerBoughtEvent(producerDefinition);
@@ -93,7 +89,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
         {
             Upgrade upgrade = Engine.GetPlayer().Upgrades[id];
             BigDouble cost = Engine.GetPlayer().CalculateCost(upgrade, 1);
-            if (!GetModifiers().Contains(upgrade.Id) && Points.Spend(cost))
+            if (!GetModifiers().Contains(upgrade.Id) && GetResource("points").Spend(cost))
             {
                 AddModifier(upgrade);
                 var upgradeBoughtEvent = new UpgradeBoughtEvent(upgrade);
@@ -105,7 +101,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 
         private void RecalculateIncome()
         {
-            Points.TotalIncome = Producers.Values.Aggregate(BigDouble.Zero, (total, p) => total + p.TotalOutput);
+            GetResource("points").TotalIncome = Producers.Values.Aggregate(BigDouble.Zero, (total, p) => total + p.TotalOutput);
         }
     }
 }

@@ -92,9 +92,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                     throw new InvalidOperationException("Need resource quantity in position 2.");
                 }
                 var neededQuantity = BigDouble.Parse(args[2]);
-                if(ie.GetPlayer().Points.Quantity < neededQuantity)
-                {
-                    throw new InvalidOperationException(String.Format("Need {0} {1} but had {2}.", neededQuantity, args[1], ie.GetPlayer().Points.Quantity));
+                if(ie.GetPlayer().GetResource("points").Quantity < neededQuantity)
+                {   
+                    throw new InvalidOperationException(String.Format("Need {0} {1} but had {2}.", neededQuantity, args[1], ie.GetPlayer().GetResource("points").Quantity));
                 }
                 engine.Scripting.EvaluateStringAsScript("player.Points.Quantity = player.Points.Quantity - quantity", Tuple.Create<string, object>("quantity", neededQuantity));
             }, "spendResource [resourceId] [quantity]");
@@ -141,7 +141,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 var neededQuantity = BigDouble.Parse(args[2]);
                 if(!engine.GetPlayer().CanAfford(producer, neededQuantity))
                 {
-                    throw new InvalidOperationException(String.Format("Need {0} points but had {1}.", engine.GetPlayer().CalculateCost(producer, neededQuantity), engine.GetPlayer().Points.Quantity));
+                    throw new InvalidOperationException(String.Format("Need {0} points but had {1}.", engine.GetPlayer().CalculateCost(producer, neededQuantity), engine.GetPlayer().GetResource("points").Quantity));
                 }
                 ie.GetPlayer().BuyProducer(producer.Id);
             }, "buyProducer [producerId] [quantity]");
@@ -187,7 +187,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 var neededQuantity = BigDouble.Parse(args[2]);
                 if (!engine.GetPlayer().CanAfford(upgrade, neededQuantity))
                 {
-                    throw new InvalidOperationException(String.Format("Need {0} points but had {1}.", engine.GetPlayer().CalculateCost(upgrade, neededQuantity), engine.GetPlayer().Points.Quantity));
+                    throw new InvalidOperationException(String.Format("Need {0} points but had {1}.", engine.GetPlayer().CalculateCost(upgrade, neededQuantity), engine.GetPlayer().GetResource("points").Quantity));
                 }
                 ie.GetPlayer().BuyUpgrade(upgrade.Id);
             }, "buyUpgrade [upgradeId] [quantity]");
@@ -234,14 +234,20 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 
     public static class ClickerEngineExtensionMethods
     {
-        public static void DoClick(this IdleEngine engine)
+        public static void DoClick(this IdleEngine engine, string resourceToClick)
         {
-            engine.Scripting.EvaluateStringAsScript("globals.player.points.quantity = globals.player.points.quantity + globals.player.points.click_income");
+            engine.Scripting.EvaluateStringAsScript("globals.player.GetResource(resourceName).quantity = globals.player.GetResource(resourceName).quantity + globals.player.GetResource(resourceName).click_income",
+                Tuple.Create<string, object>("resourceName", resourceToClick));
         }
 
         public static IDictionary<long, Producer> GetProducers(this IdleEngine engine)
         {
             return engine.GetDefinitions()["producers"] as IDictionary<long, Producer>;
+        }
+
+        public static Producer GetProducer(this Player player, string producerId)
+        {
+            return null;
         }
 
         public static IDictionary<long, Upgrade> GetUpgrades(this IdleEngine engine)

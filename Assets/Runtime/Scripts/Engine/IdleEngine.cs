@@ -22,7 +22,7 @@ using System.Diagnostics;
 
 namespace io.github.thisisnozaku.idle.framework.Engine
 {
-    public partial class IdleEngine : IScriptingContext, IEventSource
+    public class IdleEngine : IScriptingContext, IEventSource
     {
         private System.Random random;
         public bool IsReady { get; private set; }
@@ -470,6 +470,15 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                 .ToDictionary(e => e.Key, e => e.Value),
                 Achievements.Values.ToList(),
                 listeners.GetListeners());
+        }
+
+        public T GetPlayer<T>() where T : Player
+        {
+            if(!GlobalProperties.ContainsKey("player"))
+            {
+                throw new InvalidOperationException("No player property defined.");
+            }
+            return GlobalProperties["player"] as T;
         }
 
         public void StopWatching(string eventName, string subscriptionDescription)

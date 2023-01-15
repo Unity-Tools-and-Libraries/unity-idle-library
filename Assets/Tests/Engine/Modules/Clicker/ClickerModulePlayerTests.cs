@@ -16,7 +16,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         {
             Configure();
 
-            engine.GetPlayer().Points.Quantity = 100000;
+            engine.GetPlayer().GetResource("points").Quantity = 100000;
 
             engine.Watch(ProducerBoughtEvent.EventName, "test", "globals.triggered = true");
             engine.GetPlayer().Watch(ProducerBoughtEvent.EventName, "test", "globals.localTriggered = true");
@@ -30,11 +30,11 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         {
             Configure();
 
-            engine.GetPlayer().Points.Quantity = 100000;
+            engine.GetPlayer().GetResource("points").Quantity = 100000;
 
-            Assert.AreEqual(new BigDouble(0), engine.GetPlayer().Points.TotalIncome);
+            Assert.AreEqual(new BigDouble(0), engine.GetPlayer().GetResource("points").TotalIncome);
             engine.GetPlayer().BuyProducer(1);
-            Assert.AreEqual(new BigDouble(1), engine.GetPlayer().Points.TotalIncome);
+            Assert.AreEqual(new BigDouble(1), engine.GetPlayer().GetResource("points").TotalIncome);
         }
 
         public class UserType
@@ -47,7 +47,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         {
             Configure();
 
-            engine.GetPlayer().Points.Quantity = 100000;
+            engine.GetPlayer().GetResource("points").Quantity = 100000;
 
             engine.Watch(UpgradeBoughtEvent.EventName, "test", "globals.triggered = true");
             engine.GetPlayer().Watch(UpgradeBoughtEvent.EventName, "test", "globals.localTriggered = true");
@@ -61,12 +61,12 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         {
             Configure();
 
-            engine.GetPlayer().Points.Quantity = 100000;
+            engine.GetPlayer().GetResource("points").Quantity = 100000;
 
             engine.GetPlayer().BuyProducer(1);
-            Assert.AreEqual(new BigDouble(1), engine.GetPlayer().Points.TotalIncome);
+            Assert.AreEqual(new BigDouble(1), engine.GetPlayer().GetResource("points").TotalIncome);
             engine.GetPlayer().BuyUpgrade(2);
-            Assert.AreEqual(new BigDouble(2), engine.GetPlayer().Points.TotalIncome);
+            Assert.AreEqual(new BigDouble(2), engine.GetPlayer().GetResource("points").TotalIncome);
         }
 
         [Test]
@@ -129,7 +129,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             Configure();
 
             engine.Start();
-            engine.GetPlayer().Points.Change(10000);
+            engine.GetPlayer().GetResource("points").Change(10000);
             Assert.IsTrue(engine.GetPlayer().CanAfford(engine.GetProducers()[3], 1));
         }
 
@@ -141,10 +141,10 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             Configure();
 
             engine.Start();
-            engine.GetPlayer().Points.Change(10000);
+            engine.GetPlayer().GetResource("points").Change(10000);
             engine.GetPlayer().BuyProducer(3);
             Assert.AreEqual(BigDouble.One, engine.GetPlayer().Producers[3].Quantity);
-            Assert.AreEqual(new BigDouble(9999), engine.GetPlayer().Points.Quantity);
+            Assert.AreEqual(new BigDouble(9999), engine.GetPlayer().GetResource("points").Quantity);
         }
     }
 }

@@ -14,7 +14,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         {
             Configure();
 
-            engine.GetPlayer().Points.Quantity = 10000;
+            engine.GetPlayer().GetResource("points").Quantity = 10000;
             Assert.AreEqual(new BigDouble(0), engine.Scripting.EvaluateStringAsScript("return globals.player.producers[1].quantity").ToObject<BigDouble>());
             engine.Scripting.EvaluateStringAsScript("globals.player.BuyProducer(1)");
             Assert.AreEqual(new BigDouble(1), engine.Scripting.EvaluateStringAsScript("return globals.player.producers[1].quantity").ToObject<BigDouble>());
@@ -25,7 +25,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         {
             Configure();
 
-            engine.GetPlayer().Points.Quantity = 10000;
+            engine.GetPlayer().GetResource("points").Quantity = 10000;
             for (int i = 0; i < 10; i++)
             {
                 engine.GetPlayer().Producers[1].Quantity = i;

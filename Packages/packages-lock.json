@@ -111,7 +111,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "0914b4e5a8ff51b634a33339020dce5cbd99efb3"
+      "hash": "5c2a914a33e6d5634614d4f950b7de621b68ace4"
     },
     "simple-logging-module": {
       "version": "https://github.com/ThisIsNoZaku/unity-simple-logging.git?path=Assets",

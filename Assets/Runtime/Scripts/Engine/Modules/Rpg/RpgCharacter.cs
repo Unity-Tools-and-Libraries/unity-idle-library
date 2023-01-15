@@ -361,30 +361,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             return Resources[id];
         }
 
-        public Dictionary<string, BigDouble> GetCostToBuyAttribute(string attribute)
-        {
-            var playerConfiguration = this.Engine.GetConfiguration<PlayerConfiguration>("player");
-            var player = Engine.GetPlayerCharacter<RpgCharacter>();
-            return playerConfiguration
-                .Advancement.GetAttributePurchaseCalculator(attribute)
-                .ToDictionary(c => c.Key, c => {
-                    var context = Tuple.Create<string, object>("level", player.GetAttribute(attribute).Level + 1);
-                    return Engine.Scripting.Evaluate(c.Value, context,
-                       new List<string>() { "level" }).ToObject<BigDouble>();
-                });
-        }
-
-        public NumericAttribute GetAttribute(string attributeName)
-        {
-            switch(attributeName)
-            {
-                case "Damage":
-                    return Damage;
-                default:
-                    return null;
-            }
-        }
-
         public static class Attributes
         {
             public const string ABILITIES = "abilities";

@@ -10,12 +10,13 @@ using io.github.thisisnozaku.idle.framework.Engine.Persistence;
 using io.github.thisisnozaku.idle.framework.Events;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Events;
 using Newtonsoft.Json;
+using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 {
-    public class RpgCharacter : Entity
+    public class RpgCharacter : Entity, IHasResources
     {
-        public RpgCharacter(IdleEngine engine, long id) : base(engine, id)
+        public RpgCharacter(IdleEngine engine, long id, Dictionary<string, BigDouble> resources = null) : base(engine, id)
         {
             Statuses = new Dictionary<long, Duration>();
             ItemSlots = new Dictionary<string, CharacterItem[]>();
@@ -28,6 +29,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             }
             Abilities = new Dictionary<long, CharacterAbility>();
             OnEventTriggers = new Dictionary<string, List<string>>();
+            Resources = resources != null ? resources.ToDictionary(r => r.Key, r =>
+            {
+                var rh = new ResourceHolder();
+                rh.Quantity = r.Value;
+                return rh;
+            }) : new Dictionary<string, ResourceHolder>();
         }
         /*
          * This is the path in the configuration to the to-hit determination script for this character.
@@ -62,12 +69,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public virtual bool IsAlive => CurrentHealth > 0;
         public string Action { get; set; }
         public readonly NumericAttribute CriticalHitChance = new NumericAttribute(0);
-        public virtual BigDouble Xp { get; set; }
-        public virtual BigDouble Gold { get; set; }
         public virtual Dictionary<long, CharacterAbility> Abilities { get; set; }
         public virtual Dictionary<string, CharacterItem[]> ItemSlots { get; set; }
         public virtual Dictionary<long, Duration> Statuses { get; set; }
         public virtual Dictionary<string, List<string>> OnEventTriggers { get; private set; }
+        private Dictionary<string, ResourceHolder> Resources;
         public string NextAction;
 
         public void Act(IdleEngine engine)
@@ -347,6 +353,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             ActionMeter = 0;
             var diedEvent = new CharacterDiedEvent(this, killer);
             Emit(CharacterDiedEvent.EventName, diedEvent);
+        }
+
+        public ResourceHolder GetResource(string id)
+        {
+            return Resources[id];
         }
 
         public static class Attributes

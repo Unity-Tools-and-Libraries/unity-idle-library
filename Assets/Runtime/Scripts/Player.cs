@@ -8,15 +8,18 @@ namespace io.github.thisisnozaku.idle.framework.Engine
     /**
      * Type representing a player in the game.
      */
-    public class Player : Entity
+    public class Player : Entity, IHasResources
     {
         private Dictionary<string, ResourceHolder> Resources = new Dictionary<string, ResourceHolder>();
         public Player(IdleEngine engine, long id, Dictionary<string, BigDouble> resources) : base(engine, id)
         {
-            foreach(var e in resources)
+            if (resources != null) // So no error in deserialization
             {
-                Resources[e.Key] = new ResourceHolder();
-                Resources[e.Key].Change(e.Value);
+                foreach (var e in resources)
+                {
+                    Resources[e.Key] = new ResourceHolder();
+                    Resources[e.Key].Quantity = e.Value;
+                }
             }
         }
 

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using BreakInfinity;
 using MoonSharp.Interpreter;
 using UnityEngine;
 
@@ -28,5 +30,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Configuration
         public DynValue OnCreatureDiedScript;
 
         public DynValue ValidationScript;
+
+        public Dictionary<string, BigDouble> Resources;
     }
 }

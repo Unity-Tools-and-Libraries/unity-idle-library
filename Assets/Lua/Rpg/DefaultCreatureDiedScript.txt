@@ -1,7 +1,11 @@
 function OnCreatureDied(died)
 	if(died.party != 0) then
-		globals.player.xp = globals.player.xp + died.xp
-		globals.player.gold = globals.player.gold + died.gold
+		local xp = died.ExtraProperties['xp']
+		local gold = died.ExtraProperties['gold']
+		engine.Logging.Log('gaining ' .. tostring(xp) .. ' xp')
+		engine.Logging.Log('gaining ' .. tostring(gold) .. ' gold')
+		globals.player.extraProperties['character'].GetResource('xp').Change(xp)
+		globals.player.extraProperties['character'].GetResource('gold').Change(gold)
 	end
 end
 return OnCreatureDied

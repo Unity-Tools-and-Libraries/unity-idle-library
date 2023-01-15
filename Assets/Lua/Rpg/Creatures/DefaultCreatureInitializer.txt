@@ -30,18 +30,18 @@ function InitializeCreature(creature, definition, level)
 	local xpCalculator = engine.GetConfiguration('creatures.XpValueCalculationScript')
 	
 	if type(xpCalculator) == 'function' then
-		creature.xp = xpCalculator(creature)
+		creature.ExtraProperties['xp'] = xpCalculator(creature)
 	else
-		creature.xp = load(xpCalculator, nil, nil, context)()
+		creature.ExtraProperties['xp']= load(xpCalculator, nil, nil, context)()
 	end
 
 	engine.Logging.Log('loading calculator for gold')
 	local goldCalculator = engine.GetConfiguration('creatures.GoldValueCalculationScript')
 	
 	if type(goldCalculator) == 'function' then
-		creature.gold = goldCalculator(creature)
+		creature.ExtraProperties['gold'] = goldCalculator(creature)
 	else
-		creature.gold = load(goldCalculator, nil, nil, context)()
+		creature.ExtraProperties['gold'] = load(goldCalculator, nil, nil, context)()
 	end
 
 	creature.ToHitScript = 'creatures.ToHitScript'

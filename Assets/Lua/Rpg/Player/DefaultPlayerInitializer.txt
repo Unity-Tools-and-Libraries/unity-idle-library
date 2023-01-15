@@ -1,4 +1,4 @@
-
+function InitializePlayer(player)
     player.party = 0
     player.accuracy.BaseValue = configuration.default_player_stats.accuracy
     player.criticalHitChance.BaseValue = configuration.default_player_stats.critical_hit_chance
@@ -30,6 +30,9 @@
     player.xp = 0
     player.gold = 0
 
-    player.ToHitScript = configuration.player.ToHitScript;
+    player.ToHitScript = 'player.ToHitScript';
 
     player.watch("characterDied", "begin resurrecting", "died.action = 'REINCARNATING'")
+    return player
+end
+return InitializePlayer

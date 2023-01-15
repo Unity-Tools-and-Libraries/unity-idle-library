@@ -1,4 +1,4 @@
-
+function ToHit(attacker, defender)
 	local toHitRoll = engine.RandomInt(100) + 1
 	local toHitChance = configuration.base_tohit + attacker.accuracy.Total - defender.evasion.Total
 	if toHitRoll <= toHitChance and toHitRoll != 100 then
@@ -11,3 +11,5 @@
 	else
 		return 'miss'
 	end
+end
+return ToHit

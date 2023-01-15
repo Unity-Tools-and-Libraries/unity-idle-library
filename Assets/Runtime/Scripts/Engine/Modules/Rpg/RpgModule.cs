@@ -94,44 +94,44 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
             if (Player.Initializer == null)
             {
-                Player.Initializer = Addressables.LoadAssetAsync<TextAsset>("Rpg/DefaultPlayerInitializer.lua")
-                    .WaitForCompletion().text;
+                Player.Initializer = engine.Scripting.EvaluateStringAsScript(Addressables.LoadAssetAsync<TextAsset>("Rpg/DefaultPlayerInitializer.lua")
+                    .WaitForCompletion().text);
             }
             if (Player.ValidationScript == null)
             {
-                Player.ValidationScript = Addressables.LoadAssetAsync<TextAsset>("Rpg/DefaultPlayerValidationScript.lua")
-                    .WaitForCompletion().text;
+                Player.ValidationScript = engine.Scripting.EvaluateStringAsScript(Addressables.LoadAssetAsync<TextAsset>("Rpg/DefaultPlayerValidationScript.lua")
+                    .WaitForCompletion().text);
             }
             if (Player.ToHitScript == null)
             {
-                Player.ToHitScript = Addressables.LoadAssetAsync<TextAsset>("Rpg/DefaultToHitScript.lua")
-                    .WaitForCompletion().text;
+                Player.ToHitScript = engine.Scripting.EvaluateStringAsScript(Addressables.LoadAssetAsync<TextAsset>("Rpg/DefaultToHitScript.lua")
+                    .WaitForCompletion().text);
             }
             if (Player.OnCreatureDiedScript == null)
             {
-                Player.OnCreatureDiedScript = Addressables.LoadAssetAsync<TextAsset>("Rpg/DefaultCreatureDiedScript.lua")
-                    .WaitForCompletion().text;
+                Player.OnCreatureDiedScript = engine.Scripting.EvaluateStringAsScript(Addressables.LoadAssetAsync<TextAsset>("Rpg/DefaultCreatureDiedScript.lua")
+                    .WaitForCompletion().text);
             }
 
             if (Creatures.Initializer == null)
             {
-                Creatures.Initializer = Addressables.LoadAssetAsync<TextAsset>("Rpg/DefaultCreatureInitializer.lua")
-                    .WaitForCompletion().text;
+                Creatures.Initializer = engine.Scripting.EvaluateStringAsScript(Addressables.LoadAssetAsync<TextAsset>("Rpg/DefaultCreatureInitializer.lua")
+                    .WaitForCompletion().text);
             }
             if (Creatures.ToHitScript == null)
             {
-                Creatures.ToHitScript = Addressables.LoadAssetAsync<TextAsset>("Rpg/DefaultToHitScript.lua")
-                    .WaitForCompletion().text;
+                Creatures.ToHitScript = engine.Scripting.EvaluateStringAsScript(Addressables.LoadAssetAsync<TextAsset>("Rpg/DefaultToHitScript.lua")
+                    .WaitForCompletion().text);
             }
             if(Creatures.XpValueCalculationScript == null)
             {
-                Creatures.XpValueCalculationScript = Addressables.LoadAssetAsync<TextAsset>("Rpg/DefaultXpCalculationScript.lua")
-                    .WaitForCompletion().text;
+                Creatures.XpValueCalculationScript = engine.Scripting.EvaluateStringAsScript(Addressables.LoadAssetAsync<TextAsset>("Rpg/DefaultXpCalculationScript.lua")
+                    .WaitForCompletion().text);
             }
             if (Creatures.GoldValueCalculationScript == null)
             {
-                Creatures.GoldValueCalculationScript = Addressables.LoadAssetAsync<TextAsset>("Rpg/DefaultGoldCalculationScript.lua")
-                    .WaitForCompletion().text;
+                Creatures.GoldValueCalculationScript = engine.Scripting.EvaluateStringAsScript(Addressables.LoadAssetAsync<TextAsset>("Rpg/DefaultGoldCalculationScript.lua")
+                    .WaitForCompletion().text);
             }
 
             if (Combat.AttackHandlerResultScript == null)
@@ -324,7 +324,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         {
             return new string[]
             {
-                "Rpg/DefaultAttributeScalingScript.lua"
+                "Rpg/DefaultAttributeScalingScript.lua",
+                "Rpg/DefaultXpCalculationScript.lua",
+                "Rpg/DefaultGoldCalculationScript.lua"
             };
         }
     }
@@ -376,7 +378,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             {
                 throw new InvalidOperationException(string.Format("attacker #{0} had no attack script defined", attacker.Id));
             }
-            string attackResult = engine.Scripting.EvaluateStringAsScript(attacker.ToHitScript, context).String;
+            string attackResult = engine.Scripting.Evaluate(DynValue.FromObject(null, engine.GetExpectedConfiguration(attacker.ToHitScript)), context,
+                new List<string>() { "attacker", "defender" }).String;
 
             if (attackResult == null)
             {
@@ -459,12 +462,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 throw new ArgumentException("level must be at least 1");
             }
             var creature = new RpgCharacter(engine, engine.GetNextAvailableId());
-            string initializationScript = engine.GetExpectedConfiguration<string>("creatures.Initializer");
-            engine.Scripting.EvaluateStringAsScript(initializationScript, new Dictionary<string, object>() {
+            DynValue initializationScript = engine.GetExpectedConfiguration<CreaturesConfiguration>("creatures").Initializer;
+            engine.Scripting.Evaluate(initializationScript, new Dictionary<string, object>() {
                     { "creature", creature },
                     { "definition", definition },
                     { "level", level }
-                }).ToObject<RpgCharacter>();
+                }, new List<string>() { "creature", "definition", "level" }).ToObject<RpgCharacter>();
             return creature;
         }
 
@@ -492,7 +495,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 var creature = GenerateCreature(engine, creatureDefinition, level);
                 try
                 {
-                    engine.Scripting.EvaluateStringAsScript(engine.GetExpectedConfiguration<string>("creatures.ValidatorScript"), Tuple.Create<string, object>("creature", creature));
+                    engine.Scripting.Evaluate(engine.GetExpectedConfiguration<CreaturesConfiguration>("creatures").ValidatorScript,
+                        Tuple.Create<string, object>("creature", creature),
+                        new List<string>() { "creature" }
+                        );
                 }
                 catch (ScriptRuntimeException ex)
                 {
@@ -549,13 +555,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             }
             var player = Activator.CreateInstance(playerType, engine, 0);
 
-            engine.Scripting.EvaluateStringAsScript(engine.GetConfiguration<PlayerConfiguration>("player").Initializer, Tuple.Create<string, object>("player", player)).ToObject<RpgCharacter>();
+            engine.Scripting.Evaluate(
+                engine.GetConfiguration<PlayerConfiguration>("player").Initializer,
+                Tuple.Create<string, object>("player", player),
+                new List<string>() { "player" }).ToObject<RpgCharacter>();
 
             try
             {
                 engine.Logging.Log("Validating player object");
-                engine.Scripting.EvaluateStringAsScript(engine.GetExpectedConfiguration<string>("player.ValidationScript"), Tuple.Create<string, object>(
-                    "player", player));
+                engine.Scripting.Evaluate(DynValue.FromObject(null, engine.GetExpectedConfiguration("player.ValidationScript")), Tuple.Create<string, object>(
+                    "player", player), new List<string>() { "player" });
             }
             catch (ScriptRuntimeException ex)
             {
@@ -568,12 +577,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public static void OnCreatureDied(this IdleEngine engine, RpgCharacter creature)
         {
             engine.Logging.Log("Character {0} died", "character");
-            engine.Scripting.EvaluateStringAsScript(engine.GetExpectedConfiguration<string>("player.OnCreatureDiedScript"),
-                Tuple.Create("died", (object)creature));
+            engine.Scripting.Evaluate(engine.GetExpectedConfiguration<PlayerConfiguration>("player").OnCreatureDiedScript,
+                Tuple.Create("died", (object)creature),
+                new List<string>() { "died" });
 
             bool anyCreaturesAlive = engine.GetCurrentEncounter().Creatures.Any(x => x.IsAlive);
             bool playerAlive = engine.GetPlayer<RpgCharacter>().IsAlive;
-
 
             if (!engine.GetCurrentEncounter().IsActive)
             {

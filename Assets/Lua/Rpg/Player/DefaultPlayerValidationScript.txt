@@ -1,3 +1,4 @@
 function ValidatePlayer(player)
     if(player.maximumHealth.Total <= 0) then error('player health needs to be at least 1') end
 end
+return ValidatePlayer

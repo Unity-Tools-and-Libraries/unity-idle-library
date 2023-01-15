@@ -1,1 +1,4 @@
-return 10 * math.pow(2, creature.level - 1)
+function XpValue(creature)
+    return 10 * math.pow(2, creature.level - 1)
+end
+return XpValue

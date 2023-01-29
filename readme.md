@@ -8,6 +8,8 @@ Currently, it consists of a backend engine which implements the logic and rules;
 ## 2. Quickstart
 Here are some simple instructions to get you started.
 
+To add the library to your project, add https://github.com/Unity-Tools-and-Libraries/unity-idle-library.git?path=Assets as a git dependency in the Package Manager, as well as those listed under Additional Dependencies, below.
+
 First, you must generate the configuration your engine instance will use:
 
 * Create an instance of IdleFramework.GameConfigurationBuilder and configure it using the following methods:
@@ -30,6 +32,8 @@ This package depends on the following additional packages:
 * https://github.com/Unity-Tools-and-Libraries/unity-simple-logging
 
 Because the Unity Package Manager does not allow a package to declare a dependency kept in Github, these must be manually added.
+
+In addition, you must add the [Addressables package](https://docs.unity3d.com/Packages/com.unity.addressables@1.21/manual/index.html), available in the Unity-provided packages.
 
 ## I. Future Features
 * Metrics - Track meta information over the course of play

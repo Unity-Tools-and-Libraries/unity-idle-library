@@ -22,9 +22,9 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
                 }) ;
             Configure();
 
-            engine.GetPlayerCharacter<RpgCharacter>().Damage.BaseValue = 1;
+            engine.GetPlayer<RpgPlayer>().Character.Damage.BaseValue = 1;
 
-            Assert.AreEqual(new BigDouble(1.5), engine.GetPlayerCharacter<RpgCharacter>()
+            Assert.AreEqual(new BigDouble(1.5), engine.GetPlayer<RpgPlayer>().Character
                 .GetCostToBuyAttribute("damage")["xp"]);
         }
 
@@ -38,9 +38,9 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
                 });
             Configure();
 
-            engine.GetPlayerCharacter<RpgCharacter>().Damage.BaseValue = 1;
+            engine.GetPlayer<RpgPlayer>().Character.Damage.BaseValue = 1;
 
-            Assert.AreEqual(new BigDouble(1.5), engine.GetPlayerCharacter<RpgCharacter>().GetCostToBuyAttribute("damage")["xp"]);
+            Assert.AreEqual(new BigDouble(1.5), engine.GetPlayer<RpgPlayer>().Character.GetCostToBuyAttribute("damage")["xp"]);
         }
     }
 }

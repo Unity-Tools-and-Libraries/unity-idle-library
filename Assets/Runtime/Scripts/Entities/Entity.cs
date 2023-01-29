@@ -28,7 +28,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         private Dictionary<string, string> propertyCalculationScripts = new Dictionary<string, string>();
         [JsonProperty]
         private List<long> appliedModifiers = new List<long>();
-        private List<object> traversableFields;
+        protected List<object> traversableFields;
 
         public long Id { get; }
         /*

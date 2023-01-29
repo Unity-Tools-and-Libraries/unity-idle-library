@@ -22,7 +22,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             engine.Update(1f);
 
-            Assert.AreEqual(new BigDouble(1), engine.GetPlayerCharacter<RpgCharacter>().ActionMeter);
+            Assert.AreEqual(new BigDouble(1), engine.GetPlayer<RpgPlayer>().Character.ActionMeter);
             Assert.AreEqual(new BigDouble(1), engine.GetCurrentEncounter().Creatures[0].ActionMeter);
         }
 
@@ -109,7 +109,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
 
             Assert.True(engine.GetCurrentEncounter().IsActive);
 
-            engine.GetPlayerCharacter<RpgCharacter>().Kill();
+            engine.GetPlayer<RpgPlayer>().Character.Kill();
 
             Assert.False(engine.GetCurrentEncounter().IsActive);
         }

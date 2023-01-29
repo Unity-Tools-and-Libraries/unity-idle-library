@@ -56,12 +56,12 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Rpg
         {
             Configure();
 
-            engine.GetPlayerCharacter<RpgCharacter>().Watch(CharacterActedEvent.EventName, "test", DynValue.FromObject(null, (Action<IDictionary<string, object>>)(ctx =>
+            engine.GetPlayer<RpgPlayer>().Character.Watch(CharacterActedEvent.EventName, "test", DynValue.FromObject(null, (Action<IDictionary<string, object>>)(ctx =>
             {
                 Assert.AreEqual("foo", ctx["action"]);
             })));
-            engine.GetPlayerCharacter<RpgCharacter>()
-                .Emit(CharacterActedEvent.EventName, new CharacterActedEvent(engine.GetPlayerCharacter<RpgCharacter>(), "foo"));
+            engine.GetPlayer<RpgPlayer>().Character
+                .Emit(CharacterActedEvent.EventName, new CharacterActedEvent(engine.GetPlayer<RpgPlayer>().Character, "foo"));
         }
 
         [Test]

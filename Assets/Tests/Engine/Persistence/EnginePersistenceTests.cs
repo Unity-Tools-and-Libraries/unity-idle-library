@@ -123,5 +123,24 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Persistence
 
             Assert.IsTrue(engine.Achievements[1].Completed);
         }
+
+        [Test]
+        public void NumericAttributeDeserializes()
+        {
+            TestEntity testEntity = new TestEntity(engine, 1);
+            engine.GlobalProperties["entity"] = testEntity;
+            testEntity.ExtraProperties["foo"] = new NumericAttribute(2);
+
+            var serialized = engine.GetSerializedSnapshotString();
+
+            engine = new IdleEngine();
+
+            engine.DeserializeSnapshotString(serialized);
+
+            Assert.AreEqual(new BigDouble(2),
+                (engine.GetProperty<TestEntity>("entity").ExtraProperties["foo"] as NumericAttribute).ChangePerLevel);
+
+
+        }
     }
 }

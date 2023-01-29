@@ -12,7 +12,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Commands
             long id = CommandArgumentParser.Parse<long>("id", args[1]);
             if (id == 1L)
             {
-                engine.GetPlayerCharacter<RpgCharacter>().Kill();
+                engine.GetPlayer<RpgPlayer>().Character.Kill();
             }
             else
             {
@@ -35,7 +35,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Commands
             long damage = CommandArgumentParser.Parse<long>("id", args[2]);
             if (id == 1L)
             {
-                engine.GetPlayerCharacter<RpgCharacter>().InflictDamage(damage, null);
+                engine.GetPlayer<RpgPlayer>().Character.InflictDamage(damage, null);
             }
             else
             {

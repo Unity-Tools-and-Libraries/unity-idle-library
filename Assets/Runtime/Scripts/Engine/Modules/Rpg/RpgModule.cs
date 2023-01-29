@@ -193,7 +193,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 })
                 .Build());
 
-            engine.GlobalProperties["player"] = new Player(engine, 1, new Dictionary<string, BigDouble>()
+            engine.GlobalProperties["player"] = new RpgPlayer(engine, 1, new Dictionary<string, BigDouble>()
             {
                 { "xp", 0 },
                 { "gold", 0 }
@@ -209,6 +209,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             UserData.RegisterType<CreaturesConfiguration>();
             UserData.RegisterType<RpgCharacter>();
             UserData.RegisterType<RpgEncounter>();
+            UserData.RegisterType<RpgPlayer>();
             UserData.RegisterType<CreatureDefinition>();
             UserData.RegisterType<EncounterDefinition>();
             UserData.RegisterType<CharacterStatus>();
@@ -542,21 +543,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             else
             {
                 engine.Logging.Log("Selecting player", "combat");
-                return engine.GetPlayerCharacter<RpgCharacter>();
+                return engine.GetPlayer<RpgPlayer>().Character;
             }
-        }
-
-        public static T GetPlayerCharacter<T>(this IdleEngine engine) where T : RpgCharacter
-        {
-            return engine.GetPlayer().ExtraProperties["character"] as T;
         }
 
         public static RpgCharacter GeneratePlayer(this IdleEngine engine)
         {
-            if (engine.GetPlayer().ExtraProperties.ContainsKey("character"))
+            if (engine.GetPlayer<RpgPlayer>().Character != null)
             {
                 engine.Logging.Log(LogType.Log, "Player already generated, returning it");
-                return engine.GetPlayerCharacter<RpgCharacter>();
+                return engine.GetPlayer<RpgPlayer>().Character;
             }
 
             engine.Logging.Log("Generating new instance of player character", "player.character");
@@ -583,7 +579,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             {
                 throw new InvalidOperationException("Player failed validation after initialization.", ex);
             }
-            return (RpgCharacter)(engine.GetPlayer().ExtraProperties["character"] = player);
+            return (RpgCharacter)(engine.GetPlayer<RpgPlayer>().Character = player);
         }
 
         public static void OnCreatureDied(this IdleEngine engine, RpgCharacter creature)
@@ -594,7 +590,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 new List<string>() { "died" });
 
             bool anyCreaturesAlive = engine.GetCurrentEncounter().Creatures.Any(x => x.IsAlive);
-            bool playerAlive = engine.GetPlayerCharacter<RpgCharacter>().IsAlive;
+            bool playerAlive = engine.GetPlayer<RpgPlayer>().Character.IsAlive;
 
             if (!engine.GetCurrentEncounter().IsActive)
             {

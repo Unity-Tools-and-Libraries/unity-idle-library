@@ -361,6 +361,40 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             return Resources[id];
         }
 
+        public NumericAttribute GetAttribute(string id)
+        {
+            switch(id)
+            {
+                case Attributes.ACCURACY:
+                    return Accuracy;
+                case Attributes.ACTION_SPEED:
+                    return ActionMeterSpeed;
+                case Attributes.CRITICAL_DAMAGE_MULTIPLIER:
+                    return CriticalHitDamageMultiplier;
+                case Attributes.CRITICAL_HIT_CHANCE:
+                    return CriticalHitChance;
+                case Attributes.DAMAGE:
+                    return Damage;
+                case Attributes.DEFENSE:
+                    return Defense;
+                case Attributes.EVASION:
+                    return Evasion;
+                case Attributes.MAXIMUM_HEALTH:
+                    return MaximumHealth;
+                case Attributes.PENETRATION:
+                    return Penetration;
+                case Attributes.PRECISION:
+                    return Precision;
+                case Attributes.REGENERATION:
+                    return Regeneration;
+                case Attributes.RESILIENCE:
+                    return Resilience;
+                case Attributes.RESURRECTION_MULTIPLIER:
+                    return ResurrectionMultiplier;
+            }
+            return null;
+        }
+
         public static class Attributes
         {
             public const string ABILITIES = "abilities";

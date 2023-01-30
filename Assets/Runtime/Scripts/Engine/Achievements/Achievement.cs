@@ -10,10 +10,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Achievements
         public string Description { get; }
         public string CompletionExpression { get; }
         public string CompletionEffect { get; }
-        public Achievement(long id, string completionExpression, string completionEffect = "")
+        public Achievement(long id, string description, string completionExpression, string completionEffect = "")
         {
             this.Id = id;
             Completed = false;
+            this.Description = description;
             this.CompletionExpression = completionExpression;
             this.CompletionEffect = completionEffect;
         }

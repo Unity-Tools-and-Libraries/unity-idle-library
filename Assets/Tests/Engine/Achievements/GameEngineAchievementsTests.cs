@@ -12,7 +12,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Achievements
         [Test]
         public void CanCompleteAchievementWhenAttributeHasValue()
         {
-            engine.DefineAchievement(new Achievement(1L, "return globals.foobar.baz == 1"));
+            engine.DefineAchievement(new Achievement(1L, "", "return globals.foobar.baz == 1"));
 
             engine.GlobalProperties["foobar"] = new Dictionary<string, object>()
             {
@@ -29,7 +29,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Achievements
         [Test]
         public void CompletedAchievementDoesNotBecomeUncompleteWhenNoLongerTrue()
         {
-            engine.DefineAchievement(new Achievement(1L, "return globals.foobar.baz == 1"));
+            engine.DefineAchievement(new Achievement(1L, "", "return globals.foobar.baz == 1"));
 
             engine.GlobalProperties["foobar"] = new Dictionary<string, object>()
             {
@@ -52,7 +52,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Achievements
         [Test]
         public void CompletionEmitsEvent()
         {
-            engine.DefineAchievement(new Achievement(1L, "return globals.foobar.baz == 1"));
+            engine.DefineAchievement(new Achievement(1L, "", "return globals.foobar.baz == 1"));
 
             engine.GlobalProperties["foobar"] = new Dictionary<string, object>()
             {

@@ -106,10 +106,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             Logging.Log("Deserializing from snapshot string", "persistence");
             var deserialized = JsonConvert.DeserializeObject<EngineSnapshot>(snapshot, SerializationSettings);
             RestoreFromSnapshot(JsonConvert.DeserializeObject<EngineSnapshot>(snapshot, SerializationSettings));
-            //Logging.Log(() =>
-            //{
-            //    return SerializationSettings.TraceWriter;
-            //}, "serialization");
         }
 
         public void CalculateProperty(string property, string calculationScript)
@@ -408,9 +404,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                 {
                     if(!achievement.Value.Completed)
                     {
-                        achievement.Value.Completed = scripting.EvaluateStringAsScript(achievement.Value.CompletionExpression).Boolean;
+                        achievement.Value.Completed = scripting.Evaluate(achievement.Value.CompletionExpression).Boolean;
                         Emit(AchievementCompletedEvent.EventName, new AchievementCompletedEvent(achievement.Value));
-                        Scripting.EvaluateStringAsScript(achievement.Value.CompletionEffect);
+                        Scripting.Evaluate(achievement.Value.CompletionEffect);
                     }
                 }
             }

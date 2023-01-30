@@ -6,6 +6,8 @@ using System;
 using io.github.thisisnozaku.scripting.context;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg;
 using JetBrains.Annotations;
+using io.github.thisisnozaku.idle.framework.Engine.Achievements;
+using MoonSharp.Interpreter;
 
 namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Persistence
 {
@@ -106,7 +108,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Persistence
         [Test]
         public void AchievementStateSaved()
         {
-            engine.Achievements[1L] = new framework.Engine.Achievements.Achievement(1, "return true");
+            engine.Achievements[1L] = new framework.Engine.Achievements.Achievement(1, "", "return true");
 
             engine.Start();
             engine.Update(0f);
@@ -139,8 +141,48 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Persistence
 
             Assert.AreEqual(new BigDouble(2),
                 (engine.GetProperty<TestEntity>("entity").ExtraProperties["foo"] as NumericAttribute).ChangePerLevel);
+        }
 
+        [Test]
+        public void AchievementsCanDeserialize()
+        {
+            engine.DefineAchievement(new Achievement(1L, "", "return true"));
+            engine.Start();
+            engine.Update(1f);
 
+            Assert.IsTrue(engine.Achievements[1L].Completed);
+
+            var serialized = engine.GetSerializedSnapshotString();
+
+            engine = new IdleEngine();
+            engine.DefineAchievement(new Achievement(1L, "", "return true"));
+
+            Assert.IsFalse(engine.Achievements[1L].Completed);
+
+            engine.DeserializeSnapshotString(serialized);
+
+            Assert.IsTrue(engine.Achievements[1L].Completed);
+        }
+
+        [Test]
+        public void AchievementsWithCallbackTriggerStatementSerializes()
+        {
+            engine.DefineAchievement(new Achievement(1L, "", "return true"));
+            engine.Start();
+            engine.Update(1f);
+
+            Assert.IsTrue(engine.Achievements[1L].Completed);
+
+            var serialized = engine.GetSerializedSnapshotString();
+
+            engine = new IdleEngine();
+            engine.DefineAchievement(new Achievement(1L, "", DynValue.FromObject(null, (Func<bool>)(() => true))));
+
+            Assert.IsFalse(engine.Achievements[1L].Completed);
+
+            engine.DeserializeSnapshotString(serialized);
+
+            Assert.IsTrue(engine.Achievements[1L].Completed);
         }
     }
 }

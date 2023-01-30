@@ -405,8 +405,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                     if(!achievement.Value.Completed)
                     {
                         achievement.Value.Completed = scripting.Evaluate(achievement.Value.CompletionExpression).Boolean;
-                        Emit(AchievementCompletedEvent.EventName, new AchievementCompletedEvent(achievement.Value));
-                        Scripting.Evaluate(achievement.Value.CompletionEffect);
+                        if (achievement.Value.Completed)
+                        {
+                            Emit(AchievementCompletedEvent.EventName, new AchievementCompletedEvent(achievement.Value));
+                            if (achievement.Value.CompletionEffect != null)
+                            {
+                                Scripting.Evaluate(achievement.Value.CompletionEffect);
+                            }
+                        }
                     }
                 }
             }

@@ -1,7 +1,9 @@
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine.Achievements;
 using io.github.thisisnozaku.idle.framework.Engine.Achievements.Events;
+using MoonSharp.Interpreter;
 using NUnit.Framework;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -24,6 +26,30 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Achievements
             engine.Update(0f);
 
             Assert.IsTrue(engine.Achievements[1L].Completed);
+        }
+
+        [Test]
+        public void AchievementDoesNotCompleteWhenRequirementNotMet()
+        {
+            engine.DefineAchievement(new Achievement(1L, "", "return globals.foobar.baz == 1"));
+
+            engine.GlobalProperties["foobar"] = new Dictionary<string, object>()
+            {
+                { "baz", BigDouble.Zero }
+            };
+
+            bool called = false;
+
+            engine.Watch(AchievementCompletedEvent.EventName, "", DynValue.FromObject(null, (Action)(() =>
+            {
+                called = true;
+            })));
+
+            engine.Start();
+
+            engine.Update(0f);
+
+            Assert.IsFalse(called);
         }
 
         [Test]

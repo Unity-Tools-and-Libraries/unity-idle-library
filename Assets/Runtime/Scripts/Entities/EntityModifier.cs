@@ -16,10 +16,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         protected EntityModifier(IdleEngine engine, long id, Dictionary<string, Tuple<string, string>> modifications) : base(engine, id)
         {
             this.modifications = modifications;
-            this.Id = id;
         }
-
-        public long Id { get; private set; }
 
         public virtual void Apply(T target)
         {

@@ -89,7 +89,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
         {
             Upgrade upgrade = Engine.GetPlayer<ClickerPlayer>().Upgrades[id];
             BigDouble cost = Engine.GetPlayer<ClickerPlayer>().CalculateCost(upgrade, 1);
-            if (!GetModifiers().Contains(upgrade.Id) && GetResource("points").Spend(cost))
+            if (GetResource("points").Spend(cost) && (!GetModifiers().Contains(upgrade.Id) || upgrade.MaxQuantity > upgrade.Quantity))
             {
                 AddModifier(upgrade);
                 var upgradeBoughtEvent = new UpgradeBoughtEvent(upgrade);

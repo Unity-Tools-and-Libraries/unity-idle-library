@@ -9,12 +9,13 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitio
     {
         private bool isUnlocked;
         private bool isEnabled;
-        public long Id { get; }
         public string Name { get; }
         public string CostExpression { get; }
         public string UnlockExpression { get; }
         public string EnableExpression { get; }
         public BigDouble Quantity { get; set; } = 0;
+        public BigDouble MaxQuantity { get; }
+
         public bool IsUnlocked
         {
             get
@@ -50,13 +51,13 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitio
                 }
             }
         }
-        public Upgrade(IdleEngine engine, long Id, string Name, BigDouble cost, string unlockExpression, string enableExpression, Dictionary<string, Tuple<string, string>> effects) : base(engine, Id, effects)
+        public Upgrade(IdleEngine engine, long Id, string Name, BigDouble cost, string unlockExpression, string enableExpression, Dictionary<string, Tuple<string, string>> effects, BigDouble? maximumLevels = null) : base(engine, Id, effects)
         {
-            this.Id = Id;
             this.Name = Name;
             this.CostExpression = string.Format("return {0}", cost);
             this.UnlockExpression = unlockExpression;
             this.EnableExpression = enableExpression;
+            this.MaxQuantity = maximumLevels.HasValue ? maximumLevels.Value : BigDouble.One;
         }
     }
 }

@@ -70,6 +70,20 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         }
 
         [Test]
+        public void UpgradesCanHaveMultipleLevels()
+        {
+            Configure();
+
+            engine.GetPlayer().GetResource("points").Quantity = 100000;
+            engine.GetPlayer<ClickerPlayer>().BuyProducer(1);
+            Assert.AreEqual(new BigDouble(1), engine.GetPlayer().GetResource("points").TotalIncome);
+
+            engine.GetPlayer<ClickerPlayer>().BuyUpgrade(2);
+            engine.GetPlayer<ClickerPlayer>().BuyUpgrade(2);
+            Assert.AreEqual(new BigDouble(4), engine.GetPlayer().GetResource("points").TotalIncome);
+        }
+
+        [Test]
         public void UpgradeUnlockExpressionCanReferencePlayerAsTarget()
         {
             module.AddUpgrade(new Upgrade(engine, 3, "", 1, "return target.GetFlag('set')", "return true", new System.Collections.Generic.Dictionary<string, System.Tuple<string, string>>()));

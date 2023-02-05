@@ -62,6 +62,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             if (buyable is Producer)
             {
                 startingQuantity = Producers[(buyable as Producer).Id].Quantity;
+            } else if (buyable is Upgrade)
+            {
+                startingQuantity = Upgrades[(buyable as Upgrade).Id].Quantity;
             }
             return Engine.CalculatePurchaseCost(buyable, startingQuantity, quantity);
         }
@@ -96,6 +99,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 Emit(UpgradeBoughtEvent.EventName, upgradeBoughtEvent);
                 Engine.Emit(UpgradeBoughtEvent.EventName, upgradeBoughtEvent);
                 RecalculateIncome();
+                upgrade.Quantity++;
             }
         }
 

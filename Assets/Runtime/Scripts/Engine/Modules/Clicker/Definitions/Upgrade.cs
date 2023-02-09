@@ -51,7 +51,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitio
                 }
             }
         }
-        public Upgrade(IdleEngine engine, long Id, string Name, BigDouble cost, string unlockExpression, string enableExpression, Dictionary<string, Tuple<string, string>> effects, BigDouble? maximumLevels = null) : base(engine, Id, effects)
+        public Upgrade(IdleEngine engine, long Id, string Name, BigDouble cost, string unlockExpression, string enableExpression, Dictionary<string, Tuple<string, string>> effects, BigDouble? maximumLevels = null, Dictionary<string, object> extraProperties = null) : base(engine, Id, effects, extraProperties)
         {
             this.Name = Name;
             this.CostExpression = string.Format("return {0}", cost);

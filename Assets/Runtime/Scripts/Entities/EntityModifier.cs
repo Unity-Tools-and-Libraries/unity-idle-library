@@ -13,7 +13,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
     {
         private Dictionary<string, Tuple<string, string>> modifications;
 
-        protected EntityModifier(IdleEngine engine, long id, Dictionary<string, Tuple<string, string>> modifications) : base(engine, id)
+        protected EntityModifier(IdleEngine engine, long id, Dictionary<string, Tuple<string, string>> modifications, Dictionary<string, object> extraProperties = null) : base(engine, id, extraProperties)
         {
             this.modifications = modifications;
         }

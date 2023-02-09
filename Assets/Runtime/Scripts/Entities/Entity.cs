@@ -38,14 +38,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine
          */
         public List<long> GetModifiers() => appliedModifiers;
 
-        public Entity(IdleEngine engine, long id)
+        public Entity(IdleEngine engine, long id, Dictionary<string, object> extraProperties = null)
         {
             this.Engine = engine;
             this.Id = id;
             
             Flags = new Dictionary<string, bool>();
             this.eventListeners = new EventListeners(engine, false);
-            this.ExtraProperties = new Dictionary<string, object>();
+            this.ExtraProperties = extraProperties != null ? extraProperties : new Dictionary<string, object>();
 
             traversableFields = new List<object>();
             FieldInfo[] fields = GetType().GetFields();

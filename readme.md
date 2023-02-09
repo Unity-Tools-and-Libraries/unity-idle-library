@@ -31,9 +31,9 @@ This package depends on the following additional packages:
 * https://github.com/Unity-Tools-and-Libraries/unity-lua-scripting-module
 * https://github.com/Unity-Tools-and-Libraries/unity-simple-logging
 
-Because the Unity Package Manager does not allow a package to declare a dependency kept in Github, these must be manually added.
-
 In addition, you must add the [Addressables package](https://docs.unity3d.com/Packages/com.unity.addressables@1.21/manual/index.html), available in the Unity-provided packages.
+
+Because the Unity Package Manager cannot resolve transitive dependencies of git repository dependencies, you must add these packages manually.
 
 ## I. Future Features
 * Metrics - Track meta information over the course of play

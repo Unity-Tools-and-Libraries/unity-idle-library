@@ -3,6 +3,8 @@ using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitions;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Events;
 using System.Linq;
 using System.Collections.Generic;
+using System;
+
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 {
     public class ClickerPlayer : Player
@@ -43,6 +45,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             }
             foreach (var u in Upgrades.Values)
             {
+                bool wasUnlocked = u.IsUnlocked;
+                bool wasEnabled = u.IsEnabled;
                 u.IsUnlocked = engine.Scripting.EvaluateStringAsScript(u.UnlockExpression, new Dictionary<string, object>()
                 {
                     { "upgrade", u },
@@ -53,6 +57,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                     { "upgrade", u },
                     { "target", this }
                 }).Boolean;
+                if(!wasUnlocked && u.IsUnlocked)
+                {
+                    engine.Emit("UpgradeUnlocked", Tuple.Create<string, object>("upgrade", u));
+                }
+                if(!wasEnabled && u.IsEnabled)
+                {
+                    engine.Emit("UpgradeEnabled", Tuple.Create<string, object>("upgrade", u));
+                }
             }
         }
 

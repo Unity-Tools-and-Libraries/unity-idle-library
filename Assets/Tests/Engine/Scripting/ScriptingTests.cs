@@ -258,6 +258,26 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
         }
 
         [Test]
+        public void CanAssignExtraPropertiesInScript()
+        {
+            var te = new TestEntity(engine, 1);
+            engine.Scripting.EvaluateStringAsScript("te.ExtraProperties['one'] = 1", Tuple.Create<string, object>("te", te));
+            Assert.AreEqual(1, Convert.ToInt32(te.ExtraProperties["one"]));
+        }
+
+        [Test]
+        public void CanGetExtraPropertiesInScript()
+        {
+            var te = new TestEntity(engine, 1);
+            te.ExtraProperties["one"] = new Dictionary<double, object>()
+            {
+                { 1, 1L }
+            };
+            Assert.AreEqual(1L, engine.Scripting.EvaluateStringAsScript("return te.ExtraProperties['one'][1]",
+                Tuple.Create<string, object>("te", te)).ToObject());
+        }
+
+        [Test]
         public void AfterDeserializationEngineReceivedEmits()
         {
             var testEntity = new TestEntity(engine, 1);

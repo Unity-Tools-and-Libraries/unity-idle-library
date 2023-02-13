@@ -109,9 +109,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 AddModifier(upgrade);
                 var upgradeBoughtEvent = new UpgradeBoughtEvent(upgrade);
                 Emit(UpgradeBoughtEvent.EventName, upgradeBoughtEvent);
-                Engine.Emit(UpgradeBoughtEvent.EventName, upgradeBoughtEvent);
                 RecalculateIncome();
                 upgrade.Quantity++;
+                if(upgrade.Quantity == upgrade.MaxQuantity)
+                {
+                    var maxLevelEvent = new MaxLevelReachedEvent(upgrade, upgrade.Quantity);
+                    upgrade.Emit(MaxLevelReachedEvent.EventName, maxLevelEvent);
+                    Emit(MaxLevelReachedEvent.EventName, maxLevelEvent);
+                }
             }
         }
 

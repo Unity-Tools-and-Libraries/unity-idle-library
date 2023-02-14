@@ -182,7 +182,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 .WaitForCompletion().text);
 
             engine.Scripting.AddTypeAdaptor<AttackResultDescription>(
-                new scripting.types.TypeAdapter<AttackResultDescription>.AdapterBuilder<AttackResultDescription>()
+                new scripting.types.TypeAdapter<AttackResultDescription>.AdapterBuilder()
                 .WithScriptConversion(DataType.Table, value =>
                 {
                     var table = value.Table;
@@ -222,7 +222,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             UserData.RegisterType<KeyValuePair<long, EncounterDefinition>>();
             UserData.RegisterExtensionType(typeof(RpgExtensionMethods));
 
-            engine.Scripting.AddTypeAdaptor(new scripting.types.TypeAdapter<IDictionary<long, EncounterDefinition>>.AdapterBuilder<IDictionary<long, EncounterDefinition>>()
+            engine.Scripting.AddTypeAdaptor(new scripting.types.TypeAdapter<IDictionary<long, EncounterDefinition>>.AdapterBuilder()
                 .WithClrConversion(DictionaryTypeAdapter.Converter)
                 .Build());
         }

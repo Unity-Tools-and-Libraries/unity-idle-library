@@ -13,7 +13,6 @@ using UnityEngine;
 using BreakInfinity;
 using io.github.thisisnozaku.scripting.context;
 using io.github.thisisnozaku.logging;
-using io.github.thisisnozaku.idle.framework.Engine.State;
 using io.github.thisisnozaku.idle.framework.Engine.Achievements;
 using io.github.thisisnozaku.idle.framework.Engine.Achievements.Events;
 using Newtonsoft.Json.Serialization;
@@ -41,7 +40,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         public LoggingModule Logging => logging;
         public Dictionary<long, Entity> Entities = new Dictionary<long, Entity>();
 
-        public StateMachine State { get; }
+        //public StateMachine State { get; }
 
         public AchievementsModule Achievements { get; }
 
@@ -59,7 +58,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             GlobalProperties["definitions"] = new Dictionary<string, object>();
             Achievements = new AchievementsModule();
 
-            State = new StateMachine(this);
+            //State = new StateMachine(this);
 
             Logging.Log("Creating idle engine instance.");
 

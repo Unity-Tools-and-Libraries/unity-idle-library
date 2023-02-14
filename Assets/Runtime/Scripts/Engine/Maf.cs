@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class Maf
 {
-    public static BigDouble SumOfSeries(BigDouble n)
+    public static BigDouble SumOfFirstNIntegersInSeries(BigDouble n)
     {
         return (n * (n + 1)) / 2;
     }

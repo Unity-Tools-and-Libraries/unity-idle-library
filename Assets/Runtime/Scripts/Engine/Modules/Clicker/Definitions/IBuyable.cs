@@ -6,6 +6,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitio
 {
     public interface IBuyable
     {
-        string CostExpression { get; }
+        Dictionary<string, string> CostExpressions { get; }
     }
 }

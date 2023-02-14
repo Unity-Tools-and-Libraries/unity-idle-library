@@ -5,6 +5,7 @@ using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Events;
 using io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker;
 using MoonSharp.Interpreter;
 using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 
 namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
@@ -79,10 +80,10 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             Assert.AreEqual(new BigDouble(1), engine.GetPlayer().GetResource("points").TotalIncome);
 
             Assert.AreEqual(new BigDouble(100),
-                engine.GetPlayer<ClickerPlayer>().CalculateCost(engine.GetPlayer<ClickerPlayer>().Upgrades[2L], 1));
+                engine.GetPlayer<ClickerPlayer>().CalculateCost(engine.GetPlayer<ClickerPlayer>().Upgrades[2L], 1)["points"]);
             engine.GetPlayer<ClickerPlayer>().BuyUpgrade(2);
             Assert.AreEqual(new BigDouble(115),
-                engine.GetPlayer<ClickerPlayer>().CalculateCost(engine.GetPlayer<ClickerPlayer>().Upgrades[2L], 1));
+                engine.GetPlayer<ClickerPlayer>().CalculateCost(engine.GetPlayer<ClickerPlayer>().Upgrades[2L], 1)["points"]);
             engine.GetPlayer<ClickerPlayer>().BuyUpgrade(2);
             Assert.AreEqual(new BigDouble(4), engine.GetPlayer().GetResource("points").TotalIncome);
         }
@@ -90,7 +91,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void UpgradeUnlockExpressionCanReferencePlayerAsTarget()
         {
-            module.AddUpgrade(new Upgrade(engine, 3, "", 1, "return target.GetFlag('set')", "return true", new System.Collections.Generic.Dictionary<string, System.Tuple<string, string>>()));
+            module.AddUpgrade(new Upgrade(engine, 3, "", Tuple.Create<string, BigDouble>("points", 1),
+                "return target.GetFlag('set')", "return true", new System.Collections.Generic.Dictionary<string, System.Tuple<string, string>>()));
 
             Configure();
 
@@ -103,7 +105,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void UpgradeEnabledExpressionCanReferencePlayerAsTarget()
         {
-            module.AddUpgrade(new Upgrade(engine, 3, "", 1,"return true", "return target.GetFlag('set')", new System.Collections.Generic.Dictionary<string, System.Tuple<string, string>>()));
+            module.AddUpgrade(new Upgrade(engine, 3, "", Tuple.Create<string, BigDouble>("points", 1),
+                "return true", "return target.GetFlag('set')", new System.Collections.Generic.Dictionary<string, System.Tuple<string, string>>()));
 
             Configure();
 
@@ -116,7 +119,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void ProducerUnlockExpressionCanReferencePlayerAsTarget()
         {
-            module.AddProducer(new Producer(engine, 3, "", 1, 1, "return target.GetFlag('set')", "return true"));
+            module.AddProducer(new Producer(engine, 3, "", Tuple.Create<string, BigDouble>("points", 1),
+                1, "return target.GetFlag('set')", "return true"));
 
             Configure();
 
@@ -129,7 +133,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void ProducerEnabledExpressionCanReferencePlayerAsTarget()
         {
-            module.AddProducer(new Producer(engine, 3, "", 1, 1, "return true", "return target.GetFlag('set')"));
+            module.AddProducer(new Producer(engine, 3, "", Tuple.Create("points", BigDouble.One), 1, "return true", "return target.GetFlag('set')"));
 
             Configure();
 
@@ -142,7 +146,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void CanAffordReturnsTrueIfCostBelowPoints()
         {
-            module.AddProducer(new Producer(engine, 3, "", 1, 1, "return true", "return target.GetFlag('set')"));
+            module.AddProducer(new Producer(engine, 3, "", Tuple.Create("points", BigDouble.One), 1, "return true", "return target.GetFlag('set')"));
 
             Configure();
 
@@ -154,7 +158,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void BuyReducesPoints()
         {
-            module.AddProducer(new Producer(engine, 3, "", 1, 1, "return true", "return target.GetFlag('set')"));
+            module.AddProducer(new Producer(engine, 3, "", Tuple.Create("points", BigDouble.One), 1, "return true", "return target.GetFlag('set')"));
 
             Configure();
 

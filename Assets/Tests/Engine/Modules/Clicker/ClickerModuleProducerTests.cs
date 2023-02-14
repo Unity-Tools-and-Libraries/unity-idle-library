@@ -29,7 +29,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             for (int i = 0; i < 10; i++)
             {
                 engine.GetPlayer<ClickerPlayer>().Producers[1].Quantity = i;
-                Assert.AreEqual(new BigDouble(1) * BigDouble.Pow(1.15, i), engine.GetPlayer<ClickerPlayer>().CalculateCost(engine.GetPlayer<ClickerPlayer>().Producers[1], 1));
+                Assert.AreEqual(new BigDouble(1) * BigDouble.Pow(1.15, i), engine.GetPlayer<ClickerPlayer>().CalculateCost(engine.GetPlayer<ClickerPlayer>().Producers[1], 1)["points"]);
             }
         }
 
@@ -49,7 +49,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         {
             Configure();
 
-            var upgrade = new Upgrade(engine, engine.GetNextAvailableId(), "", 1, "return true", "return true", new Dictionary<string, System.Tuple<string, string>>()
+            var upgrade = new Upgrade(engine, engine.GetNextAvailableId(), "", Tuple.Create("points", new BigDouble(1)), "return true", "return true", new Dictionary<string, System.Tuple<string, string>>()
             {
                 { "producers[1].OutputMultiplier", Tuple.Create("value * 2", "value / 2") }
             });
@@ -94,7 +94,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void CanSetProducerOutputScript()
         {
-            module.AddProducer(new Producer(engine, 100, "", 1, "return globals.multiplier"));
+            module.AddProducer(new Producer(engine, 100, "", Tuple.Create<string, BigDouble>("points", BigDouble.One), "return globals.multiplier"));
             Configure();
 
             engine.GlobalProperties["multiplier"] = 5;
@@ -107,8 +107,8 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void ModifierCanChangeOutputScript()
         {
-            module.AddProducer(new Producer(engine, 100, "", 1, 1));
-            module.AddUpgrade(new Upgrade(engine, 200, "", 1, "return true", "return true", new Dictionary<string, Tuple<string, string>>()
+            module.AddProducer(new Producer(engine, 100, "", Tuple.Create("points", BigDouble.One), 1));
+            module.AddUpgrade(new Upgrade(engine, 200, "", Tuple.Create("points", BigDouble.One), "return true", "return true", new Dictionary<string, Tuple<string, string>>()
             {
                 { "producers[100].UnitOutputScript", Tuple.Create<string, string>("'return 100'", null) }
             }));
@@ -125,19 +125,19 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         [Test]
         public void CostToBuyWithNoneOwnedCostsBase()
         {
-            module.AddProducer(new Producer(engine, 100, "", 100, 1));
+            module.AddProducer(new Producer(engine, 100, "", Tuple.Create("points", new BigDouble(100)), 1));
             Configure();
 
-            Assert.AreEqual(new BigDouble(100), engine.CalculatePurchaseCost(engine.GetProducers()[100], 0, 1));
+            Assert.AreEqual(new BigDouble(100), engine.CalculatePurchaseCost(engine.GetProducers()[100], 0, 1)["points"]);
         }
 
         [Test]
         public void CostToBuyWithSomeOwnedScalesUp()
         {
-            module.AddProducer(new Producer(engine, 100, "", 100, 1));
+            module.AddProducer(new Producer(engine, 100, "", Tuple.Create("points", "return 100 * math.pow(1.15, level)"), 1));
             Configure();
 
-            Assert.AreEqual(new BigDouble(115), engine.CalculatePurchaseCost(engine.GetProducers()[100], 1, 1));
+            Assert.AreEqual(new BigDouble(115), engine.CalculatePurchaseCost(engine.GetProducers()[100], 1, 1)["points"]);
         }
     }
 }

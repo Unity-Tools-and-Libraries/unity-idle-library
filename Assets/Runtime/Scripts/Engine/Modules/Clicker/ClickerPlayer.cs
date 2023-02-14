@@ -68,7 +68,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             }
         }
 
-        public BigDouble CalculateCost(IBuyable buyable, BigDouble quantity)
+        public Dictionary<string, BigDouble> CalculateCost(IBuyable buyable, BigDouble quantity)
         {
             BigDouble startingQuantity = 0;
             if (buyable is Producer)
@@ -83,14 +83,19 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 
         public bool CanAfford(IBuyable buyable, BigDouble quantity)
         {
-            return GetResource("points").Quantity >= CalculateCost(buyable, quantity);
+            return CanSpend(CalculateCost(buyable, quantity));
+        }
+
+        public bool CanSpend(Dictionary<string, BigDouble> resources)
+        {
+            return resources.All(resource => GetResource(resource.Key).Quantity >= resource.Value);
         }
 
         public void BuyProducer(long id)
         {
             Producer producerDefinition = Producers[id];
-            BigDouble cost = CalculateCost(producerDefinition, 1);
-            if (GetResource("points").Spend(cost))
+            Dictionary<string, BigDouble> cost = CalculateCost(producerDefinition, 1);
+            if (SpendIfAble(cost))
             {
                 producerDefinition.Quantity += 1;
                 var boughtProducerEvent = new ProducerBoughtEvent(producerDefinition);
@@ -99,12 +104,29 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 RecalculateIncome();
             }
         }
+        /**
+         * Attempts to spend the given resources, returning true if able.
+         * 
+         * Return false if it failed to buy and keep resources the same.
+         */
+        private bool SpendIfAble(Dictionary<string, BigDouble> cost)
+        {
+            bool buying = CanSpend(cost);
+            if(buying)
+            {
+                foreach(var resource in cost)
+                {
+                    GetResource(resource.Key).Spend(resource.Value);
+                }
+            }
+            return buying;
+        }
 
         public void BuyUpgrade(long id)
         {
             Upgrade upgrade = Engine.GetPlayer<ClickerPlayer>().Upgrades[id];
-            BigDouble cost = Engine.GetPlayer<ClickerPlayer>().CalculateCost(upgrade, 1);
-            if (GetResource("points").Spend(cost) && (!GetModifiers().Contains(upgrade.Id) || upgrade.MaxQuantity > upgrade.Quantity))
+            Dictionary<string, BigDouble> cost = Engine.GetPlayer<ClickerPlayer>().CalculateCost(upgrade, 1);
+            if (SpendIfAble(cost) && (!GetModifiers().Contains(upgrade.Id) || upgrade.MaxQuantity > upgrade.Quantity))
             {
                 AddModifier(upgrade);
                 var upgradeBoughtEvent = new UpgradeBoughtEvent(upgrade);

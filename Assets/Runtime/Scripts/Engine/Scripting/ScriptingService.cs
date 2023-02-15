@@ -9,7 +9,6 @@ using io.github.thisisnozaku.scripting;
 using io.github.thisisnozaku.scripting.context;
 using io.github.thisisnozaku.scripting.types;
 using io.github.thisisnozaku.logging;
-using io.github.thisisnozaku.idle.framework.Engine.State;
 using UnityEditor;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker;
 
@@ -66,10 +65,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
             this.engine = engine;
             module = new ScriptingModule(ScriptingModuleConfigurationFlag.DICTIONARY_WRAPPING);
 
-            module.AddTypeAdapter(new scripting.types.TypeAdapter<IdleEngine>.AdapterBuilder<IdleEngine>().Build());
-            module.AddTypeAdapter(new scripting.types.TypeAdapter<BigDouble>.AdapterBuilder<BigDouble>()
+            module.AddTypeAdapter(new scripting.types.TypeAdapter<IdleEngine>.AdapterBuilder().Build());
+            module.AddTypeAdapter(new scripting.types.TypeAdapter<BigDouble>.AdapterBuilder()
                 .WithScriptConversion(DataType.Number, arg => BigDouble.Parse(arg.CastToString()))
-                .WithScriptConversion(DataType.UserData, arg => {
+                .WithScriptConversion(DataType.UserData, arg =>
+                {
                     var obj = arg.ToObject();
                     if (obj is BigDouble)
                     {
@@ -89,6 +89,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
                 .WithScriptConversion(DataType.Nil, arg => BigDouble.Zero)
                 .WithScriptConversion(DataType.Void, arg => BigDouble.Zero)
                 .WithClrConversion((script, arg) => UserData.Create(arg))
+                .WithDataDescriptor(new BigDoubleTypeDescriptor(typeof(BigDouble), InteropAccessMode.Default))
                 .Build());
 
             module.ContextCustomizer = ctx => {
@@ -96,11 +97,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Scripting
                 return ctx;
             };
 
-            UserData.RegisterType(new BigDoubleTypeDescriptor(typeof(BigDouble), InteropAccessMode.Default));
             UserData.RegisterType<Type>();
             UserData.RegisterType<LoggingModule>();
             UserData.RegisterType<KeyValuePair<object, object>>();
-            UserData.RegisterType<StateChangedEvent>();
             UserData.RegisterType<PropertiesHolder>();
             UserData.RegisterType<Player>();
             UserData.RegisterType<ResourceHolder>();

@@ -8,7 +8,6 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker {
         public void Setup()
         {
             Configure();
-            engine.State.Transition("gameplay");
         }
     }
 }

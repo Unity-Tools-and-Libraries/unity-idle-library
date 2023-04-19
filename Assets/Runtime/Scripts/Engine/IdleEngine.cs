@@ -165,6 +165,18 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                     {
                         key = long.Parse((string)key);
                     }
+                    else if (genericArgs[0] == typeof(int))
+                    {
+                        key = int.Parse((string)key);
+                    }
+                    else if (genericArgs[0] == typeof(double))
+                    {
+                        key = double.Parse((string)key);
+                    }
+                    else if (genericArgs[0] == typeof(float))
+                    {
+                        key = float.Parse((string)key);
+                    }
                     currentObject = (currentObject as IDictionary)[key];
                     continue;
                 }
@@ -225,7 +237,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         public T GetExpectedConfiguration<T>(string path)
         {
             T value = GetProperty<T>(path, GetConfiguration());
-            if(value == null)
+            if (value == null)
             {
                 throw new InvalidOperationException(String.Format("Failed to find a value for mandatory configuration at {0}", path));
             }
@@ -310,7 +322,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                     DynValue globalValue = DynValue.FromObject(null, global.Value);
                     if (globalValue.Type == DataType.Table || globalValue.Type == DataType.Tuple || (globalValue.Type == DataType.UserData && globalValue.ToObject() is ITraversableType))
                     {
-                            queue.Enqueue(globalValue);
+                        queue.Enqueue(globalValue);
                     }
                 }
             }
@@ -334,10 +346,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                         }
                         if (asObject is Entity)
                         {
-                            if(children == null)
+                            if (children == null)
                             {
                                 children = (asObject as Entity).ExtraProperties.Values.AsEnumerable<object>();
-                            } else
+                            }
+                            else
                             {
                                 children = Enumerable.Concat(children, (asObject as Entity).ExtraProperties.Values.AsEnumerable<object>());
                             }
@@ -401,7 +414,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
                 foreach (var achievement in Achievements)
                 {
-                    if(!achievement.Value.Completed)
+                    if (!achievement.Value.Completed)
                     {
                         achievement.Value.Completed = scripting.Evaluate(achievement.Value.CompletionExpression).Boolean;
                         if (achievement.Value.Completed)
@@ -448,7 +461,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                     }
                 }
             }
-            foreach(var achievement in snapshot.Achievements)
+            foreach (var achievement in snapshot.Achievements)
             {
                 Achievements[achievement.Id] = achievement;
             }
@@ -512,7 +525,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             return path.Split('.')
                 .SelectMany(t =>
                 {
-                    if (t.Contains("[")) {
+                    if (t.Contains("["))
+                    {
                         return new string[]
                         {
                             t.Substring(0, t.IndexOf("[")),

@@ -475,7 +475,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         public EngineSnapshot GetSnapshot()
         {
-            return new EngineSnapshot(GlobalProperties
+            var globals = new Dictionary<string, object>(GlobalProperties);
+            return new EngineSnapshot(globals
                 .Where(e => e.Key != "definitions")
                 .ToDictionary(e => e.Key, e => e.Value),
                 Achievements.Values.ToList(),

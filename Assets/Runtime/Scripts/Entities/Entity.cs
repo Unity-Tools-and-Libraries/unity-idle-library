@@ -27,18 +27,19 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         [JsonProperty]
         private Dictionary<string, string> propertyCalculationScripts = new Dictionary<string, string>();
         [JsonProperty]
-        private List<long> appliedModifiers = new List<long>();
+        private List<double> appliedModifiers = new List<double>();
         protected List<object> traversableFields;
 
-        public long Id { get; }
+        // A double because numbers in lua are doubles.
+        public double Id { get; }
         /*
          * Return the list of the ids of all modifiers applied to this entity.
          * 
          * Override this method and change it to return null to signal that this entity will not accept modifiers.
          */
-        public List<long> GetModifiers() => appliedModifiers;
+        public List<double> GetModifiers() => appliedModifiers;
 
-        public Entity(IdleEngine engine, long id, Dictionary<string, object> extraProperties = null)
+        public Entity(IdleEngine engine, double id, Dictionary<string, object> extraProperties = null)
         {
             this.Engine = engine;
             this.Id = id;

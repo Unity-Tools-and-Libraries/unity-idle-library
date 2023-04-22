@@ -40,8 +40,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 .WithClrConversion(DictionaryTypeAdapter.Converter)
                 .Build());
 
-            engine.GetDefinitions()["producers"] = new Dictionary<long, Producer>();
-            engine.GetDefinitions()["upgrades"] = new Dictionary<long, Upgrade>();
+            engine.GetDefinitions()["producers"] = new Dictionary<double, Producer>();
+            engine.GetDefinitions()["upgrades"] = new Dictionary<double, Upgrade>();
 
             
             foreach (var producer in producers)

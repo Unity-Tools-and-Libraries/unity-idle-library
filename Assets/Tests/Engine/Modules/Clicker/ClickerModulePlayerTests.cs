@@ -80,10 +80,10 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             Assert.AreEqual(new BigDouble(1), engine.GetPlayer().GetResource("points").TotalIncome);
 
             Assert.AreEqual(new BigDouble(100),
-                engine.GetPlayer<ClickerPlayer>().CalculateCost(engine.GetPlayer<ClickerPlayer>().Upgrades[2L], 1)["points"]);
+                engine.GetPlayer<ClickerPlayer>().CalculateCost(engine.GetUpgrades()[2L], 1)["points"]);
             engine.GetPlayer<ClickerPlayer>().BuyUpgrade(2);
             Assert.AreEqual(new BigDouble(115),
-                engine.GetPlayer<ClickerPlayer>().CalculateCost(engine.GetPlayer<ClickerPlayer>().Upgrades[2L], 1)["points"]);
+                engine.GetPlayer<ClickerPlayer>().CalculateCost(engine.GetUpgrades()[2L], 1)["points"]);
             engine.GetPlayer<ClickerPlayer>().BuyUpgrade(2);
             Assert.AreEqual(new BigDouble(4), engine.GetPlayer().GetResource("points").TotalIncome);
         }

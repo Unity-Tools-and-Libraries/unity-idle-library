@@ -13,8 +13,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 {
     public class ClickerModule : IModule
     {
-        private Dictionary<long, Producer> producers = new Dictionary<long, Producer>();
-        private Dictionary<long, Upgrade> upgrades = new Dictionary<long, Upgrade>();
+        private Dictionary<double, Producer> producers = new Dictionary<double, Producer>();
+        private Dictionary<double, Upgrade> upgrades = new Dictionary<double, Upgrade>();
 
         public void AddUpgrade(Upgrade upgrade)
         {
@@ -33,6 +33,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             UserData.RegisterType<Upgrade>();
             UserData.RegisterType<ResourceHolder>();
             UserData.RegisterExtensionType(typeof(ClickerEngineExtensionMethods));
+            UserData.RegisterType<ProducerInstance>();
+            UserData.RegisterType<UpgradeInstance>();
 
             engine.Scripting.AddTypeAdaptor(new scripting.types.TypeAdapter<IDictionary<long, Producer>>.AdapterBuilder()
                 .WithClrConversion(DictionaryTypeAdapter.Converter)
@@ -95,9 +97,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 Tuple.Create<string, object>("resourceName", resourceToClick));
         }
 
-        public static IDictionary<long, Producer> GetProducers(this IdleEngine engine)
+        public static IDictionary<double, Producer> GetProducers(this IdleEngine engine)
         {
-            return engine.GetDefinitions()["producers"] as IDictionary<long, Producer>;
+            return engine.GetDefinitions()["producers"] as IDictionary<double, Producer>;
         }
 
         public static Producer GetProducer(this Player player, string producerId)
@@ -105,9 +107,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             return null;
         }
 
-        public static IDictionary<long, Upgrade> GetUpgrades(this IdleEngine engine)
+        public static IDictionary<double, Upgrade> GetUpgrades(this IdleEngine engine)
         {
-            return engine.GetDefinitions()["upgrades"] as IDictionary<long, Upgrade>;
+            return engine.GetDefinitions()["upgrades"] as IDictionary<double, Upgrade>;
         }
 
         public static ClickerPlayer GetPlayer(this IdleEngine engine)

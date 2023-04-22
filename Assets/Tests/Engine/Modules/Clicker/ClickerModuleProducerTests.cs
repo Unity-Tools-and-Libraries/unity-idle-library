@@ -29,7 +29,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             for (int i = 0; i < 10; i++)
             {
                 engine.GetPlayer<ClickerPlayer>().Producers[1].Quantity = i;
-                Assert.AreEqual(new BigDouble(1) * BigDouble.Pow(1.15, i), engine.GetPlayer<ClickerPlayer>().CalculateCost(engine.GetPlayer<ClickerPlayer>().Producers[1], 1)["points"]);
+                Assert.AreEqual(new BigDouble(1) * BigDouble.Pow(1.15, i), engine.GetPlayer<ClickerPlayer>().CalculateCost(engine.GetProducers()[1], 1)["points"]);
             }
         }
 
@@ -101,7 +101,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
 
             engine.GetPlayer<ClickerPlayer>().Producers[100].Quantity = 1;
 
-            Assert.AreEqual(new BigDouble(5), engine.GetProducers()[100].TotalOutput);
+            Assert.AreEqual(new BigDouble(5), engine.GetPlayer<ClickerPlayer>().Producers[100].CalculateOutput(engine));
         }
 
         [Test]
@@ -115,10 +115,10 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             Configure();
 
             engine.GetPlayer<ClickerPlayer>().Producers[100].Quantity = 1;
-            Assert.AreEqual(new BigDouble(1), engine.GetProducers()[100].TotalOutput);
+            Assert.AreEqual(new BigDouble(1), engine.GetPlayer<ClickerPlayer>().Producers[100].CalculateOutput(engine));
             
             engine.GetPlayer().AddModifier(engine.GetUpgrades()[200]);
-            Assert.AreEqual(new BigDouble(100), engine.GetProducers()[100].TotalOutput);
+            Assert.AreEqual(new BigDouble(100), engine.GetPlayer<ClickerPlayer>().Producers[100].CalculateOutput(engine));
 
         }
 

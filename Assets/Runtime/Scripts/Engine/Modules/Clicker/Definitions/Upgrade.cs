@@ -14,44 +14,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitio
         public Dictionary<string, string> CostExpressions { get; }
         public string UnlockExpression { get; }
         public string EnableExpression { get; }
-        public BigDouble Quantity { get; set; } = 0;
         public BigDouble MaxQuantity { get; }
-
-        public bool IsUnlocked
-        {
-            get
-            {
-                return isUnlocked;
-            }
-            set
-            {
-                if (value != isUnlocked)
-                {
-                    isUnlocked = value;
-                    var changeEvent = new IsUnlockedChangeEvent(this);
-                    Emit(IsUnlockedChangeEvent.EventName, changeEvent);
-                    Engine.Emit(IsUnlockedChangeEvent.EventName, changeEvent);
-                }
-                isUnlocked = value;
-            }
-        }
-        public bool IsEnabled
-        {
-            get
-            {
-                return isEnabled;
-            }
-            set
-            {
-                if (value != isEnabled)
-                {
-                    isEnabled = value;
-                    var changeEvent = new IsEnabledChangedEvent(this);
-                    Emit(IsEnabledChangedEvent.EventName, changeEvent);
-                    Engine.Emit(IsEnabledChangedEvent.EventName, changeEvent);
-                }
-            }
-        }
 
         public Upgrade(IdleEngine engine, long Id, string Name, Tuple<string, BigDouble> cost, string unlockExpression, string enableExpression, Dictionary<string, Tuple<string, string>> effects, BigDouble? maximumLevels = null, Dictionary<string, object> extraProperties = null) : this(engine, Id, Name, new Dictionary<string, string>() { { cost.Item1, "return " + cost.Item2.ToString() } }, unlockExpression, enableExpression, effects, maximumLevels, extraProperties)
         {
@@ -71,6 +34,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitio
             this.UnlockExpression = unlockExpression;
             this.EnableExpression = enableExpression;
             this.MaxQuantity = maximumLevels.HasValue ? maximumLevels.Value : BigDouble.One;
+        }
+
+        public void Unlock()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Enable()
+        {
+            throw new NotImplementedException();
         }
     }
 }

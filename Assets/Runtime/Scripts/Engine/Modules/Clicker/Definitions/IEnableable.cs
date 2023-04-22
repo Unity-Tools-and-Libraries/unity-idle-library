@@ -7,6 +7,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitio
     public interface IEnableable
     {
         string EnableExpression { get; }
-        bool IsEnabled { get; set; }
+        void Enable();
     }
 }

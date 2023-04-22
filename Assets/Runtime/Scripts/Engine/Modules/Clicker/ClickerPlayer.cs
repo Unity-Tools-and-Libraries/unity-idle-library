@@ -12,32 +12,34 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
         public ClickerPlayer(IdleEngine engine, long id, Dictionary<string, BigDouble> resources = null) : base(engine, id, resources != null ? resources :
             new Dictionary<string, BigDouble>() { { "points", BigDouble.Zero } })
         {
-            this.Producers = new Dictionary<long, Producer>();
-            this.Upgrades = new Dictionary<long, Upgrade>();
+            this.Producers = new Dictionary<double, ProducerInstance>();
+            this.Upgrades = new Dictionary<double, UpgradeInstance>();
             foreach (var upgrade in engine.GetUpgrades())
             {
-                Upgrades[upgrade.Key] = upgrade.Value;
+                Upgrades[upgrade.Key] = new UpgradeInstance(upgrade.Key);
             }
             foreach (var producer in engine.GetProducers())
             {
-                Producers[producer.Key] = producer.Value;
+                Producers[producer.Key] = new ProducerInstance(producer.Key);
             }
         }
 
-        public Dictionary<long, Producer> Producers { get; }
-        public Dictionary<long, Upgrade> Upgrades { get; }
+        public Dictionary<double, ProducerInstance> Producers { get; }
+        public Dictionary<double, UpgradeInstance> Upgrades { get; }
 
         protected override void CustomUpdate(IdleEngine engine, float deltaTime)
         {
             base.CustomUpdate(engine, deltaTime);
             foreach (var p in Producers.Values)
             {
-                p.IsUnlocked = engine.Scripting.EvaluateStringAsScript(p.UnlockExpression, new Dictionary<string, object>()
+                p.IsUnlocked = engine.Scripting.EvaluateStringAsScript(
+                    engine.GetProducers()[p.ProducerId].UnlockExpression, new Dictionary<string, object>()
                 {
                     { "producer", p },
                     { "target", this }
                 }).Boolean;
-                p.IsEnabled = engine.Scripting.EvaluateStringAsScript(p.EnableExpression, new Dictionary<string, object>()
+                p.IsEnabled = engine.Scripting.EvaluateStringAsScript(
+                    engine.GetProducers()[p.ProducerId].EnableExpression, new Dictionary<string, object>()
                 {
                     { "producer", p },
                     { "target", this }
@@ -47,12 +49,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             {
                 bool wasUnlocked = u.IsUnlocked;
                 bool wasEnabled = u.IsEnabled;
-                u.IsUnlocked = engine.Scripting.EvaluateStringAsScript(u.UnlockExpression, new Dictionary<string, object>()
+                u.IsUnlocked = engine.Scripting.EvaluateStringAsScript(
+                    engine.GetUpgrades()[u.UpgradeId].UnlockExpression, new Dictionary<string, object>()
                 {
                     { "upgrade", u },
                     { "target", this }
                 }).Boolean;
-                u.IsEnabled = engine.Scripting.EvaluateStringAsScript(u.EnableExpression, new Dictionary<string, object>()
+                u.IsEnabled = engine.Scripting.EvaluateStringAsScript(
+                    engine.GetUpgrades()[u.UpgradeId].EnableExpression, new Dictionary<string, object>()
                 {
                     { "upgrade", u },
                     { "target", this }
@@ -93,11 +97,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 
         public void BuyProducer(long id)
         {
-            Producer producerDefinition = Producers[id];
+            Producer producerDefinition = this.Engine.GetProducers()[id];
             Dictionary<string, BigDouble> cost = CalculateCost(producerDefinition, 1);
             if (SpendIfAble(cost))
             {
-                producerDefinition.Quantity += 1;
+                Producers[id].Quantity += 1;
                 var boughtProducerEvent = new ProducerBoughtEvent(producerDefinition);
                 Emit(ProducerBoughtEvent.EventName, boughtProducerEvent);
                 Engine.Emit(ProducerBoughtEvent.EventName, boughtProducerEvent);
@@ -122,20 +126,20 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             return buying;
         }
 
-        public void BuyUpgrade(long id)
+        public void BuyUpgrade(double id)
         {
-            Upgrade upgrade = Engine.GetPlayer<ClickerPlayer>().Upgrades[id];
+            Upgrade upgrade = Engine.GetUpgrades()[id];
             Dictionary<string, BigDouble> cost = Engine.GetPlayer<ClickerPlayer>().CalculateCost(upgrade, 1);
-            if (SpendIfAble(cost) && (!GetModifiers().Contains(upgrade.Id) || upgrade.MaxQuantity > upgrade.Quantity))
+            if (SpendIfAble(cost) && (!GetModifiers().Contains(upgrade.Id) || upgrade.MaxQuantity > Upgrades[id].Quantity))
             {
                 AddModifier(upgrade);
                 var upgradeBoughtEvent = new UpgradeBoughtEvent(upgrade);
                 Emit(UpgradeBoughtEvent.EventName, upgradeBoughtEvent);
                 RecalculateIncome();
-                upgrade.Quantity++;
-                if(upgrade.Quantity == upgrade.MaxQuantity)
+                Upgrades[id].Quantity++;
+                if (Upgrades[id].Quantity == upgrade.MaxQuantity)
                 {
-                    var maxLevelEvent = new MaxLevelReachedEvent(upgrade, upgrade.Quantity);
+                    var maxLevelEvent = new MaxLevelReachedEvent(upgrade, Upgrades[id].Quantity);
                     upgrade.Emit(MaxLevelReachedEvent.EventName, maxLevelEvent);
                     Emit(MaxLevelReachedEvent.EventName, maxLevelEvent);
                 }
@@ -144,7 +148,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 
         private void RecalculateIncome()
         {
-            GetResource("points").TotalIncome = Producers.Values.Aggregate(BigDouble.Zero, (total, p) => total + p.TotalOutput);
+            GetResource("points").TotalIncome = Producers.Values.Aggregate(BigDouble.Zero, (total, p) => total + p.CalculateOutput(Engine));
         }
     }
 }

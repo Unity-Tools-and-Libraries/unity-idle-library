@@ -7,6 +7,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitio
     public interface IUnlockable
     {
         string UnlockExpression { get; }
-        bool IsUnlocked { get; set; }
+        void Unlock();
     }
 }

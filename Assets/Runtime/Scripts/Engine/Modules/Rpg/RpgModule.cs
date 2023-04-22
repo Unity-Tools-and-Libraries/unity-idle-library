@@ -280,12 +280,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
         public void AddCreature(CreatureDefinition creatureDefinition)
         {
-            (definitions["creatures"] as Dictionary<long, CreatureDefinition>)[creatureDefinition.Id] = creatureDefinition;
+            (definitions["creatures"] as Dictionary<double, CreatureDefinition>)[creatureDefinition.Id] = creatureDefinition;
         }
 
         public void AddAbility(CharacterAbility ability)
         {
-            (definitions["abilities"] as Dictionary<long, CharacterAbility>)[ability.Id] = ability;
+            (definitions["abilities"] as Dictionary<double, CharacterAbility>)[ability.Id] = ability;
         }
 
         public void AddEncounter(EncounterDefinition encounterDefinition)
@@ -301,17 +301,17 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             {
                 throw new InvalidOperationException("Encounter needs at least one option.");
             }
-            (definitions["encounters"] as Dictionary<long, EncounterDefinition>)[encounterDefinition.Id] = encounterDefinition;
+            (definitions["encounters"] as Dictionary<double, EncounterDefinition>)[encounterDefinition.Id] = encounterDefinition;
         }
 
         public void AddStatus(CharacterStatus status)
         {
-            (definitions["statuses"] as Dictionary<long, CharacterStatus>)[status.Id] = status;
+            (definitions["statuses"] as Dictionary<double, CharacterStatus>)[status.Id] = status;
         }
 
         public void AddItem(CharacterItem item)
         {
-            (definitions["items"] as Dictionary<long, CharacterItem>)[item.Id] = item;
+            (definitions["items"] as Dictionary<double, CharacterItem>)[item.Id] = item;
         }
 
         public void AssertReady()
@@ -347,29 +347,29 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
     public static class RpgExtensionMethods
     {
-        public static IDictionary<long, EncounterDefinition> GetEncounterDefinitions(this IdleEngine engine)
+        public static IDictionary<double, EncounterDefinition> GetEncounterDefinitions(this IdleEngine engine)
         {
-            return engine.GetProperty<IDictionary<long, EncounterDefinition>>("definitions.encounters");
+            return engine.GetProperty<IDictionary<double, EncounterDefinition>>("definitions.encounters");
         }
 
-        public static Dictionary<long, CharacterStatus> GetStatuses(this IdleEngine engine)
+        public static Dictionary<double, CharacterStatus> GetStatuses(this IdleEngine engine)
         {
-            return (Dictionary<long, CharacterStatus>)engine.GetDefinitions()["statuses"];
+            return (Dictionary<double, CharacterStatus>)engine.GetDefinitions()["statuses"];
         }
 
-        public static Dictionary<long, CreatureDefinition> GetCreatures(this IdleEngine engine)
+        public static Dictionary<double, CreatureDefinition> GetCreatures(this IdleEngine engine)
         {
-            return (Dictionary<long, CreatureDefinition>)engine.GetDefinitions()["creatures"];
+            return (Dictionary<double, CreatureDefinition>)engine.GetDefinitions()["creatures"];
         }
 
-        public static Dictionary<long, CharacterItem> GetItems(this IdleEngine engine)
+        public static Dictionary<double, CharacterItem> GetItems(this IdleEngine engine)
         {
-            return (Dictionary<long, CharacterItem>)engine.GetDefinitions()["items"];
+            return (Dictionary<double, CharacterItem>)engine.GetDefinitions()["items"];
         }
 
-        public static Dictionary<long, CharacterAbility> GetAbilities(this IdleEngine engine)
+        public static Dictionary<double, CharacterAbility> GetAbilities(this IdleEngine engine)
         {
-            return (Dictionary<long, CharacterAbility>)engine.GetDefinitions()["abilities"];
+            return (Dictionary<double, CharacterAbility>)engine.GetDefinitions()["abilities"];
         }
 
         public static void SetStage(this IdleEngine engine, BigDouble newStage)

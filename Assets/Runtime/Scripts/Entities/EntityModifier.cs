@@ -13,7 +13,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
     {
         private Dictionary<string, Tuple<string, string>> modifications;
 
-        protected EntityModifier(IdleEngine engine, long id, Dictionary<string, Tuple<string, string>> modifications, Dictionary<string, object> extraProperties = null) : base(engine, id, extraProperties)
+        protected EntityModifier(IdleEngine engine, double id, Dictionary<string, Tuple<string, string>> modifications, Dictionary<string, object> extraProperties = null) : base(engine, id, extraProperties)
         {
             this.modifications = modifications;
         }
@@ -74,7 +74,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         public abstract class Builder<B> where B : EntityModifier<T>
         {
             protected Dictionary<string, Tuple<string, string>> modifications = new Dictionary<string, Tuple<string, string>>();
-            public abstract B Build(IdleEngine engine, long id);
+            public abstract B Build(IdleEngine engine, double id);
 
             public Builder<B> ChangeProperty(string targetProperty, string changeScript, string undoScript = null)
             {

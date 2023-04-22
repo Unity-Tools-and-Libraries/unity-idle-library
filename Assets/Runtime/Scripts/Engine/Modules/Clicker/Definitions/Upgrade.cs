@@ -16,18 +16,18 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitio
         public string EnableExpression { get; }
         public BigDouble MaxQuantity { get; }
 
-        public Upgrade(IdleEngine engine, long Id, string Name, Tuple<string, BigDouble> cost, string unlockExpression, string enableExpression, Dictionary<string, Tuple<string, string>> effects, BigDouble? maximumLevels = null, Dictionary<string, object> extraProperties = null) : this(engine, Id, Name, new Dictionary<string, string>() { { cost.Item1, "return " + cost.Item2.ToString() } }, unlockExpression, enableExpression, effects, maximumLevels, extraProperties)
+        public Upgrade(IdleEngine engine, double Id, string Name, Tuple<string, BigDouble> cost, string unlockExpression, string enableExpression, Dictionary<string, Tuple<string, string>> effects, BigDouble? maximumLevels = null, Dictionary<string, object> extraProperties = null) : this(engine, Id, Name, new Dictionary<string, string>() { { cost.Item1, "return " + cost.Item2.ToString() } }, unlockExpression, enableExpression, effects, maximumLevels, extraProperties)
         {
             
         }
 
-        public Upgrade(IdleEngine engine, long Id, string Name, Tuple<string, string> cost, string unlockExpression, string enableExpression, Dictionary<string, Tuple<string, string>> effects, BigDouble? maximumLevels = null, Dictionary<string, object> extraProperties = null) : this(engine, Id, Name, new Dictionary<string, string>() { { cost.Item1, cost.Item2 } }, unlockExpression, enableExpression, effects, maximumLevels, extraProperties)
+        public Upgrade(IdleEngine engine, double Id, string Name, Tuple<string, string> cost, string unlockExpression, string enableExpression, Dictionary<string, Tuple<string, string>> effects, BigDouble? maximumLevels = null, Dictionary<string, object> extraProperties = null) : this(engine, Id, Name, new Dictionary<string, string>() { { cost.Item1, cost.Item2 } }, unlockExpression, enableExpression, effects, maximumLevels, extraProperties)
         {
 
         }
 
         // TODO: Implement validation of cost expressions.
-        public Upgrade(IdleEngine engine, long Id, string Name, Dictionary<string, string> costs, string unlockExpression, string enableExpression, Dictionary<string, Tuple<string, string>> effects, BigDouble? maximumLevels = null, Dictionary<string, object> extraProperties = null) : base(engine, Id, effects, extraProperties)
+        public Upgrade(IdleEngine engine, double Id, string Name, Dictionary<string, string> costs, string unlockExpression, string enableExpression, Dictionary<string, Tuple<string, string>> effects, BigDouble? maximumLevels = null, Dictionary<string, object> extraProperties = null) : base(engine, Id, effects, extraProperties)
         {
             this.Name = Name;
             this.CostExpressions = costs;

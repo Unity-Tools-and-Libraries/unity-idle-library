@@ -7,7 +7,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 {
     public class RpgEncounter : Entity
     {
-        public RpgEncounter(IdleEngine engine, long id, BigDouble level) : base(engine, id)
+        public RpgEncounter(IdleEngine engine, double id, BigDouble level) : base(engine, id)
         {
             this.Level = level;
         }

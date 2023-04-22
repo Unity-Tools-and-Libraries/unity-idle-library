@@ -17,9 +17,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 {
     public class RpgCharacter : Entity, IHasResources
     {
-        public RpgCharacter(IdleEngine engine, long id, Dictionary<string, BigDouble> resources = null) : base(engine, id)
+        public RpgCharacter(IdleEngine engine, double id, Dictionary<string, BigDouble> resources = null) : base(engine, id)
         {
-            Statuses = new Dictionary<long, Duration>();
+            Statuses = new Dictionary<double, Duration>();
             ItemSlots = new Dictionary<string, CharacterItem[]>();
             if (engine != null) // Engine can be null when deserializing and is set after construction.
             {
@@ -28,7 +28,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                     ItemSlots[defaultSlot.Key] = new CharacterItem[defaultSlot.Value];
                 }
             }
-            Abilities = new Dictionary<long, CharacterAbility>();
+            Abilities = new Dictionary<double, CharacterAbility>();
             OnEventTriggers = new Dictionary<string, List<string>>();
             Resources = resources != null ? resources.ToDictionary(r => r.Key, r =>
             {
@@ -70,9 +70,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public virtual bool IsAlive => CurrentHealth > 0;
         public string Action { get; set; }
         public readonly NumericAttribute CriticalHitChance = new NumericAttribute(0);
-        public virtual Dictionary<long, CharacterAbility> Abilities { get; set; }
+        public virtual Dictionary<double, CharacterAbility> Abilities { get; set; }
         public virtual Dictionary<string, CharacterItem[]> ItemSlots { get; set; }
-        public virtual Dictionary<long, Duration> Statuses { get; set; }
+        public virtual Dictionary<double, Duration> Statuses { get; set; }
         public virtual Dictionary<string, List<string>> OnEventTriggers { get; private set; }
         private Dictionary<string, ResourceHolder> Resources;
         public string NextAction;

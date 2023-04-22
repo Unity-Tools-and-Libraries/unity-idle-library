@@ -9,7 +9,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
      */
     public class CharacterStatus : RpgCharacterModifier
     {
-        protected CharacterStatus(IdleEngine engine, long id, string description, Dictionary<string, Tuple<string, string>> Modifications, Dictionary<string, List<string>> events) : base(engine, id, description, Modifications, events)
+        protected CharacterStatus(IdleEngine engine, double id, string description, Dictionary<string, Tuple<string, string>> Modifications, Dictionary<string, List<string>> events) : base(engine, id, description, Modifications, events)
         {
             
         }
@@ -17,7 +17,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public class Builder : Builder<CharacterStatus>
         {
             private Dictionary<string, List<string>> events = new Dictionary<string, List<string>>();
-            public override CharacterStatus Build(IdleEngine engine, long id)
+            public override CharacterStatus Build(IdleEngine engine, double id)
             {
                 return new CharacterStatus(engine, id, "", modifications, events);
             }

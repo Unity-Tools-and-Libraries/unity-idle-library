@@ -38,7 +38,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         // Services
         public ScriptingService Scripting => scripting;
         public LoggingModule Logging => logging;
-        public Dictionary<long, Entity> Entities = new Dictionary<long, Entity>();
+        public Dictionary<double, Entity> Entities = new Dictionary<double, Entity>();
 
         //public StateMachine State { get; }
 
@@ -372,7 +372,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             }
         }
 
-        public long GetNextAvailableId()
+        public double GetNextAvailableId()
         {
             return Entities.Count > 0 ? Entities.Keys.Max() + 1 : 1;
         }

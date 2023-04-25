@@ -21,11 +21,12 @@ using System.Diagnostics;
 
 namespace io.github.thisisnozaku.idle.framework.Engine
 {
-    public class IdleEngine : IScriptingContext, IEventSource
+    public class IdleEngine : IScriptingContext
     {
         private System.Random random;
         public bool IsReady { get; private set; }
         private Dictionary<string, object> Configuration = new Dictionary<string, object>();
+        private Dictionary<string, object> Definitions = new Dictionary<string, object>();
         public PropertiesHolder GlobalProperties = new PropertiesHolder();
         private Dictionary<string, string> propertyCalculators = new Dictionary<string, string>();
         private long nextTimerId = 1;
@@ -128,8 +129,6 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             timers.Add(nextTimerId++, new Timer(time, handler, description, repeat));
         }
 
-
-
         /*
          * Convenience method to easily traverse the object graph of global properties.
          * 
@@ -199,6 +198,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             }
             return currentObject;
         }
+
+        public V GetDefinition<V>(string path)
+        {
+            return GetProperty<V>(path, Definitions);
+        }
+
         public void SetConfiguration(string property, object value)
         {
             Configuration[property] = value;
@@ -246,7 +251,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         public IDictionary<string, object> GetDefinitions()
         {
-            return GlobalProperties["definitions"] as IDictionary<string, object>;
+            return Definitions;
         }
 
         /*

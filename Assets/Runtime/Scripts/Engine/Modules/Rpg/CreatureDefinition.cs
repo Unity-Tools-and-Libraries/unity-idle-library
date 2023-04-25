@@ -6,7 +6,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 {
     public class CreatureDefinition
     {
-        public long Id { get; }
+        public double Id { get; }
 
         public IDictionary<string, object> Properties { get; private set; } = new Dictionary<string, object>();
 

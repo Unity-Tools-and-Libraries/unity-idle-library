@@ -16,11 +16,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
     {
         private Dictionary<string, object> definitions = new Dictionary<string, object>()
         {
-            { "encounters", new Dictionary<long, EncounterDefinition>() },
-            { "creatures", new Dictionary<long, CreatureDefinition>() },
-            { "statuses", new Dictionary<long, CharacterStatus>() },
-            { "abilities", new Dictionary<long, CharacterAbility>() },
-            { "items", new Dictionary<long, CharacterItem>() },
+            { "encounters", new Dictionary<double, EncounterDefinition>() },
+            { "creatures", new Dictionary<double, CreatureDefinition>() },
+            { "statuses", new Dictionary<double, CharacterStatus>() },
+            { "abilities", new Dictionary<double, CharacterAbility>() },
+            { "items", new Dictionary<double, CharacterItem>() },
         };
 
         public PlayerConfiguration Player { get; } = new PlayerConfiguration();
@@ -292,7 +292,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         {
             foreach (var option in encounterDefinition.CreatureOptions)
             {
-                if (!(definitions["creatures"] as Dictionary<long, CreatureDefinition>).ContainsKey(option.Item1))
+                if (!(definitions["creatures"] as Dictionary<double, CreatureDefinition>).ContainsKey(option.Item1))
                 {
                     throw new InvalidOperationException("Add a creature with id " + option.Item1 + " first!");
                 }
@@ -316,7 +316,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
         public void AssertReady()
         {
-            if ((definitions["encounters"] as Dictionary<long, EncounterDefinition>).Count == 0)
+            if ((definitions["encounters"] as Dictionary<double, EncounterDefinition>).Count == 0)
             {
                 throw new InvalidOperationException("Need to define at least 1 encounter");
             }
@@ -349,7 +349,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
     {
         public static IDictionary<double, EncounterDefinition> GetEncounterDefinitions(this IdleEngine engine)
         {
-            return engine.GetProperty<IDictionary<double, EncounterDefinition>>("definitions.encounters");
+            return engine.GetDefinitions()["encounters"] as IDictionary<double, EncounterDefinition>;
         }
 
         public static Dictionary<double, CharacterStatus> GetStatuses(this IdleEngine engine)
@@ -614,9 +614,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             }
         }
 
-        public static IDictionary<long, CreatureDefinition> GetCreatureDefinitions(this IdleEngine engine)
+        public static IDictionary<double, CreatureDefinition> GetCreatureDefinitions(this IdleEngine engine)
         {
-            return engine.GetDefinitions()["creatures"] as IDictionary<long, CreatureDefinition>;
+            return engine.GetDefinitions()["creatures"] as IDictionary<double, CreatureDefinition>;
         }
     }
 }

@@ -54,7 +54,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 engine.GetUpgrades()[upgrade.Key] = upgrade.Value;
             }
 
-            engine.GlobalProperties["player"] = new ClickerPlayer(engine, 0);
+            engine.GlobalProperties["player"] = new ClickerPlayer(engine, 0).Initialize();
         }
 
         public void AssertReady()

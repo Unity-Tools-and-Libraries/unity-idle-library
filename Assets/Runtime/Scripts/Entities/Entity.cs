@@ -67,10 +67,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             }
         }
 
+        public virtual Entity Initialize()
+        {
+            return this;
+        }
+
         [OnDeserialized]
         public void OnDeserialization(StreamingContext ctx)
         {
             this.Engine = (IdleEngine)ctx.Context;
+            Initialize();
         }
 
         /*

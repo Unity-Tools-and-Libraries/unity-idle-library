@@ -14,18 +14,23 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
         {
             this.Producers = new Dictionary<double, ProducerInstance>();
             this.Upgrades = new Dictionary<double, UpgradeInstance>();
-            foreach (var upgrade in engine.GetUpgrades())
-            {
-                Upgrades[upgrade.Key] = new UpgradeInstance(engine, upgrade.Key);
-            }
-            foreach (var producer in engine.GetProducers())
-            {
-                Producers[producer.Key] = new ProducerInstance(engine, producer.Key);
-            }
         }
 
         public Dictionary<double, ProducerInstance> Producers { get; }
         public Dictionary<double, UpgradeInstance> Upgrades { get; }
+
+        public override Entity Initialize()
+        {
+            foreach (var upgrade in Engine.GetUpgrades())
+            {
+                Upgrades[upgrade.Key] = new UpgradeInstance(Engine, upgrade.Key);
+            }
+            foreach (var producer in Engine.GetProducers())
+            {
+                Producers[producer.Key] = new ProducerInstance(Engine, producer.Key);
+            }
+            return this;
+        }
 
         protected override void CustomUpdate(IdleEngine engine, float deltaTime)
         {

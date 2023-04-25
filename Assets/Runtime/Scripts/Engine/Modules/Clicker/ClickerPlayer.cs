@@ -16,11 +16,11 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             this.Upgrades = new Dictionary<double, UpgradeInstance>();
             foreach (var upgrade in engine.GetUpgrades())
             {
-                Upgrades[upgrade.Key] = new UpgradeInstance(upgrade.Key);
+                Upgrades[upgrade.Key] = new UpgradeInstance(engine, upgrade.Key);
             }
             foreach (var producer in engine.GetProducers())
             {
-                Producers[producer.Key] = new ProducerInstance(producer.Key);
+                Producers[producer.Key] = new ProducerInstance(engine, producer.Key);
             }
         }
 
@@ -32,7 +32,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             base.CustomUpdate(engine, deltaTime);
             foreach (var p in Producers.Values)
             {
-                p.IsUnlocked = engine.Scripting.EvaluateStringAsScript(
+                var wasUnlocked = p.IsUnlocked;
+                var wasEnabled = p.IsEnabled;
+                p.IsUnlocked = p.IsUnlocked || engine.Scripting.EvaluateStringAsScript(
                     engine.GetProducers()[p.ProducerId].UnlockExpression, new Dictionary<string, object>()
                 {
                     { "producer", p },
@@ -44,6 +46,20 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                     { "producer", p },
                     { "target", this }
                 }).Boolean;
+                if(!wasUnlocked && p.IsUnlocked)
+                {
+                    engine.Logging.Log(string.Format("Emitting unlock event for producer {0}", p.ProducerId), "events");
+                    engine.GetProducers()[p.ProducerId].Emit(IsUnlockedChangeEvent.EventName, Tuple.Create<string, object>("producer", p));
+                    p.Emit(IsUnlockedChangeEvent.EventName, Tuple.Create<string, object>("producer", p));
+                    Emit(IsUnlockedChangeEvent.EventName, Tuple.Create<string, object>("producer", p));
+                }
+                if(!wasEnabled && p.IsEnabled)
+                {
+                    engine.Logging.Log(string.Format("Emitting enable event for producer {0}", p.ProducerId), "events");
+                    engine.GetProducers()[p.ProducerId].Emit(IsEnabledChangedEvent.EventName, Tuple.Create<string, object>("producer", p));
+                    p.Emit(IsEnabledChangedEvent.EventName, Tuple.Create<string, object>("producer", p));
+                    Emit(IsUnlockedChangeEvent.EventName, Tuple.Create<string, object>("producer", p));
+                }
             }
             foreach (var u in Upgrades.Values)
             {
@@ -63,11 +79,17 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 }).Boolean;
                 if(!wasUnlocked && u.IsUnlocked)
                 {
-                    engine.Emit("UpgradeUnlocked", Tuple.Create<string, object>("upgrade", u));
+                    engine.Logging.Log(string.Format("Emitting unlock event for upgrade {0}", u.UpgradeId), "events");
+                    engine.GetUpgrades()[u.UpgradeId].Emit(IsUnlockedChangeEvent.EventName, Tuple.Create<string, object>("upgrade", u));
+                    u.Emit(IsUnlockedChangeEvent.EventName, Tuple.Create<string, object>("upgrade", u));
+                    Emit(IsUnlockedChangeEvent.EventName, Tuple.Create<string, object>("upgrade", u));
                 }
                 if(!wasEnabled && u.IsEnabled)
                 {
-                    engine.Emit("UpgradeEnabled", Tuple.Create<string, object>("upgrade", u));
+                    engine.Logging.Log(string.Format("Emitting enable event for upgrade {0}", u.UpgradeId), "events");
+                    engine.GetUpgrades()[u.UpgradeId].Emit(IsEnabledChangedEvent.EventName, Tuple.Create<string, object>("upgrade", u));
+                    u.Emit(IsEnabledChangedEvent.EventName, Tuple.Create<string, object>("upgrade", u));
+                    Emit(IsEnabledChangedEvent.EventName, Tuple.Create<string, object>("upgrade", u));
                 }
             }
         }
@@ -130,16 +152,18 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
         {
             Upgrade upgrade = Engine.GetUpgrades()[id];
             Dictionary<string, BigDouble> cost = Engine.GetPlayer<ClickerPlayer>().CalculateCost(upgrade, 1);
-            if (SpendIfAble(cost) && (!GetModifiers().Contains(upgrade.Id) || upgrade.MaxQuantity > Upgrades[id].Quantity))
+            if ((!GetModifiers().Contains(upgrade.Id) || upgrade.MaxQuantity > Upgrades[id].Quantity) && SpendIfAble(cost))
             {
                 AddModifier(upgrade);
+                Upgrades[id].Quantity++;
                 var upgradeBoughtEvent = new UpgradeBoughtEvent(upgrade);
+                upgrade.Emit(UpgradeBoughtEvent.EventName, upgradeBoughtEvent);
                 Emit(UpgradeBoughtEvent.EventName, upgradeBoughtEvent);
                 RecalculateIncome();
-                Upgrades[id].Quantity++;
                 if (Upgrades[id].Quantity == upgrade.MaxQuantity)
                 {
                     var maxLevelEvent = new MaxLevelReachedEvent(upgrade, Upgrades[id].Quantity);
+                    Upgrades[id].Emit(MaxLevelReachedEvent.EventName, maxLevelEvent);
                     upgrade.Emit(MaxLevelReachedEvent.EventName, maxLevelEvent);
                     Emit(MaxLevelReachedEvent.EventName, maxLevelEvent);
                 }
@@ -148,7 +172,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 
         private void RecalculateIncome()
         {
-            GetResource("points").TotalIncome = Producers.Values.Aggregate(BigDouble.Zero, (total, p) => total + p.CalculateOutput(Engine));
+            GetResource("points").TotalIncome = Producers.Values.Aggregate(BigDouble.Zero, (total, p) => total + p.TotalOutput);
         }
     }
 }

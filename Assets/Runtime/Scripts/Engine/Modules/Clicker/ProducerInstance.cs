@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker;
@@ -15,47 +16,56 @@ public class ProducerInstance : IEventSource
     public bool IsUnlocked;
     public bool IsEnabled;
     public BigDouble Quantity;
-    public BigDouble OutputMultiplier;
+    public BigDouble OutputMultiplier = BigDouble.One;
+    public string UnitOutputScript;
+    private IdleEngine Engine;
+    private EventListeners listeners;
 
-    public ProducerInstance(double Id)
+    public ProducerInstance(IdleEngine engine, double Id)
     {
         this.ProducerId = Id;
+        UnitOutputScript = engine.GetProducers()[Id].UnitOutputScript;
+        this.Engine = engine;
+        listeners = new EventListeners(engine, false);
     }
 
-    public BigDouble CalculateOutput(IdleEngine engine)
+    [OnDeserialized]
+    public void OnDeserialization(StreamingContext ctx)
     {
-        var producer = engine.GetProducers()[ProducerId];
-        
-        return engine.Scripting.EvaluateStringAsScript(producer.UnitOutputScript).ToObject<BigDouble>() * Quantity;
+        this.Engine = (IdleEngine)ctx.Context;
     }
 
     public void Emit(string eventName, IScriptingContext contextToUse = null)
     {
-        throw new NotImplementedException();
+        ((IEventSource)listeners).Emit(eventName, contextToUse);
     }
 
     public void Emit(string eventName, IDictionary<string, object> contextToUse)
     {
-        throw new NotImplementedException();
+        ((IEventSource)listeners).Emit(eventName, contextToUse);
     }
 
     public void Emit(string eventName, Tuple<string, object> contextToUse)
     {
-        throw new NotImplementedException();
-    }
-
-    public void StopWatching(string eventName, string subscriptionIdentifier)
-    {
-        throw new NotImplementedException();
+        ((IEventSource)listeners).Emit(eventName, contextToUse);
     }
 
     public void Watch(string eventName, string watcherIdentifier, string handler)
     {
-        throw new NotImplementedException();
+        ((IEventSource)listeners).Watch(eventName, watcherIdentifier, handler);
     }
 
     public void Watch(string eventName, string subscriber, DynValue handler)
     {
-        throw new NotImplementedException();
+        ((IEventSource)listeners).Watch(eventName, subscriber, handler);
     }
+
+    public void StopWatching(string eventName, string subscriptionIdentifier)
+    {
+        ((IEventSource)listeners).StopWatching(eventName, subscriptionIdentifier);
+    }
+
+    public BigDouble TotalOutput => Engine.Scripting.EvaluateStringAsScript(UnitOutputScript).ToObject<BigDouble>() * Quantity * OutputMultiplier;
+
+    
 }

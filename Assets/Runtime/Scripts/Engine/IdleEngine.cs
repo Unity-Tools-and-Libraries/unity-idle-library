@@ -43,6 +43,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
 
         //public StateMachine State { get; }
 
+        [JsonIgnore]
         public AchievementsModule Achievements { get; }
 
         public void OverrideRandomNumberGenerator(System.Random rng)
@@ -468,7 +469,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             }
             foreach (var achievement in snapshot.Achievements)
             {
-                Achievements[achievement.Id] = achievement;
+                Achievements[achievement.Id].Completed = achievement.Completed;
             }
         }
 

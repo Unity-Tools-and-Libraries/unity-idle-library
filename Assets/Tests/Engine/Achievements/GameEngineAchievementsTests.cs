@@ -110,5 +110,20 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Achievements
 
             Assert.AreEqual(BigDouble.One, engine.GlobalProperties["foobarbaz"]);
         }
+
+        [Test]
+        public void OnDeserializationDoesNotResetDefinition()
+        {
+            engine.DefineAchievement(new Achievement(1L, "", "return globals.foobar.baz == 1"));
+
+            engine.GlobalProperties["foobar"] = new Dictionary<string, object>()
+            {
+                { "baz", BigDouble.One }
+            };
+
+            engine.DeserializeSnapshotString(engine.GetSerializedSnapshotString());
+
+            Assert.IsNull(engine.Achievements[1L].CompletionEffect);
+        }
     }
 }

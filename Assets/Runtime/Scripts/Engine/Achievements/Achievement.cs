@@ -16,7 +16,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Achievements
         public DynValue CompletionEffect { get; }
 
         [JsonConstructor]
-        public Achievement(long id, string description, string completionExpression, string completionEffect = "") : this(id, description, DynValue.FromObject(null, completionExpression), DynValue.FromObject(null, completionEffect))
+        public Achievement(long id, string description, string completionExpression, string completionEffect = null) :
+            this(id, description, completionExpression != null ? DynValue.FromObject(null, completionExpression) : null, completionEffect != null ? DynValue.FromObject(null, completionEffect) : null)
         {
             
         }

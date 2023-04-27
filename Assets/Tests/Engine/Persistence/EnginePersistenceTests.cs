@@ -31,7 +31,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Persistence
             before.SetFlag("flag");
 
             engine.GlobalProperties["foo"] = before;
-            engine.GetProperty<TestEntity>("foo").Bar = new BigDouble(1);
+            engine.GetProperty<TestEntity>("foo").Bar = new BigDouble(10);
 
             string snapshot = engine.GetSerializedSnapshotString();
 

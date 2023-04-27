@@ -2,6 +2,7 @@ using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitions;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Events;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using System;
 using System.Collections;
@@ -92,6 +93,69 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             Assert.IsTrue((bool)engine.GlobalProperties["localtriggered"]);
             Assert.IsTrue((bool)engine.GlobalProperties["triggered"]);
             Assert.IsTrue((bool)engine.GlobalProperties["globaltriggered"]);
+        }
+
+        [Test]
+        public void UpgradeInstanceCanSave()
+        {
+            var upgrade = new UpgradeInstance(engine, 1);
+            upgrade.Quantity = BigDouble.One;
+
+            var SerializationSettings = new JsonSerializerSettings();
+            SerializationSettings.TypeNameHandling = TypeNameHandling.All;
+            SerializationSettings.Context = new System.Runtime.Serialization.StreamingContext(System.Runtime.Serialization.StreamingContextStates.All, this);
+
+            SerializationSettings.ObjectCreationHandling = ObjectCreationHandling.Replace;
+            var serialized = JsonConvert.SerializeObject(upgrade, SerializationSettings);
+
+            Assert.AreEqual(upgrade, JsonConvert.DeserializeObject<UpgradeInstance>(serialized));
+        }
+
+        [Test]
+        public void UpgradeInstanceInDictionaryCanSave()
+        {
+            var upgrades = new Dictionary<double, UpgradeInstance>()
+            {
+                { 1.0, new UpgradeInstance(engine, 1.0) {
+                    Quantity = BigDouble.One
+                } }
+            };
+
+            var SerializationSettings = new JsonSerializerSettings();
+            SerializationSettings.TypeNameHandling = TypeNameHandling.All;
+            SerializationSettings.Context = new System.Runtime.Serialization.StreamingContext(System.Runtime.Serialization.StreamingContextStates.All, this);
+
+            SerializationSettings.ObjectCreationHandling = ObjectCreationHandling.Replace;
+            var serialized = JsonConvert.SerializeObject(upgrades, SerializationSettings);
+
+            Assert.AreEqual(upgrades, JsonConvert.DeserializeObject<Dictionary<double, UpgradeInstance>>(serialized));
+        }
+
+        [Test]
+        public void QuantityOfUpgradesPersists()
+        {
+            var upgrade = new Upgrade(engine, engine.GetNextAvailableId(), "", Tuple.Create("points", BigDouble.Zero), "return true", "return true", new Dictionary<string, System.Tuple<string, string>>());
+            module.AddUpgrade(upgrade);
+
+            Configure();
+
+            engine.Start();
+
+            engine.GetPlayer<ClickerPlayer>().BuyUpgrade(1.0);
+
+            Assert.AreEqual(BigDouble.One, engine.GetPlayer<ClickerPlayer>().Upgrades[1.0].Quantity);
+
+            var saved = engine.GetSerializedSnapshotString();
+
+            engine = new framework.Engine.IdleEngine();
+
+            Configure();
+
+            engine.Logging.ConfigureLogging("serialization", LogType.Log);
+
+            engine.DeserializeSnapshotString(saved);
+
+            Assert.AreEqual(BigDouble.One, engine.GetPlayer<ClickerPlayer>().Upgrades[1.0].Quantity);
         }
     }
 }

@@ -4,6 +4,7 @@ using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitions;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Events;
 using io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker;
 using MoonSharp.Interpreter;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -167,6 +168,26 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
             engine.GetPlayer<ClickerPlayer>().BuyProducer(3);
             Assert.AreEqual(BigDouble.One, engine.GetPlayer<ClickerPlayer>().Producers[3].Quantity);
             Assert.AreEqual(new BigDouble(9999), engine.GetPlayer().GetResource("points").Quantity);
+        }
+
+        [Test]
+        public void DeserializeRestoresUpgradeQuantity()
+        {
+            Configure();
+
+            engine.GetPlayer<ClickerPlayer>().GetResource("points").Quantity = 1000;
+
+            engine.GetPlayer<ClickerPlayer>().BuyUpgrade(2.0);
+
+            Assert.AreEqual(BigDouble.One, engine.GetPlayer<ClickerPlayer>().Upgrades[2.0].Quantity);
+
+            var serialized = JsonConvert.SerializeObject(engine.GetPlayer<ClickerPlayer>(), engine.SerializationSettings);
+
+            engine.Logging.ConfigureLogging("serialization", UnityEngine.LogType.Log);
+
+            var deserialized = JsonConvert.DeserializeObject<ClickerPlayer>(serialized, engine.SerializationSettings);
+
+            Assert.AreEqual(BigDouble.One, deserialized.Upgrades[2.0].Quantity);
         }
     }
 }

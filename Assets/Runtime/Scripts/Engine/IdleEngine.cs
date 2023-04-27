@@ -100,12 +100,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             return JsonConvert.SerializeObject(GetSnapshot(), SerializationSettings);
         }
 
-        private JsonSerializerSettings SerializationSettings;
+        public JsonSerializerSettings SerializationSettings;
 
         public void DeserializeSnapshotString(string snapshot)
         {
             Logging.Log("Deserializing from snapshot string", "persistence");
-            var deserialized = JsonConvert.DeserializeObject<EngineSnapshot>(snapshot, SerializationSettings);
+            
             RestoreFromSnapshot(JsonConvert.DeserializeObject<EngineSnapshot>(snapshot, SerializationSettings));
         }
 

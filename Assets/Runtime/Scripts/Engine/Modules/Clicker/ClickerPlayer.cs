@@ -4,6 +4,7 @@ using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Events;
 using System.Linq;
 using System.Collections.Generic;
 using System;
+using Newtonsoft.Json;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 {
@@ -16,18 +17,24 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             this.Upgrades = new Dictionary<double, UpgradeInstance>();
         }
 
-        public Dictionary<double, ProducerInstance> Producers { get; }
-        public Dictionary<double, UpgradeInstance> Upgrades { get; }
+        public Dictionary<double, ProducerInstance> Producers { get; private set; }
+        public Dictionary<double, UpgradeInstance> Upgrades { get; private set; }
 
         public override Entity Initialize()
         {
             foreach (var upgrade in Engine.GetUpgrades())
             {
-                Upgrades[upgrade.Key] = new UpgradeInstance(Engine, upgrade.Key);
+                if(!Upgrades.ContainsKey(upgrade.Key))
+                {
+                    Upgrades[upgrade.Key] = new UpgradeInstance(Engine, upgrade.Key);
+                }
             }
             foreach (var producer in Engine.GetProducers())
             {
-                Producers[producer.Key] = new ProducerInstance(Engine, producer.Key);
+                if (!Producers.ContainsKey(producer.Key))
+                {
+                    Producers[producer.Key] = new ProducerInstance(Engine, producer.Key);
+                }
             }
             return this;
         }
@@ -135,6 +142,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                 RecalculateIncome();
             }
         }
+
         /**
          * Attempts to spend the given resources, returning true if able.
          * 
@@ -155,21 +163,21 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 
         public void BuyUpgrade(double id)
         {
-            Upgrade upgrade = Engine.GetUpgrades()[id];
-            Dictionary<string, BigDouble> cost = Engine.GetPlayer<ClickerPlayer>().CalculateCost(upgrade, 1);
-            if ((!GetModifiers().Contains(upgrade.Id) || upgrade.MaxQuantity > Upgrades[id].Quantity) && SpendIfAble(cost))
+            Upgrade upgradeDefinition = Engine.GetUpgrades()[id];
+            Dictionary<string, BigDouble> cost = Engine.GetPlayer<ClickerPlayer>().CalculateCost(upgradeDefinition, 1);
+            if ((!GetModifiers().Contains(upgradeDefinition.Id) || upgradeDefinition.MaxQuantity > Upgrades[id].Quantity) && SpendIfAble(cost))
             {
-                AddModifier(upgrade);
+                AddModifier(upgradeDefinition);
                 Upgrades[id].Quantity++;
-                var upgradeBoughtEvent = new UpgradeBoughtEvent(upgrade);
-                upgrade.Emit(UpgradeBoughtEvent.EventName, upgradeBoughtEvent);
+                var upgradeBoughtEvent = new UpgradeBoughtEvent(upgradeDefinition);
+                upgradeDefinition.Emit(UpgradeBoughtEvent.EventName, upgradeBoughtEvent);
                 Emit(UpgradeBoughtEvent.EventName, upgradeBoughtEvent);
                 RecalculateIncome();
-                if (Upgrades[id].Quantity == upgrade.MaxQuantity)
+                if (Upgrades[id].Quantity == upgradeDefinition.MaxQuantity)
                 {
-                    var maxLevelEvent = new MaxLevelReachedEvent(upgrade, Upgrades[id].Quantity);
+                    var maxLevelEvent = new MaxLevelReachedEvent(upgradeDefinition, Upgrades[id].Quantity);
                     Upgrades[id].Emit(MaxLevelReachedEvent.EventName, maxLevelEvent);
-                    upgrade.Emit(MaxLevelReachedEvent.EventName, maxLevelEvent);
+                    upgradeDefinition.Emit(MaxLevelReachedEvent.EventName, maxLevelEvent);
                     Emit(MaxLevelReachedEvent.EventName, maxLevelEvent);
                 }
             }

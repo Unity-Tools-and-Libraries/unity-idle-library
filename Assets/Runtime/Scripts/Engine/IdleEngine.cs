@@ -469,8 +469,13 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             }
             foreach (var achievement in snapshot.Achievements)
             {
+                if(Achievements[achievement.Id] == null)
+                {
+                    throw new Exception();
+                }
                 Achievements[achievement.Id].Completed = achievement.Completed;
             }
+            Emit(EngineReadyEvent.EventName, (IScriptingContext)null);
         }
 
         public void AddModule(IModule newModule, bool loadScripts = false)

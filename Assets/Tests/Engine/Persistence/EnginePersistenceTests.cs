@@ -8,6 +8,7 @@ using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg;
 using JetBrains.Annotations;
 using io.github.thisisnozaku.idle.framework.Engine.Achievements;
 using MoonSharp.Interpreter;
+using io.github.thisisnozaku.idle.framework.Events;
 
 namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Persistence
 {
@@ -119,7 +120,9 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Persistence
 
             engine = new IdleEngine();
 
-            Assert.IsNull(engine.Achievements[1]);
+            engine.Achievements[1L] = new framework.Engine.Achievements.Achievement(1, "", "return true");
+
+            Assert.IsFalse(engine.Achievements[1L].Completed);
 
             engine.DeserializeSnapshotString(snapshot);
 
@@ -183,6 +186,18 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Persistence
             engine.DeserializeSnapshotString(serialized);
 
             Assert.IsTrue(engine.Achievements[1L].Completed);
+        }
+
+        [Test]
+        public void EmitReadyEventOnDeserialization()
+        {
+            engine.Watch(EngineReadyEvent.EventName, "", "globals.triggered = true");
+
+            Assert.IsFalse(engine.GlobalProperties.ContainsKey("triggered"));
+
+            engine.DeserializeSnapshotString(engine.GetSerializedSnapshotString());
+
+            Assert.IsTrue((bool)engine.GlobalProperties["triggered"]);
         }
     }
 }

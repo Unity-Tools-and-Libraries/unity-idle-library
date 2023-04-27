@@ -8,6 +8,7 @@ using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker.Definitions;
 using io.github.thisisnozaku.scripting.context;
 using MoonSharp.Interpreter;
+using Newtonsoft.Json;
 using UnityEngine;
 
 public class ProducerInstance : IEventSource
@@ -21,18 +22,26 @@ public class ProducerInstance : IEventSource
     private IdleEngine Engine;
     private EventListeners listeners;
 
-    public ProducerInstance(IdleEngine engine, double Id)
+    [JsonConstructor]
+    private ProducerInstance()
+    {
+
+    }
+
+    public ProducerInstance(IdleEngine engine, double Id) : base()
     {
         this.ProducerId = Id;
         UnitOutputScript = engine.GetProducers()[Id].UnitOutputScript;
         this.Engine = engine;
-        listeners = new EventListeners(engine, false);
+        this.listeners = new EventListeners(this.Engine, false);
     }
 
     [OnDeserialized]
     public void OnDeserialization(StreamingContext ctx)
     {
         this.Engine = (IdleEngine)ctx.Context;
+        this.listeners = new EventListeners(this.Engine, false);
+        UnitOutputScript = Engine.GetProducers()[ProducerId].UnitOutputScript;
     }
 
     public void Emit(string eventName, IScriptingContext contextToUse = null)
@@ -65,6 +74,7 @@ public class ProducerInstance : IEventSource
         ((IEventSource)listeners).StopWatching(eventName, subscriptionIdentifier);
     }
 
+    [JsonIgnore]
     public BigDouble TotalOutput => Engine.Scripting.EvaluateStringAsScript(UnitOutputScript).ToObject<BigDouble>() * Quantity * OutputMultiplier;
 
     

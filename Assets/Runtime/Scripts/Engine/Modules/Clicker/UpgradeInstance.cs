@@ -6,6 +6,7 @@ using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine;
 using io.github.thisisnozaku.scripting.context;
 using MoonSharp.Interpreter;
+using Newtonsoft.Json;
 using UnityEngine;
 
 public class UpgradeInstance : IEventSource
@@ -18,11 +19,24 @@ public class UpgradeInstance : IEventSource
 
     private EventListeners listeners;
 
+    [JsonConstructor]
+    private UpgradeInstance(double upgradeId, BigDouble quantity)
+    {
+        this.UpgradeId = upgradeId;
+        this.Quantity = quantity;
+    }
+
     public UpgradeInstance(IdleEngine engine, double upgradeId)
     {
         this.Engine = engine;
         UpgradeId = upgradeId;
         listeners = new EventListeners(engine, false);
+    }
+
+    [OnDeserialized]
+    public void OnDeserialization(StreamingContext ctx)
+    {
+        this.Engine = (IdleEngine)ctx.Context;
     }
 
     public void Emit(string eventName, IScriptingContext contextToUse = null)
@@ -40,10 +54,18 @@ public class UpgradeInstance : IEventSource
         ((IEventSource)listeners).Emit(eventName, contextToUse);
     }
 
-    [OnDeserialized]
-    public void OnDeserialization(StreamingContext ctx)
+    public override bool Equals(object obj)
     {
-        this.Engine = (IdleEngine)ctx.Context;
+        return obj is UpgradeInstance instance &&
+               UpgradeId == instance.UpgradeId &&
+               IsEnabled == instance.IsEnabled &&
+               IsUnlocked == instance.IsUnlocked &&
+               Quantity.Equals(instance.Quantity);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(UpgradeId, IsEnabled, IsUnlocked, Quantity);
     }
 
     public void StopWatching(string eventName, string subscriptionIdentifier)

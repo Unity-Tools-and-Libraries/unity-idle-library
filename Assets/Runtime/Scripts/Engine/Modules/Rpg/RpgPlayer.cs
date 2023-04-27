@@ -8,7 +8,7 @@ using UnityEngine;
 public class RpgPlayer : Player
 {
 
-    public RpgPlayer(IdleEngine engine, long id, Dictionary<string, BigDouble> resources) : base(engine, id, resources)
+    public RpgPlayer(IdleEngine engine, long id) : base(engine, id)
     {
         var fields = GetType().GetFields();
         foreach(var field in fields)

@@ -183,11 +183,23 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
 
             var serialized = JsonConvert.SerializeObject(engine.GetPlayer<ClickerPlayer>(), engine.SerializationSettings);
 
-            engine.Logging.ConfigureLogging("serialization", UnityEngine.LogType.Log);
-
             var deserialized = JsonConvert.DeserializeObject<ClickerPlayer>(serialized, engine.SerializationSettings);
 
             Assert.AreEqual(BigDouble.One, deserialized.Upgrades[2.0].Quantity);
+        }
+
+        [Test]
+        public void DeserializeRestoresResourceQuantity()
+        {
+            Configure();
+
+            engine.GetPlayer<ClickerPlayer>().GetResource("points").Quantity = 1000;
+
+            var serialized = JsonConvert.SerializeObject(engine.GetPlayer<ClickerPlayer>(), engine.SerializationSettings);
+
+            var deserialized = JsonConvert.DeserializeObject<ClickerPlayer>(serialized, engine.SerializationSettings);
+
+            Assert.AreEqual(new BigDouble(1000), deserialized.GetResource("points").Quantity);
         }
     }
 }

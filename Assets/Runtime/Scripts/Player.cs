@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using BreakInfinity;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker;
+using Newtonsoft.Json;
 
 namespace io.github.thisisnozaku.idle.framework.Engine
 {
@@ -10,17 +11,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine
      */
     public class Player : Entity, IHasResources
     {
-        private Dictionary<string, ResourceHolder> Resources = new Dictionary<string, ResourceHolder>();
-        public Player(IdleEngine engine, long id, Dictionary<string, BigDouble> resources) : base(engine, id)
+        public Dictionary<string, ResourceHolder> Resources = new Dictionary<string, ResourceHolder>();
+        public Player(IdleEngine engine, long id) : base(engine, id)
         {
-            if (resources != null) // So no error in deserialization
-            {
-                foreach (var e in resources)
-                {
-                    Resources[e.Key] = new ResourceHolder();
-                    Resources[e.Key].Quantity = e.Value;
-                }
-            }
+            
         }
 
         public ResourceHolder GetResource(string id)

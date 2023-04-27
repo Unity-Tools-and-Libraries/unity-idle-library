@@ -9,6 +9,7 @@ using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Combat;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Events;
 using io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg.Configuration;
 using UnityEngine.AddressableAssets;
+using io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker;
 
 namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 {
@@ -80,12 +81,13 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public void Configure(IdleEngine engine)
         {
             AssertReady();
-            foreach(var scriptPath in GetPreinitializationScriptPaths())
+            foreach (var scriptPath in GetPreinitializationScriptPaths())
             {
                 try
                 {
                     engine.Scripting.EvaluateStringAsScript(Addressables.LoadAssetAsync<TextAsset>(scriptPath).WaitForCompletion().text);
-                } catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
                     throw new InvalidOperationException("Failed executing initialization script at " + scriptPath, ex);
                 }
@@ -112,7 +114,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 Player.OnCreatureDiedScript = engine.Scripting.EvaluateStringAsScript(Addressables.LoadAssetAsync<TextAsset>("Rpg/DefaultCreatureDiedScript.lua")
                     .WaitForCompletion().text);
             }
-            if(Player.Resources == null)
+            if (Player.Resources == null)
             {
                 Player.Resources = new Dictionary<string, BigDouble>()
                 {
@@ -131,7 +133,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 Creatures.ToHitScript = engine.Scripting.EvaluateStringAsScript(Addressables.LoadAssetAsync<TextAsset>("Rpg/DefaultToHitScript.lua")
                     .WaitForCompletion().text);
             }
-            if(Creatures.XpValueCalculationScript == null)
+            if (Creatures.XpValueCalculationScript == null)
             {
                 Creatures.XpValueCalculationScript = engine.Scripting.EvaluateStringAsScript(Addressables.LoadAssetAsync<TextAsset>("Rpg/DefaultXpCalculationScript.lua")
                     .WaitForCompletion().text);
@@ -147,7 +149,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 Combat.AttackHandlerResultScript = Addressables.LoadAssetAsync<TextAsset>("Rpg/DefaultAttackHandlerResultScript.lua")
                     .WaitForCompletion().text;
             }
-            if(Combat.OnHitScript == null)
+            if (Combat.OnHitScript == null)
             {
                 Combat.OnHitScript = Addressables.LoadAssetAsync<TextAsset>("Rpg/OnHit.lua")
                     .WaitForCompletion().text;
@@ -163,8 +165,8 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                     .WaitForCompletion().text;
             }
 
-            engine.SetConfiguration("combat", Combat); 
-                
+            engine.SetConfiguration("combat", Combat);
+
             engine.SetConfiguration("player", Player);
             engine.SetConfiguration("creatures", Creatures);
 
@@ -178,7 +180,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
 
             LoadScripts(engine);
 
-            engine.SetConfiguration("EncounterSelector",  Addressables.LoadAssetAsync<TextAsset>("Rpg/DefaultEncounterSelector.lua")
+            engine.SetConfiguration("EncounterSelector", Addressables.LoadAssetAsync<TextAsset>("Rpg/DefaultEncounterSelector.lua")
                 .WaitForCompletion().text);
 
             engine.Scripting.AddTypeAdaptor<AttackResultDescription>(
@@ -193,11 +195,14 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
                 })
                 .Build());
 
-            engine.GlobalProperties["player"] = new RpgPlayer(engine, 1, new Dictionary<string, BigDouble>()
+            engine.GlobalProperties["player"] = new RpgPlayer(engine, 1)
             {
-                { "xp", 0 },
-                { "gold", 0 }
-            });
+                Resources = new Dictionary<string, ResourceHolder>()
+                {
+                    { "xp", new ResourceHolder() },
+                    { "gold", new ResourceHolder() }
+                }
+            };
 
             SetDefinitions(engine);
             SetGlobalProperties(engine);
@@ -230,7 +235,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
         public void LoadScripts(IdleEngine engine)
         {
             var defaultScripts = Resources.LoadAll<TextAsset>("Lua/Rpg");
-            foreach(var script in defaultScripts)
+            foreach (var script in defaultScripts)
             {
                 engine.Scripting.EvaluateStringAsScript(script.text);
             }
@@ -388,7 +393,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             };
             engine.Logging.Log(LogType.Log, () => String.Format("Character {0} is attacking {1}", attacker.Id, defender.Id), "combat.attack");
             // Did attack hit, crit or miss?
-            if(attacker.ToHitScript == null)
+            if (attacker.ToHitScript == null)
             {
                 throw new InvalidOperationException(string.Format("attacker #{0} had no attack script defined", attacker.Id));
             }
@@ -402,9 +407,9 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Rpg
             // Determine attack outcome
             context["toHitResult"] = attackResult;
             string handlerScript = engine.GetExpectedConfiguration<string>("combat.AttackHandlerResultScript");
-                AttackResultDescription attackOutcome = engine.Scripting.EvaluateStringAsScript(handlerScript,
-                context)
-                .ToObject<AttackResultDescription>();
+            AttackResultDescription attackOutcome = engine.Scripting.EvaluateStringAsScript(handlerScript,
+            context)
+            .ToObject<AttackResultDescription>();
 
             context["attackResult"] = attackOutcome;
 

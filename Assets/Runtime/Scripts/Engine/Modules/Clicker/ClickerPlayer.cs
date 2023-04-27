@@ -10,8 +10,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 {
     public class ClickerPlayer : Player
     {
-        public ClickerPlayer(IdleEngine engine, long id, Dictionary<string, BigDouble> resources = null) : base(engine, id, resources != null ? resources :
-            new Dictionary<string, BigDouble>() { { "points", BigDouble.Zero } })
+        public ClickerPlayer(IdleEngine engine, long id) : base(engine, id)
         {
             this.Producers = new Dictionary<double, ProducerInstance>();
             this.Upgrades = new Dictionary<double, UpgradeInstance>();

@@ -1,4 +1,5 @@
 using BreakInfinity;
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,10 +10,22 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
     {
         public BigDouble Quantity { get; set; }
         public BigDouble TotalIncome { get; set; }
+        [JsonIgnore]
         public BigDouble ClickIncome => this.ClickIncomeBase * this.ClickIncomeMultiplier;
 
         public BigDouble ClickIncomeBase { get; set; } = 1;
         public BigDouble ClickIncomeMultiplier { get; set; } = 1;
+
+        [JsonConstructor]
+        public ResourceHolder()
+        {
+
+        }
+
+        public ResourceHolder(BigDouble startingQuantity)
+        {
+            Quantity = startingQuantity;
+        }
 
         public bool Spend(BigDouble quantity)
         {

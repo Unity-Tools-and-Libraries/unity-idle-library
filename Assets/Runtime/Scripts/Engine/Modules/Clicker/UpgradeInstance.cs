@@ -17,6 +17,7 @@ public class UpgradeInstance : IEventSource
     public BigDouble Quantity;
     private IdleEngine Engine;
 
+    [JsonProperty]
     private EventListeners listeners;
 
     [JsonConstructor]

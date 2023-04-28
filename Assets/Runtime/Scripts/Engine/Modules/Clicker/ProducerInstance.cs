@@ -20,6 +20,7 @@ public class ProducerInstance : IEventSource
     public BigDouble OutputMultiplier = BigDouble.One;
     public string UnitOutputScript;
     private IdleEngine Engine;
+    [JsonProperty]
     private EventListeners listeners;
 
     [JsonConstructor]

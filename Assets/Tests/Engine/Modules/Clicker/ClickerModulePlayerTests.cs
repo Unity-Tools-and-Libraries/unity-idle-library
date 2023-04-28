@@ -189,6 +189,24 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
         }
 
         [Test]
+        public void DeserializeRestoresUpgradeListeners()
+        {
+            Configure();
+
+            engine.GetPlayer<ClickerPlayer>().Upgrades[2.0].Watch("foobar", "test", "globals.triggered = true");
+
+            var serialized = JsonConvert.SerializeObject(engine.GetPlayer<ClickerPlayer>(), engine.SerializationSettings);
+
+            engine.Logging.ConfigureLogging("serialization", UnityEngine.LogType.Log);
+
+            var deserialized = JsonConvert.DeserializeObject<ClickerPlayer>(serialized, engine.SerializationSettings);
+
+            deserialized.Upgrades[2.0].Emit("foobar");
+
+            Assert.IsTrue((bool)engine.GlobalProperties["triggered"]);
+        }
+
+        [Test]
         public void DeserializeRestoresResourceQuantity()
         {
             Configure();

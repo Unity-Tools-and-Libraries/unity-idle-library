@@ -41,7 +41,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         public LoggingModule Logging => logging;
         public Dictionary<double, Entity> Entities = new Dictionary<double, Entity>();
 
-        //public StateMachine State { get; }
+        private float updateTimer;
 
         [JsonIgnore]
         public AchievementsModule Achievements { get; }
@@ -387,6 +387,12 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         {
             if (IsReady)
             {
+                updateTimer += deltaTime;
+                if(updateTimer < .1f)
+                {
+                    return;
+                }
+                updateTimer = 0f;
                 foreach (var nextToUpdate in TraverseObjectGraph())
                 {
                     switch (nextToUpdate.Type)

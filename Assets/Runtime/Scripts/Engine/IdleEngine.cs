@@ -105,7 +105,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
         public void DeserializeSnapshotString(string snapshot)
         {
             Logging.Log("Deserializing from snapshot string", "persistence");
-            
+
             RestoreFromSnapshot(JsonConvert.DeserializeObject<EngineSnapshot>(snapshot, SerializationSettings));
         }
 
@@ -469,7 +469,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             }
             foreach (var achievement in snapshot.Achievements)
             {
-                if(Achievements[achievement.Id] == null)
+                if (Achievements[achievement.Id] == null)
                 {
                     throw new Exception();
                 }
@@ -531,24 +531,30 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             listeners.StopWatching(eventName, subscriptionDescription);
         }
 
+        private static Dictionary<string, WeakReference<string[]>> cachedPaths = new Dictionary<string, WeakReference<string[]>>();
+
         public static string[] GeneratePathTokens(string path)
         {
-            return path.Split('.')
-                .SelectMany(t =>
+            string[] value = null;
+            if (!cachedPaths.ContainsKey(path) || !cachedPaths[path].TryGetTarget(out value))
+            {
+                value = path.Split('.').SelectMany(t =>
+            {
+                if (t.Contains("["))
                 {
-                    if (t.Contains("["))
+                    return new string[]
                     {
-                        return new string[]
-                        {
                             t.Substring(0, t.IndexOf("[")),
                             t.Substring(t.IndexOf("[") + 1 , t.IndexOf("]") - t.IndexOf("[") - 1)
-                        };
-                    }
-                    else
-                    {
-                        return new string[] { t };
-                    }
-                }).ToArray();
+                    };
+                }
+                else
+                {
+                    return new string[] { t };
+                }
+            }).ToArray();
+            }
+            return value;
         }
 
         public void DefineAchievement(Achievement achievement)

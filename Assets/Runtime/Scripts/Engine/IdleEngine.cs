@@ -552,6 +552,7 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                 {
                     return new string[] { t };
                 }
+                cachedPaths[path] = new WeakReference<string[]>(value);
             }).ToArray();
             }
             return value;

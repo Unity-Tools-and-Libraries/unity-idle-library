@@ -71,7 +71,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
             engine.Start();
             engine.GlobalProperties["foo"] = new TestEntity(engine, 1);
             engine.Scripting.EvaluateStringAsScript("globals.foo.calculateChild('Bar', 'if value != nil then return value + 1 else return 1 end')");
-            engine.Update(0);
+            engine.Update(1);
             Assert.AreEqual(new BigDouble(2), engine.Scripting.EvaluateStringAsScript("return globals.foo.bar").ToObject<BigDouble>());
         }
 
@@ -83,7 +83,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Scripting
             engine.Scripting.EvaluateStringAsScript("globals.foo.calculateChild('Bar', 'if value == nil then return 1 else return value + 1 end')");
             for (int i = 1; i <= 5; i++)
             {
-                engine.Update(0);
+                engine.Update(1);
                 Assert.AreEqual(new BigDouble(i + 1), engine.Scripting.EvaluateStringAsScript("return globals.foo.bar").ToObject<BigDouble>());
             }
         }

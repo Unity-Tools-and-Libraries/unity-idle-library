@@ -23,7 +23,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Achievements
 
             engine.Start();
 
-            engine.Update(0f);
+            engine.Update(1f);
 
             Assert.IsTrue(engine.Achievements[1L].Completed);
         }
@@ -47,7 +47,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Achievements
 
             engine.Start();
 
-            engine.Update(0f);
+            engine.Update(1f);
 
             Assert.IsFalse(called);
         }
@@ -64,13 +64,13 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Achievements
 
             engine.Start();
 
-            engine.Update(0f);
+            engine.Update(1f);
 
             Assert.IsTrue(engine.Achievements[1L].Completed);
 
             (engine.GlobalProperties["foobar"] as Dictionary<string, object>)["baz"] = BigDouble.Zero;
 
-            engine.Update(0f);
+            engine.Update(1f);
 
             Assert.IsTrue(engine.Achievements[1L].Completed);
         }
@@ -89,7 +89,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Achievements
 
             engine.Watch(AchievementCompletedEvent.EventName, "", "globals.called = true");
 
-            engine.Update(0f);
+            engine.Update(1f);
 
             Assert.IsTrue((bool?)engine.GlobalProperties["called"]);
         }
@@ -106,7 +106,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Achievements
 
             engine.Start();
 
-            engine.Update(0f);
+            engine.Update(1f);
 
             Assert.AreEqual(BigDouble.One, engine.GlobalProperties["foobarbaz"]);
         }

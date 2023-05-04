@@ -112,7 +112,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Persistence
             engine.Achievements[1L] = new framework.Engine.Achievements.Achievement(1, "", "return true");
 
             engine.Start();
-            engine.Update(0f);
+            engine.Update(1f);
 
             Assert.IsTrue(engine.Achievements[1L].Completed);
 

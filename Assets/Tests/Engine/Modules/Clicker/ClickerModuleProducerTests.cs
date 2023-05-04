@@ -40,7 +40,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
 
             engine.Start();
             engine.GetPlayer<ClickerPlayer>().Producers[1].Quantity = 1;
-            engine.Update(0f);
+            engine.Update(1f);
             Assert.AreEqual(new BigDouble(1), engine.Scripting.EvaluateStringAsScript("return globals.player.producers[1].TotalOutput").ToObject<BigDouble>());
         }
 

@@ -99,7 +99,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
 
             engine.Start();
             engine.GetPlayer().SetFlag("set");
-            engine.Update(0);
+            engine.Update(1);
             Assert.IsTrue(engine.GetPlayer<ClickerPlayer>().Upgrades[2].IsUnlocked);
         }
 
@@ -113,7 +113,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
 
             engine.Start();
             engine.GetPlayer().SetFlag("set");
-            engine.Update(0);
+            engine.Update(1);
             Assert.IsTrue(engine.GetPlayer<ClickerPlayer>().Upgrades[2].IsEnabled);
         }
 
@@ -127,7 +127,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
 
             engine.Start();
             engine.GetPlayer().SetFlag("set");
-            engine.Update(0);
+            engine.Update(1);
             Assert.IsTrue(engine.GetPlayer<ClickerPlayer>().Producers[3].IsUnlocked);
         }
 
@@ -140,7 +140,7 @@ namespace io.github.thisisnozaku.idle.framework.Tests.Engine.Modules.Clicker
 
             engine.Start();
             engine.GetPlayer().SetFlag("set");
-            engine.Update(0);
+            engine.Update(1);
             Assert.IsTrue(engine.GetPlayer<ClickerPlayer>().Producers[3].IsEnabled);
         }
 

@@ -18,6 +18,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
 
         public void AddUpgrade(Upgrade upgrade)
         {
+            if(upgrades.ContainsKey(upgrade.Id))
+            {
+                throw new Exception("Already contains an upgrade with id " + upgrade.Id);
+            }
             upgrades[upgrade.Id] = upgrade;
         }
 

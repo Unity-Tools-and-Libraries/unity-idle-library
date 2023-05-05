@@ -1,3 +1,5 @@
+This project is no longer under development. Unity just sucks too much.
+
 ## 1. Introduction
 This package provides a framework for the creation of idle/incremental games in Unity.
 

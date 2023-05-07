@@ -160,11 +160,18 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
             return buying;
         }
 
-        public void BuyUpgrade(double id)
+        public bool CanAddUpgrade(double id)
         {
             Upgrade upgradeDefinition = Engine.GetUpgrades()[id];
             Dictionary<string, BigDouble> cost = Engine.GetPlayer<ClickerPlayer>().CalculateCost(upgradeDefinition, 1);
-            if ((!GetModifiers().Contains(upgradeDefinition.Id) || upgradeDefinition.MaxQuantity > Upgrades[id].Quantity) && SpendIfAble(cost))
+            return (!GetModifiers().Contains(upgradeDefinition.Id) || upgradeDefinition.MaxQuantity > Upgrades[id].Quantity);
+        }
+
+        public void AddUpgrade(double id)
+        {
+            Upgrade upgradeDefinition = Engine.GetUpgrades()[id];
+            Dictionary<string, BigDouble> cost = Engine.GetPlayer<ClickerPlayer>().CalculateCost(upgradeDefinition, 1);
+            if (CanAddUpgrade(id))
             {
                 AddModifier(upgradeDefinition);
                 Upgrades[id].Quantity++;
@@ -179,6 +186,16 @@ namespace io.github.thisisnozaku.idle.framework.Engine.Modules.Clicker
                     upgradeDefinition.Emit(MaxLevelReachedEvent.EventName, maxLevelEvent);
                     Emit(MaxLevelReachedEvent.EventName, maxLevelEvent);
                 }
+            }
+        }
+
+        public void BuyUpgrade(double id)
+        {
+            Upgrade upgradeDefinition = Engine.GetUpgrades()[id];
+            Dictionary<string, BigDouble> cost = Engine.GetPlayer<ClickerPlayer>().CalculateCost(upgradeDefinition, 1);
+            if (CanAddUpgrade(id) && SpendIfAble(cost))
+            {
+                AddUpgrade(id);
             }
         }
 

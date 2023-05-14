@@ -41,26 +41,32 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             if(eventListenersBySubscriber != null)
             {
                 Engine.Logging.Log(string.Format("Notifying {0} listener(s)", eventListenersBySubscriber.Count));
-                foreach(var subscription in eventListenersBySubscriber)
+                lock (eventListenersBySubscriber)
                 {
-                    if (subscription.Value != null)
+                    foreach (var subscription in eventListenersBySubscriber)
                     {
-                        if (callbacksBySubscriber != null && callbacksBySubscriber.ContainsKey(subscription.Key))
+                        if (subscription.Value != null)
                         {
-                            throw new InvalidOperationException(String.Format("Subscriber '{0}' for event '{1}' had both a callback and a script to handle it, which is not supported.", subscription.Key, eventName));
+                            if (callbacksBySubscriber != null && callbacksBySubscriber.ContainsKey(subscription.Key))
+                            {
+                                throw new InvalidOperationException(String.Format("Subscriber '{0}' for event '{1}' had both a callback and a script to handle it, which is not supported.", subscription.Key, eventName));
+                            }
+                            Engine.Logging.Log(string.Format("Invoking script listener for subscriber {0}", subscription.Key), "events");
+                            Engine.Scripting.EvaluateStringAsScript(subscription.Value, contextToUse);
                         }
-                        Engine.Logging.Log(string.Format("Invoking script listener for subscriber {0}", subscription.Key), "events");
-                        Engine.Scripting.EvaluateStringAsScript(subscription.Value, contextToUse);
                     }
                 }
             }
             if(callbacksBySubscriber != null)
             {
                 Engine.Logging.Log(string.Format("Notifying {0} listeners", callbacksBySubscriber.Count));
-                foreach (var subscription in callbacksBySubscriber)
+                lock (callbacksBySubscriber)
                 {
-                    Engine.Logging.Log(string.Format("Invoking callback listener for subscriber {0}", subscription.Key), "events");
-                    Engine.Scripting.Evaluate(DynValue.NewCallback(subscription.Value), contextToUse);
+                    foreach (var subscription in callbacksBySubscriber)
+                    {
+                        Engine.Logging.Log(string.Format("Invoking callback listener for subscriber {0}", subscription.Key), "events");
+                        Engine.Scripting.Evaluate(DynValue.NewCallback(subscription.Value), contextToUse);
+                    }
                 }
             }
             if(!isRoot)
@@ -91,7 +97,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                 eventListeners = new Dictionary<string, string>();
                 listeners[eventName] = eventListeners;
             }
-            eventListeners[subscriber] = handler;
+            lock (eventListeners)
+            {
+                eventListeners[subscriber] = handler;
+            }
             if(EngineReadyEvent.EventName == eventName && Engine.IsReady)
             {
                 Engine.Logging.Log("Engine was ready already, so we're invoking immediately", "events");
@@ -123,7 +132,10 @@ namespace io.github.thisisnozaku.idle.framework.Engine
                 callbacks = new Dictionary<string, CallbackFunction>();
                 this.callbacks[eventName] = callbacks;
             }
-            callbacks[subscriber] = callback;
+            lock (callbacks)
+            {
+                callbacks[subscriber] = callback;
+            }
             if(eventName == EngineReadyEvent.EventName && Engine.IsReady)
             {
                 Engine.Scripting.Evaluate(DynValue.NewCallback(callback), Engine);
@@ -137,13 +149,15 @@ namespace io.github.thisisnozaku.idle.framework.Engine
             {
                 eventListeners[subscriber] = null;
             }
-            
-            Dictionary<string, CallbackFunction> callbacks;
-            if(this.callbacks.TryGetValue(eventName, out callbacks))
+            lock (this.callbacks)
             {
-                callbacks[subscriber] = null;
+                Dictionary<string, CallbackFunction> callbacks;
+                if (this.callbacks.TryGetValue(eventName, out callbacks))
+                {
+                    callbacks[subscriber] = null;
+                }
             }
-            Engine.Logging.Log(string.Format("Subscriber {0} no longer watching {1}", subscriber, eventName), "events");
+            Engine.Logging.Log(() => string.Format("Subscriber {0} no longer watching {1}", subscriber, eventName), "events");
         }
     }
 }

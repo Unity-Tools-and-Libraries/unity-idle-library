@@ -1,0 +1,22 @@
+{
+    "name": "IdleFrameworkRuntime",
+    "rootNamespace": "",
+    "references": [
+        "RuntimePlugins",
+        "RuntimeLibraries",
+        "Scripting_Runtime",
+        "Logging_Module_Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        "Newtonsoft.Json.dll",
+        "Weighted Randomizer.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

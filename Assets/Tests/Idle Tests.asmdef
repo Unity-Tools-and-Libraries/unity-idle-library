@@ -4,11 +4,11 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "IdleFramework",
         "RuntimePlugins",
         "RuntimeLibraries",
         "Scripting_Runtime",
-        "Logging_Module_Runtime"
+        "Logging_Module_Runtime",
+        "IdleFrameworkRuntime"
     ],
     "includePlatforms": [
         "Editor"

@@ -1,5 +1,5 @@
 {
-    "name": "IdleFramework",
+    "name": "IdleFrameworkRuntime",
     "rootNamespace": "",
     "references": [
         "RuntimePlugins",
